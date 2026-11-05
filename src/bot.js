@@ -7,7 +7,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const esc = game.escapeHtml;
 const when = (ms) => (ms ? new Date(ms).toISOString().slice(0, 16).replace("T", " ") + " UTC" : "-");
 
-const USER_COMMANDS = ["/start — open UTYA Miner", "/help — how it works", "/myid — show your Telegram ID"];
+const USER_COMMANDS = ["/start — open UTYA Miner", "/balance — your mined balance", "/help — how it works", "/myid — show your Telegram ID"];
 
 const ADMIN_HELP = [
   "🛠 <b>Admin commands</b>",
@@ -20,6 +20,15 @@ const ADMIN_HELP = [
   "/order &lt;id&gt; — show one order",
   "/payments — orders still waiting for the blockchain",
   "/confirmpay &lt;id&gt; (or /confirmdeposit) — confirm one by hand when you saw the transfer in your wallet",
+  "",
+  "<b>Mining and withdrawals (the mined UTYA is paid by you, from your wallet, by hand)</b>",
+  "/withdrawals (or /wd) — withdrawal requests waiting for you, each with ✅ / ❌ buttons",
+  "/wsent &lt;id&gt; [tx hash] — you sent the UTYA (same as the ✅ button)",
+  "/wreject &lt;id&gt; [reason] — refuse; the UTYA goes back to the user's mined balance",
+  "/setminerate &lt;UTYA per hour&gt; — mining speed for new sessions",
+  "/setminwithdraw &lt;UTYA&gt; — smallest withdrawal",
+  "/mineon · /mineoff — open / pause starting new mining sessions",
+  "/withdrawon · /withdrawoff — open / pause withdrawal requests",
   "",
   "<b>Selling settings</b>",
   "/price — the live price and a sample quote",
@@ -64,6 +73,7 @@ const ALIASES = {
   "/setcontact": "/setsupport",
   "/setsupportusername": "/setsupport",
   "/announcement": "/broadcast",
+  "/wd": "/withdrawals",
 };
 const OWNER_ONLY = new Set(["/setdepositaddress", "/addadmin", "/removeadmin"]);
 
@@ -112,7 +122,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
     const text = settings.welcome
       ? esc(settings.welcome)
       : [`<b>${esc(T(lang, "welcome.title", { name: u.name }))}</b>`, "", esc(T(lang, "welcome.body", { symbol: TOKEN.symbol }))].join("\n");
-    await send(chatId, `${text}\n\n${esc(T(lang, "welcome.unofficial"))}\n\n${esc(T(lang, "welcome.cta"))}`, { reply_markup: openButton(lang) });
+    await send(chatId, `${text}\n\n${esc(T(lang, BRAND.official ? "welcome.official" : "welcome.unofficial"))}\n\n${esc(T(lang, "welcome.cta"))}`, { reply_markup: openButton(lang) });
   }
 
   const isOwner = (id) => adminIds.includes(id);
@@ -132,6 +142,17 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
       `${o.ton} TON → <b>${fmt(o.utya)} ${TOKEN.symbol}</b>${o.requoted ? " (re-quoted, paid late)" : ""}`,
       `Wallet: <code>${esc(o.wallet)}</code>`,
       `Created ${when(o.createdAt)}${o.paidAt ? " · paid " + when(o.paidAt) : ""}`,
+    ].join("\n");
+  };
+
+  const withdrawCard = async (w) => {
+    const u = await game.getUser(w.userId);
+    return [
+      `⛏️ <b>Withdrawal ${esc(w.id)}</b> · ${esc(w.status)}`,
+      `${esc(u?.name ?? w.userId)} (<code>${w.userId}</code>)${u?.username ? " @" + esc(u.username) : ""}`,
+      `<b>${fmt(w.amount)} ${TOKEN.symbol}</b>`,
+      `Wallet: <code>${esc(w.wallet)}</code>`,
+      `Requested ${when(w.createdAt)}${w.doneAt ? " · closed " + when(w.doneAt) : ""}`,
     ].join("\n");
   };
 
@@ -186,6 +207,38 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
       }
     }
 
+    // ---------- mining and withdrawals
+    if (cmd === "/withdrawals") {
+      const s = await game.adminStats();
+      if (!s.withdrawals.length) return reply("No withdrawal is waiting. 🎉");
+      for (const w of s.withdrawals) await send(chatId, `${await withdrawCard(w)}\n\nSend <b>${fmt(w.amount)} ${TOKEN.symbol}</b> to the wallet above, then tap ✅.`, { reply_markup: { inline_keyboard: [[{ text: "✅ I sent the UTYA", callback_data: `wd:ok:${w.id}` }, { text: "❌ Reject", callback_data: `wd:no:${w.id}` }]] } });
+      return;
+    }
+    if (cmd === "/wsent" || cmd === "/wreject") {
+      const [id, ...rest] = arg.split(/\s+/);
+      if (!id) return reply(`Usage: ${cmd} &lt;withdrawal id&gt; ${cmd === "/wsent" ? "[tx hash]" : "[reason]"}`);
+      try {
+        const w = cmd === "/wsent" ? await game.markWithdrawSent(id, msg.from.id, rest.join(" ")) : await game.rejectWithdraw(id, msg.from.id, rest.join(" "));
+        return reply(`Withdrawal ${esc(w.id)} is now <b>${w.status}</b> ✅ The user was told.`);
+      } catch (err) {
+        return fail(err);
+      }
+    }
+    if (cmd === "/setminerate" || cmd === "/setminwithdraw") {
+      const n = Number(arg.replace(",", "."));
+      if (!Number.isFinite(n) || n <= 0 || n > 1e9) return reply(cmd === "/setminerate" ? "Usage: /setminerate &lt;UTYA per hour&gt; (for example /setminerate 0.5)" : "Usage: /setminwithdraw &lt;UTYA&gt; (for example /setminwithdraw 100)");
+      await game.updateSettings(cmd === "/setminerate" ? { mineRate: n } : { minWithdraw: n });
+      return reply(cmd === "/setminerate" ? `Mining speed is now <b>${n} ${TOKEN.symbol} per hour</b>. Sessions that already run keep their old speed.` : `The smallest withdrawal is now <b>${n} ${TOKEN.symbol}</b>.`);
+    }
+    if (cmd === "/mineon" || cmd === "/mineoff") {
+      await game.updateSettings({ mineOpen: cmd === "/mineon" });
+      return reply(cmd === "/mineon" ? "Mining is OPEN ✅" : "New mining sessions are PAUSED ⏸ (running sessions can still be claimed)");
+    }
+    if (cmd === "/withdrawon" || cmd === "/withdrawoff") {
+      await game.updateSettings({ withdrawOpen: cmd === "/withdrawon" });
+      return reply(cmd === "/withdrawon" ? "Withdrawal requests are OPEN ✅" : "Withdrawal requests are PAUSED ⏸ (requests already made are still handled)");
+    }
+
     // ---------- selling settings
     if (cmd === "/price") {
       const price = await game.runtime.price?.get().catch(() => null);
@@ -236,6 +289,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
           "⚙️ <b>Settings</b>",
           `Buying: <b>${st.buyOpen ? "open" : "paused"}</b> · min ${st.minTon} TON · max ${st.maxTon} TON`,
           `Service fee: <b>${st.feePct}%</b> · delivery promise: <b>${st.deliveryHours} h</b>`,
+          `Mining: <b>${st.mineOpen ? "open" : "paused"}</b> · <b>${st.mineRate} ${TOKEN.symbol}/h</b> · withdrawals: <b>${st.withdrawOpen ? "open" : "paused"}</b> · min ${st.minWithdraw} ${TOKEN.symbol}`,
           `Payment wallet: ${addr ? `<code>${esc(addr)}</code>` : "<b>not set</b> (/setdepositaddress)"}`,
           `Support button: ${st.support ? esc(st.support) : "hidden"}`,
           `Welcome message: ${st.welcome ? "custom" : "default"}`,
@@ -309,6 +363,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
           `Waiting for your UTYA: <b>${s.awaiting.length}</b> · refund requests: <b>${s.refunds.length}</b> · unpaid: <b>${s.unpaid.length}</b>`,
           `TON received: <b>${s.receivedTon.toFixed(2)}</b> · refunded: <b>${s.refundedTon.toFixed(2)}</b>`,
           `${TOKEN.symbol} delivered: <b>${fmt(s.deliveredUtya)}</b>`,
+          `⛏️ Mined (claimed by users): <b>${fmt(s.minedUtya)} ${TOKEN.symbol}</b> · withdrawn: <b>${fmt(s.withdrawnUtya)}</b> · withdrawals waiting: <b>${s.withdrawals.length}</b>`,
         ].join("\n"),
       );
     }
@@ -325,6 +380,8 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
             `Wallet: <code>${esc(u.wallet || "-")}</code>`,
             `Language: ${u.lang} · Banned: ${u.banned ? "yes — " + esc(u.banReason || "no reason saved") : "no"}`,
             `Joined: ${new Date(u.createdAt).toISOString().slice(0, 10)}`,
+            `⛏️ Mined balance: <b>${fmt(u.mining.balance)} ${TOKEN.symbol}</b> · mined in total ${fmt(u.mining.total)} · withdrawn ${fmt(u.mining.withdrawn)}`,
+            ...(u.withdrawals.length ? ["<b>Last withdrawals</b>", ...u.withdrawals.map((w) => `<code>${esc(w.id)}</code> · ${fmt(w.amount)} ${TOKEN.symbol} · ${w.status}`)] : []),
             ...(u.orders.length ? ["", "<b>Last orders</b>", ...u.orders.map((o) => `<code>${esc(o.id)}</code> · ${o.ton} TON → ${fmt(o.utya)} ${TOKEN.symbol} · ${o.status}`)] : ["No orders."]),
           ].join("\n"),
         );
@@ -392,6 +449,11 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
       const admin = await isAdmin(msg.from.id);
       return send(msg.chat.id, `Your Telegram ID: <code>${msg.from.id}</code>\nAdmin: <b>${admin ? (isOwner(msg.from.id) ? "yes (owner)" : "yes") : "no"}</b>`);
     }
+    if (cmd === "/balance") {
+      const st = await game.stateFor(msg.from.id);
+      const waiting = st.withdrawals.filter((w) => w.status === "pending").length;
+      return send(msg.chat.id, esc(T(u.lang, "balance", { balance: fmt(st.mining.balance), total: fmt(st.mining.total), withdrawn: fmt(st.mining.withdrawn), waiting, symbol: TOKEN.symbol })), { reply_markup: openButton(u.lang) });
+    }
     const admin = cmd ? await isAdmin(msg.from.id) : false;
     if (cmd === "/help" || cmd === "/commands" || (cmd === "/admin" && admin)) {
       const st = await game.getSettings();
@@ -412,6 +474,17 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
         await tg("answerCallbackQuery", { callback_query_id: cb.id, text: `${u.name} is unbanned` });
       } catch (err) {
         await tg("answerCallbackQuery", { callback_query_id: cb.id, text: String(err.message).slice(0, 150) });
+      }
+      return;
+    }
+    const wd = /^wd:(ok|no):([0-9A-Fa-f]{8})$/.exec(cb.data ?? "");
+    if (wd && (await isAdmin(cb.from.id))) {
+      try {
+        const w = wd[1] === "ok" ? await game.markWithdrawSent(wd[2], cb.from.id) : await game.rejectWithdraw(wd[2], cb.from.id, "Rejected by an admin");
+        await tg("answerCallbackQuery", { callback_query_id: cb.id, text: `Withdrawal ${w.id} ${w.status}` });
+        if (cb.message) await tg("editMessageReplyMarkup", { chat_id: cb.message.chat.id, message_id: cb.message.message_id, reply_markup: { inline_keyboard: [[{ text: wd[1] === "ok" ? "✅ Sent" : "❌ Rejected", callback_data: "noop" }]] } });
+      } catch (err) {
+        await tg("answerCallbackQuery", { callback_query_id: cb.id, text: String(err.message).slice(0, 190), show_alert: true });
       }
       return;
     }
@@ -442,7 +515,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
     }
     await tg("setWebhook", { url: `${publicUrl}/bot`, secret_token: webhookSecret, allowed_updates: ["message", "callback_query"], drop_pending_updates: false });
     await tg("setChatMenuButton", { menu_button: { type: "web_app", text: "🦆 Open", web_app: { url: publicUrl } } });
-    await tg("setMyCommands", { commands: [{ command: "start", description: "Open UTYA Miner" }, { command: "help", description: "How it works" }, { command: "myid", description: "Show my Telegram ID" }] });
+    await tg("setMyCommands", { commands: [{ command: "start", description: "Open UTYA Miner" }, { command: "balance", description: "My mined balance" }, { command: "help", description: "How it works" }, { command: "myid", description: "Show my Telegram ID" }] });
     console.log(`[bot] webhook set for @${username}`);
   }
 
