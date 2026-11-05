@@ -5,7 +5,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { verifyInitData } from "./src/auth.js";
 import { createBot } from "./src/bot.js";
-import { BRAND, MAX_REQUESTS_PER_MINUTE, PAYMENT_SWEEP_MS } from "./src/config.js";
+import { BRAND, MAX_REQUESTS_PER_MINUTE, PAYMENT_SWEEP_MS, PRICE } from "./src/config.js";
 import { openDb } from "./src/db.js";
 import * as game from "./src/game.js";
 import { iconPng } from "./src/icon.js";
@@ -158,7 +158,7 @@ const bannedBody = async () => ({ error: "Your account is blocked.", code: "bann
 
 // ----------------------------------- API -------------------------------------
 
-async function handleApi(req, res, pathname) {
+async function handleApi(req, res, pathname, query) {
   const auth = verifyInitData(req.headers["x-init-data"], BOT_TOKEN);
   if (!auth) return json(res, 401, { error: "Please open the app from Telegram." });
   const me = await game.ensureUser(auth.user);
@@ -191,6 +191,23 @@ async function handleApi(req, res, pathname) {
     case "/api/refund":
       await game.requestRefund(id, String(body.id ?? ""));
       return json(res, 200, { state: await game.stateFor(id) });
+    // ---- mining
+    case "/api/mine/start":
+      await game.startMining(id);
+      return json(res, 200, { state: await game.stateFor(id) });
+    case "/api/mine/claim": {
+      const claimed = await game.claimMining(id);
+      return json(res, 200, { claimed, state: await game.stateFor(id) });
+    }
+    case "/api/withdraw":
+      await game.requestWithdraw(id, body.amount);
+      return json(res, 200, { state: await game.stateFor(id) });
+    case "/api/withdraw/cancel":
+      await game.cancelWithdraw(id, String(body.id ?? ""));
+      return json(res, 200, { state: await game.stateFor(id) });
+    // ---- live price chart: ?range=1h|24h|7d
+    case "/api/chart":
+      return json(res, 200, await game.runtime.price.chart(String(query.get("range") ?? "")));
     default:
       return json(res, 404, { error: "Not found." });
   }
@@ -229,7 +246,7 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    if (pathname.startsWith("/api/")) return await handleApi(req, res, pathname);
+    if (pathname.startsWith("/api/")) return await handleApi(req, res, pathname, url.searchParams);
 
     if (req.method === "GET" || req.method === "HEAD") return serveStatic(req, res, pathname);
     res.writeHead(405);
@@ -245,6 +262,8 @@ server.listen(PORT, () => {
   console.log(`[server] ${BRAND.name} running on port ${PORT} (db: ${db.kind})`);
   void bot?.setup();
   void game.runtime.price.get(); // warm up the live price
+  // Keeps reading the price all day, so the chart has live points even when nobody has the app open
+  setInterval(() => void game.runtime.price.get().catch(() => {}), PRICE.refreshMs).unref();
   // Finds payments on the blockchain, also when the buyer already closed the app
   const paySweep = () => pay.sweep().catch((err) => console.error("[pay] sweep failed:", err.message));
   setInterval(paySweep, PAYMENT_SWEEP_MS).unref();
