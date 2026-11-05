@@ -4,8 +4,12 @@
 // Order status:  pending (waiting for the TON) -> expired (quote over, still found if paid late) -> failed (never paid)
 //                paid (TON received, waiting for the admin) -> delivered (admin sent the UTYA)
 //                paid -> refund_requested (buyer asked) -> refunded (admin sent the TON back)
+//
+// Mining: a user starts a session (MINING.sessionHours long, speed = the rate at the start), comes back, claims it and the UTYA lands in his
+//         mined balance. Everything is calculated on the server, the app only shows it.
+// Withdrawal status: pending (balance is held) -> sent (admin sent the UTYA) | rejected (balance goes back) | cancelled (user took it back)
 import crypto from "node:crypto";
-import { DEFAULTS, LANGS, ORDER, TOKEN } from "./config.js";
+import { BRAND, DEFAULTS, LANGS, MINING, ORDER, TOKEN } from "./config.js";
 import { T } from "./messages.js";
 import { normalizeWallet, toNano } from "./ton.js";
 
@@ -36,6 +40,7 @@ export function init(database) {
 
 const round2 = (n) => Math.round(n * 100) / 100;
 const round4 = (n) => Math.round(n * 1e4) / 1e4;
+const floor4 = (n) => Math.floor(n * 1e4 + 1e-6) / 1e4;
 const fmt = (n) => Number(n).toLocaleString("en-US", { maximumFractionDigits: 2 });
 
 // ------------------------------ per-key locking ------------------------------
@@ -74,6 +79,10 @@ export async function getSettings() {
     admins: Array.isArray(s.admins) ? s.admins.filter((n) => Number.isInteger(n)) : [], // extra admins (owners are in ADMIN_IDS)
     channels: Array.isArray(s.channels) ? s.channels.filter((c) => typeof c === "string") : [], // channels players must join
     joinEnabled: s.joinEnabled !== false,
+    mineOpen: s.mineOpen !== false, // /mineon /mineoff
+    withdrawOpen: s.withdrawOpen !== false, // /withdrawon /withdrawoff
+    mineRate: pos(s.mineRate, MINING.ratePerHour), // UTYA per hour
+    minWithdraw: pos(s.minWithdraw, MINING.minWithdraw), // UTYA
   };
 }
 export async function updateSettings(patch) {
@@ -123,6 +132,12 @@ export async function ensureUser(tg) {
     }
     return u;
   });
+}
+
+/** The mining data of a user. Old accounts get it the first time it is needed. */
+function mineOf(u) {
+  u.mining = { balance: 0, total: 0, withdrawn: 0, sessionStart: 0, sessionRate: 0, ...(u.mining ?? {}) };
+  return u.mining;
 }
 
 async function patchUser(id, fn) {
@@ -365,6 +380,146 @@ export async function markRefunded(id, adminId, tx = "") {
   return moved;
 }
 
+// ---------------------------------- mining -----------------------------------
+
+/** Where the session of a user stands right now. `earned` is what the full session pays. */
+export function sessionView(u, now = Date.now()) {
+  const m = mineOf({ mining: u.mining });
+  if (!m.sessionStart) return null;
+  const end = m.sessionStart + MINING.sessionMs;
+  return { start: m.sessionStart, end, rate: m.sessionRate, earned: floor4(m.sessionRate * MINING.sessionHours), ready: now >= end };
+}
+
+/** Start a mining session. The speed is fixed for the whole session (an admin change only counts from the next one). */
+export async function startMining(userId) {
+  const s = await getSettings();
+  if (!s.mineOpen) throw new GameError("Mining is paused right now.", "mine_closed");
+  return patchUser(userId, (u) => {
+    const m = mineOf(u);
+    const now = Date.now();
+    if (m.sessionStart && now < m.sessionStart + MINING.sessionMs) throw new GameError("You are already mining.", "already_mining");
+    if (m.sessionStart) throw new GameError("Claim your finished session first.", "claim_first");
+    m.sessionStart = now;
+    m.sessionRate = s.mineRate;
+    return sessionView(u, now);
+  });
+}
+
+/** Claim a finished session: the whole session is paid into the mined balance, once. */
+export async function claimMining(userId) {
+  const claimed = await patchUser(userId, (u) => {
+    const m = mineOf(u);
+    const now = Date.now();
+    if (!m.sessionStart) throw new GameError("No mining session is running.", "not_mining");
+    if (now < m.sessionStart + MINING.sessionMs) throw new GameError("Your session is not finished yet.", "not_ready");
+    const earned = floor4(m.sessionRate * MINING.sessionHours);
+    m.balance = round4(m.balance + earned);
+    m.total = round4(m.total + earned);
+    m.sessionStart = 0;
+    m.sessionRate = 0;
+    return earned;
+  });
+  await db.incMeta("minedUtya4", Math.round(claimed * 1e4));
+  return claimed;
+}
+
+// -------------------------------- withdrawals --------------------------------
+
+const newWithdrawId = () => crypto.randomBytes(4).toString("hex").toUpperCase();
+
+export function withdrawView(w) {
+  return { id: w.id, amount: w.amount, status: w.status, wallet: w.wallet, createdAt: w.createdAt, doneAt: w.doneAt ?? 0, tx: w.tx ?? "", reason: w.reason ?? "" };
+}
+
+const returnBalance = (userId, amount) =>
+  patchUser(userId, (u) => {
+    const m = mineOf(u);
+    m.balance = round4(m.balance + amount);
+  });
+
+/** The user asks to be paid out. The amount leaves his balance at once (it is held) and an admin sends the UTYA by hand. */
+export async function requestWithdraw(userId, rawAmount) {
+  return withLock("wd" + userId, async () => {
+    const s = await getSettings();
+    if (!s.withdrawOpen) throw new GameError("Withdrawals are paused right now.", "withdraw_closed");
+    const amount = floor4(Number(rawAmount));
+    if (!Number.isFinite(amount) || amount <= 0) throw new GameError("Enter how many UTYA you want to withdraw.", "bad_utya_amount", { min: s.minWithdraw });
+    if (amount < s.minWithdraw) throw new GameError(`The minimum withdrawal is ${s.minWithdraw} UTYA.`, "too_low", { min: s.minWithdraw });
+    const waiting = await db.listWithdrawals({ statuses: ["pending"], userId, limit: 20 });
+    if (waiting.length >= MINING.maxOpenWithdrawals) throw new GameError("You already have withdrawal requests waiting.", "too_many_withdrawals");
+    let wallet = "";
+    await patchUser(userId, (u) => {
+      if (!u.wallet) throw new GameError("Connect your TON wallet first.", "no_wallet");
+      const m = mineOf(u);
+      if (m.balance + 1e-9 < amount) throw new GameError("Not enough mined UTYA.", "no_balance");
+      m.balance = round4(Math.max(0, m.balance - amount));
+      wallet = u.wallet;
+    });
+    const w = { id: newWithdrawId(), userId, amount, wallet, status: "pending", createdAt: Date.now() };
+    try {
+      await db.addWithdrawal(w);
+    } catch (err) {
+      await returnBalance(userId, amount); // the request could not be saved: nothing is lost
+      throw err;
+    }
+    const user = await db.getUser(userId);
+    void hooks.notify(userId, T(langOf(user), "wd.requested", { id: w.id, amount: fmt(amount), symbol: TOKEN.symbol, hours: s.deliveryHours }));
+    void hooks.notifyAdmins(
+      [
+        `⛏️ <b>Withdrawal ${escapeHtml(w.id)}</b>`,
+        `${escapeHtml(user?.name ?? userId)} (<code>${userId}</code>)${user?.username ? " @" + escapeHtml(user.username) : ""}`,
+        `Send: <b>${fmt(amount)} ${TOKEN.symbol}</b>`,
+        `To wallet:\n<code>${escapeHtml(wallet)}</code>`,
+        `Mined in total: ${fmt(mineOf(user ?? {}).total)} ${TOKEN.symbol} · withdrawn before: ${fmt(mineOf(user ?? {}).withdrawn)} ${TOKEN.symbol}`,
+        "",
+        `After you sent it, tap ✅ (or /wsent ${w.id} [tx hash]). To refuse: ❌ (or /wreject ${w.id} [reason]).`,
+      ].join("\n"),
+      [[{ text: "✅ I sent the UTYA", callback_data: `wd:ok:${w.id}` }, { text: "❌ Reject", callback_data: `wd:no:${w.id}` }]],
+    );
+    return withdrawView(w);
+  });
+}
+
+/** The user takes a waiting request back. */
+export async function cancelWithdraw(userId, id) {
+  const w = await db.getWithdrawal(String(id).toUpperCase());
+  if (!w || w.userId !== userId) throw new GameError("Withdrawal not found.", "withdraw_missing");
+  const moved = await db.transitionWithdrawal(w.id, ["pending"], { status: "cancelled", doneAt: Date.now() });
+  if (!moved) throw new GameError("This withdrawal can not be cancelled any more.", "cannot_cancel");
+  await returnBalance(userId, moved.amount);
+  return withdrawView(moved);
+}
+
+/** Admin: the UTYA was sent to the user's wallet. */
+export async function markWithdrawSent(id, adminId, tx = "") {
+  const w = await db.getWithdrawal(String(id).toUpperCase());
+  if (!w) throw new GameError(`Withdrawal ${id} not found.`);
+  const moved = await db.transitionWithdrawal(w.id, ["pending"], { status: "sent", doneAt: Date.now(), doneBy: adminId, tx: String(tx ?? "").slice(0, 100) });
+  if (!moved) throw new GameError(`Withdrawal ${w.id} is "${w.status}", it can not be marked as sent.`);
+  await patchUser(moved.userId, (u) => {
+    const m = mineOf(u);
+    m.withdrawn = round4(m.withdrawn + moved.amount);
+  }).catch((err) => console.error("[game] could not update withdrawn total:", err.message));
+  await db.incMeta("withdrawnUtya4", Math.round(moved.amount * 1e4));
+  const user = await db.getUser(moved.userId);
+  void hooks.notify(moved.userId, T(langOf(user), "wd.sent", { id: moved.id, amount: fmt(moved.amount), symbol: TOKEN.symbol, tx: moved.tx ? `\nTx: ${moved.tx}` : "" }));
+  return moved;
+}
+
+/** Admin: refuse a request. The held UTYA goes back to the user's mined balance. */
+export async function rejectWithdraw(id, adminId, reason = "") {
+  const w = await db.getWithdrawal(String(id).toUpperCase());
+  if (!w) throw new GameError(`Withdrawal ${id} not found.`);
+  const moved = await db.transitionWithdrawal(w.id, ["pending"], { status: "rejected", doneAt: Date.now(), doneBy: adminId, reason: String(reason ?? "").slice(0, 200) });
+  if (!moved) throw new GameError(`Withdrawal ${w.id} is "${w.status}", it can not be rejected.`);
+  await returnBalance(moved.userId, moved.amount);
+  const user = await db.getUser(moved.userId);
+  void hooks.notify(moved.userId, T(langOf(user), "wd.rejected", { id: moved.id, amount: fmt(moved.amount), symbol: TOKEN.symbol, reason: moved.reason ? `\n${moved.reason}` : "" }));
+  return moved;
+}
+
+export const getWithdrawal = (id) => db.getWithdrawal(String(id).toUpperCase());
+
 // ---------------------------------- app state ---------------------------------
 
 export async function stateFor(id) {
@@ -372,7 +527,22 @@ export async function stateFor(id) {
   const s = await getSettings();
   const price = (await runtime.price?.get().catch(() => null)) ?? null;
   const orders = await db.listOrders({ userId: id, limit: 20 });
+  const withdrawals = await db.listWithdrawals({ userId: id, limit: 20 });
+  const m = mineOf(u);
   return {
+    official: BRAND.official,
+    mining: {
+      open: s.mineOpen,
+      withdrawOpen: s.withdrawOpen,
+      balance: m.balance,
+      total: m.total,
+      withdrawn: m.withdrawn,
+      rate: s.mineRate,
+      sessionHours: MINING.sessionHours,
+      minWithdraw: s.minWithdraw,
+      session: sessionView(u),
+    },
+    withdrawals: withdrawals.map(withdrawView),
     user: { id: u.id, name: u.name, wallet: u.wallet, lang: langOf(u) },
     settings: { buyOpen: s.buyOpen, minTon: s.minTon, maxTon: s.maxTon, feePct: s.feePct, deliveryHours: s.deliveryHours, support: s.support, payAddress: await getDepositAddress() },
     price: price ? { tonUsd: price.tonUsd, utyaUsd: price.utyaUsd, perTon: round2(price.tonUsd / price.utyaUsd), at: price.at } : null,
@@ -386,16 +556,20 @@ export async function stateFor(id) {
 
 export async function adminStats() {
   const meta = await db.getMeta();
-  const [awaiting, refunds, unpaid] = await Promise.all([
+  const [awaiting, refunds, unpaid, withdrawals] = await Promise.all([
     db.listOrders({ statuses: ["paid"], oldestFirst: true, limit: 100 }),
     db.listOrders({ statuses: ["refund_requested"], oldestFirst: true, limit: 100 }),
     db.listOrders({ statuses: ["pending", "expired"], limit: 100 }),
+    db.listWithdrawals({ statuses: ["pending"], oldestFirst: true, limit: 100 }),
   ]);
   return {
     users: await db.countUsers(),
     awaiting,
     refunds,
     unpaid,
+    withdrawals,
+    minedUtya: (meta.minedUtya4 ?? 0) / 1e4,
+    withdrawnUtya: (meta.withdrawnUtya4 ?? 0) / 1e4,
     receivedTon: (meta.receivedMilliTon ?? 0) / 1000,
     refundedTon: (meta.refundedMilliTon ?? 0) / 1000,
     deliveredUtya: (meta.deliveredUtyaCents ?? 0) / 100,
@@ -409,7 +583,8 @@ export async function userCounts() {
 export async function userInfo(id) {
   const u = await mustUser(id);
   const orders = await db.listOrders({ userId: id, limit: 5 });
-  return { ...u, orders };
+  const withdrawals = await db.listWithdrawals({ userId: id, limit: 5 });
+  return { ...u, mining: mineOf(u), orders, withdrawals };
 }
 export const getUser = (id) => db.getUser(id);
 export const allUserIds = () => db.allUserIds();
