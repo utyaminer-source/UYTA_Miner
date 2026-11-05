@@ -71,6 +71,38 @@ li{margin:7px 0;font-size:14px;line-height:1.45}
 .langs button.on{background:var(--duck);color:#2b1d00;border-color:var(--duck)}
 .full{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px}
 a{color:var(--aqua)}
+.nav button{font-size:11px}
+.bar{height:10px;border-radius:99px;background:var(--bg);border:1px solid var(--line);overflow:hidden;margin:10px 0 6px}
+.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--aqua),var(--duck));border-radius:99px;transition:width 1s linear}
+.bal{font-size:34px;font-weight:800;color:var(--duck);line-height:1.1}
+.bal small{font-size:16px;color:var(--muted);font-weight:700}
+.stats3{display:flex;gap:8px;margin-top:10px}
+.stats3>div{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 4px;text-align:center;font-size:12px;color:var(--muted)}
+.stats3 b{display:block;color:var(--text);font-size:13px;margin-top:2px;word-break:break-all}
+.ranges{display:flex;gap:8px;margin:12px 0 8px}
+.ranges button{flex:1;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:8px 0;font-weight:700;font-size:13px}
+.ranges button.on{background:var(--duck);color:#2b1d00;border-color:var(--duck)}
+.chead{display:flex;justify-content:space-between;align-items:flex-end;gap:10px}
+.cprice{font-size:28px;font-weight:800;line-height:1.15}
+.cchg{font-size:15px;font-weight:800;padding:4px 10px;border-radius:99px;background:var(--card2)}
+.up{color:var(--green)}.down{color:var(--red)}
+.cchg.up{background:rgba(111,227,160,.16)}.cchg.down{background:rgba(255,138,122,.16)}
+.f-up{animation:fup 1s}.f-down{animation:fdown 1s}
+@keyframes fup{0%{color:var(--green)}100%{color:var(--text)}}
+@keyframes fdown{0%{color:var(--red)}100%{color:var(--text)}}
+.cbox{position:relative;height:230px;margin-top:6px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.cbox svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
+.clab{position:absolute;left:4px;font-size:10px;color:var(--dim);pointer-events:none}
+.cdot{position:absolute;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--c);animation:pulse 1.6s infinite;pointer-events:none}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--c)}100%{box-shadow:0 0 0 12px transparent}}
+.cline{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.35);display:none;pointer-events:none}
+.ctip{position:absolute;top:2px;padding:5px 8px;border-radius:10px;background:var(--card2);border:1px solid var(--line);font-size:12px;pointer-events:none;white-space:nowrap;display:none;z-index:2}
+.cempty{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 20px}
+.wd{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:9px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.wd:last-child{border-bottom:0}
+.st-pending{background:rgba(255,205,56,.2);color:var(--duck)}
+.st-sent{background:rgba(111,227,160,.2);color:var(--green)}
+.st-rejected,.st-cancelled{background:rgba(255,138,122,.16);color:var(--red)}
 </style>
 </head>
 <body>
@@ -206,6 +238,89 @@ const I18N = {
   },
 };
 
+// ---- mining, withdrawals and the price chart (added on top of the texts above; a key here wins)
+Object.assign(I18N.en, {
+  "nav.mine": "Mine", "nav.chart": "Chart",
+  "brand.sub": "Mine & buy UTYA",
+  "unofficial.title": "Independent service", "unofficial.body": "UTYA Miner is not affiliated with the Utya project. UTYA is a community token and its price can go up and down.",
+  "official.title": "Official service", "official.body": "UTYA Miner is the official service of the Utya project. Crypto prices can go up and down.",
+  "info.7": "UTYA Miner is an independent service and not affiliated with the Utya project.", "info.7o": "UTYA Miner is the official service of the Utya project.",
+  "info.8": "Mining: you start a session of {h} hours, come back and claim it. The speed is shown in the app; the team can change it for new sessions.",
+  "info.9": "Mined UTYA is paid out by the team by hand after you request a withdrawal (within about {hours} hours). Accounts that cheat (many accounts, bots) can be blocked and lose their balance.",
+  "mine.title": "Mining", "mine.balance": "Mined balance", "mine.total": "Mined in total", "mine.withdrawn": "Withdrawn",
+  "mine.speed": "Speed", "mine.speedVal": "{n} UTYA / hour", "mine.session": "Session", "mine.sessionVal": "{h} hours",
+  "mine.start": "⛏️ Start mining", "mine.running": "Mining…", "mine.left": "{t} left", "mine.thisSession": "This session",
+  "mine.claim": "Claim {n} UTYA", "mine.ready": "Session finished!", "mine.started": "Mining started.", "mine.claimed": "{n} UTYA added to your balance.",
+  "mine.closed": "Mining is paused right now.", "mine.hint": "Start a session and come back when it ends. Nothing is lost if you close the app.",
+  "wd.title": "Withdraw", "wd.amount": "Amount in UTYA", "wd.min": "Minimum {min} UTYA", "wd.all": "All", "wd.btn": "Request withdrawal",
+  "wd.note": "An admin sends the UTYA to your wallet by hand, within about {hours} hours. The amount is held until it is sent or rejected.",
+  "wd.done": "Withdrawal requested.", "wd.cancel": "Cancel request", "wd.cancelAsk": "Cancel this withdrawal? {n} UTYA go back to your balance.",
+  "wd.cancelYes": "Yes, cancel", "wd.cancelNo": "Keep it", "wd.cancelled": "Request cancelled.", "wd.history": "Withdrawals", "wd.empty": "No withdrawals yet.",
+  "wd.closed": "Withdrawals are paused right now.", "wd.connect": "Connect your wallet to withdraw.",
+  "wst.pending": "Waiting for admin", "wst.sent": "UTYA sent", "wst.rejected": "Rejected", "wst.cancelled": "Cancelled",
+  "chart.title": "UTYA price", "chart.change": "Change", "chart.high": "High", "chart.low": "Low", "chart.updated": "Updated {s}s ago",
+  "chart.nodata": "No price data yet. Try again in a minute.", "chart.stale": "The live price is not available right now.",
+  "chart.note": "Prices come from public markets and can differ a little from DeDust. Not financial advice.",
+  "err.mine_closed": "Mining is paused right now.", "err.already_mining": "You are already mining.", "err.claim_first": "Claim your finished session first.",
+  "err.not_mining": "No mining session is running.", "err.not_ready": "Your session is not finished yet.", "err.withdraw_closed": "Withdrawals are paused right now.",
+  "err.bad_utya_amount": "Enter how many UTYA you want to withdraw.", "err.too_low": "The minimum withdrawal is {min} UTYA.", "err.no_balance": "Not enough mined UTYA.",
+  "err.too_many_withdrawals": "You already have withdrawal requests waiting.", "err.withdraw_missing": "Withdrawal not found.", "err.cannot_cancel": "This withdrawal can not be cancelled any more.",
+});
+Object.assign(I18N.bn, {
+  "nav.mine": "মাইন", "nav.chart": "চার্ট",
+  "brand.sub": "UTYA মাইন করুন ও কিনুন",
+  "unofficial.title": "স্বাধীন সার্ভিস", "unofficial.body": "UTYA Miner, Utya প্রজেক্টের সাথে যুক্ত নয়। UTYA একটি কমিউনিটি টোকেন, এর দাম বাড়তে বা কমতে পারে।",
+  "official.title": "অফিসিয়াল সার্ভিস", "official.body": "UTYA Miner হলো Utya প্রজেক্টের অফিসিয়াল সার্ভিস। ক্রিপ্টোর দাম বাড়তে বা কমতে পারে।",
+  "info.7": "UTYA Miner একটি স্বাধীন সার্ভিস এবং Utya প্রজেক্টের সাথে যুক্ত নয়।", "info.7o": "UTYA Miner হলো Utya প্রজেক্টের অফিসিয়াল সার্ভিস।",
+  "info.8": "মাইনিং: আপনি {h} ঘণ্টার একটি সেশন শুরু করেন, শেষ হলে ফিরে এসে ক্লেইম করেন। স্পিড অ্যাপে দেখানো হয়; নতুন সেশনের জন্য টিম এটি বদলাতে পারে।",
+  "info.9": "মাইন করা UTYA উইথড্র রিকোয়েস্টের পর টিম হাতে করে পাঠায় (প্রায় {hours} ঘণ্টার মধ্যে)। যারা প্রতারণা করে (একাধিক অ্যাকাউন্ট, বট) তাদের অ্যাকাউন্ট ব্লক হতে পারে এবং ব্যালেন্স হারাতে পারে।",
+  "mine.title": "মাইনিং", "mine.balance": "মাইনিং ব্যালেন্স", "mine.total": "মোট মাইন করেছেন", "mine.withdrawn": "উইথড্র করেছেন",
+  "mine.speed": "স্পিড", "mine.speedVal": "প্রতি ঘণ্টায় {n} UTYA", "mine.session": "সেশন", "mine.sessionVal": "{h} ঘণ্টা",
+  "mine.start": "⛏️ মাইনিং শুরু করুন", "mine.running": "মাইনিং চলছে…", "mine.left": "আর {t} বাকি", "mine.thisSession": "এই সেশনে",
+  "mine.claim": "{n} UTYA ক্লেইম করুন", "mine.ready": "সেশন শেষ!", "mine.started": "মাইনিং শুরু হয়েছে।", "mine.claimed": "আপনার ব্যালেন্সে {n} UTYA যোগ হয়েছে।",
+  "mine.closed": "এই মুহূর্তে মাইনিং বন্ধ আছে।", "mine.hint": "সেশন শুরু করে শেষ হলে ফিরে আসুন। অ্যাপ বন্ধ করলেও কিছু হারায় না।",
+  "wd.title": "উইথড্র", "wd.amount": "UTYA-তে পরিমাণ", "wd.min": "সর্বনিম্ন {min} UTYA", "wd.all": "সব", "wd.btn": "উইথড্র রিকোয়েস্ট করুন",
+  "wd.note": "অ্যাডমিন প্রায় {hours} ঘণ্টার মধ্যে হাতে করে আপনার ওয়ালেটে UTYA পাঠায়। পাঠানো বা বাতিল না হওয়া পর্যন্ত পরিমাণটি আটকে থাকে।",
+  "wd.done": "উইথড্র চাওয়া হয়েছে।", "wd.cancel": "রিকোয়েস্ট বাতিল করুন", "wd.cancelAsk": "এই উইথড্র বাতিল করবেন? {n} UTYA আপনার ব্যালেন্সে ফিরে যাবে।",
+  "wd.cancelYes": "হ্যাঁ, বাতিল", "wd.cancelNo": "রাখুন", "wd.cancelled": "রিকোয়েস্ট বাতিল হয়েছে।", "wd.history": "উইথড্র", "wd.empty": "এখনও কোনো উইথড্র নেই।",
+  "wd.closed": "এই মুহূর্তে উইথড্র বন্ধ আছে।", "wd.connect": "উইথড্রের জন্য ওয়ালেট কানেক্ট করুন।",
+  "wst.pending": "অ্যাডমিনের অপেক্ষায়", "wst.sent": "UTYA পাঠানো হয়েছে", "wst.rejected": "বাতিল করা হয়েছে", "wst.cancelled": "বাতিল",
+  "chart.title": "UTYA-র দাম", "chart.change": "পরিবর্তন", "chart.high": "সর্বোচ্চ", "chart.low": "সর্বনিম্ন", "chart.updated": "{s} সেকেন্ড আগে আপডেট",
+  "chart.nodata": "এখনও কোনো দামের ডেটা নেই। এক মিনিট পরে আবার চেষ্টা করুন।", "chart.stale": "এই মুহূর্তে লাইভ দাম পাওয়া যাচ্ছে না।",
+  "chart.note": "দাম পাবলিক বাজার থেকে আসে এবং DeDust-এর থেকে সামান্য আলাদা হতে পারে। এটি আর্থিক পরামর্শ নয়।",
+  "err.mine_closed": "এই মুহূর্তে মাইনিং বন্ধ আছে।", "err.already_mining": "আপনি ইতিমধ্যে মাইনিং করছেন।", "err.claim_first": "আগে শেষ হওয়া সেশনটি ক্লেইম করুন।",
+  "err.not_mining": "কোনো মাইনিং সেশন চলছে না।", "err.not_ready": "আপনার সেশন এখনও শেষ হয়নি।", "err.withdraw_closed": "এই মুহূর্তে উইথড্র বন্ধ আছে।",
+  "err.bad_utya_amount": "কত UTYA উইথড্র করবেন তা লিখুন।", "err.too_low": "সর্বনিম্ন উইথড্র {min} UTYA।", "err.no_balance": "পর্যাপ্ত মাইন করা UTYA নেই।",
+  "err.too_many_withdrawals": "আপনার ইতিমধ্যে উইথড্র রিকোয়েস্ট অপেক্ষমাণ আছে।", "err.withdraw_missing": "উইথড্র পাওয়া যায়নি।", "err.cannot_cancel": "এই উইথড্র আর বাতিল করা যাবে না।",
+});
+Object.assign(I18N.ru, {
+  "nav.mine": "Майнинг", "nav.chart": "График",
+  "brand.sub": "Майнинг и покупка UTYA",
+  "unofficial.title": "Независимый сервис", "unofficial.body": "UTYA Miner не связан с проектом Utya. UTYA — токен сообщества, его цена может расти и падать.",
+  "official.title": "Официальный сервис", "official.body": "UTYA Miner — официальный сервис проекта Utya. Цены криптотокенов могут расти и падать.",
+  "info.7": "UTYA Miner — независимый сервис, не связанный с проектом Utya.", "info.7o": "UTYA Miner — официальный сервис проекта Utya.",
+  "info.8": "Майнинг: вы запускаете сессию на {h} ч., возвращаетесь и забираете награду. Скорость показана в приложении; для новых сессий команда может её менять.",
+  "info.9": "Намайненные UTYA команда отправляет вручную после запроса на вывод (примерно в течение {hours} ч). Аккаунты, которые обманывают (много аккаунтов, боты), могут быть заблокированы с потерей баланса.",
+  "mine.title": "Майнинг", "mine.balance": "Баланс майнинга", "mine.total": "Всего намайнено", "mine.withdrawn": "Выведено",
+  "mine.speed": "Скорость", "mine.speedVal": "{n} UTYA в час", "mine.session": "Сессия", "mine.sessionVal": "{h} ч.",
+  "mine.start": "⛏️ Начать майнинг", "mine.running": "Майнинг идёт…", "mine.left": "Осталось {t}", "mine.thisSession": "За эту сессию",
+  "mine.claim": "Забрать {n} UTYA", "mine.ready": "Сессия завершена!", "mine.started": "Майнинг запущен.", "mine.claimed": "{n} UTYA добавлены на ваш баланс.",
+  "mine.closed": "Майнинг сейчас приостановлен.", "mine.hint": "Запустите сессию и вернитесь после её окончания. Если закрыть приложение, ничего не потеряется.",
+  "wd.title": "Вывод", "wd.amount": "Сумма в UTYA", "wd.min": "Минимум {min} UTYA", "wd.all": "Всё", "wd.btn": "Запросить вывод",
+  "wd.note": "Администратор вручную отправляет UTYA на ваш кошелёк примерно в течение {hours} ч. Сумма удерживается, пока её не отправят или не отклонят.",
+  "wd.done": "Вывод запрошен.", "wd.cancel": "Отменить запрос", "wd.cancelAsk": "Отменить этот вывод? {n} UTYA вернутся на ваш баланс.",
+  "wd.cancelYes": "Да, отменить", "wd.cancelNo": "Оставить", "wd.cancelled": "Запрос отменён.", "wd.history": "Выводы", "wd.empty": "Выводов пока нет.",
+  "wd.closed": "Вывод сейчас приостановлен.", "wd.connect": "Подключите кошелёк для вывода.",
+  "wst.pending": "Ждёт администратора", "wst.sent": "UTYA отправлены", "wst.rejected": "Отклонён", "wst.cancelled": "Отменён",
+  "chart.title": "Цена UTYA", "chart.change": "Изменение", "chart.high": "Максимум", "chart.low": "Минимум", "chart.updated": "Обновлено {s} с назад",
+  "chart.nodata": "Данных о цене пока нет. Попробуйте через минуту.", "chart.stale": "Актуальная цена сейчас недоступна.",
+  "chart.note": "Цены берутся с публичных рынков и могут немного отличаться от DeDust. Это не финансовая рекомендация.",
+  "err.mine_closed": "Майнинг сейчас приостановлен.", "err.already_mining": "Вы уже майните.", "err.claim_first": "Сначала заберите завершённую сессию.",
+  "err.not_mining": "Сессия майнинга не запущена.", "err.not_ready": "Ваша сессия ещё не закончилась.", "err.withdraw_closed": "Вывод сейчас приостановлен.",
+  "err.bad_utya_amount": "Введите, сколько UTYA хотите вывести.", "err.too_low": "Минимальный вывод — {min} UTYA.", "err.no_balance": "Недостаточно намайненных UTYA.",
+  "err.too_many_withdrawals": "У вас уже есть заявки на вывод в ожидании.", "err.withdraw_missing": "Вывод не найден.", "err.cannot_cancel": "Этот вывод больше нельзя отменить.",
+});
+
 // ------------------------------------------------------------------ helpers
 const tgw = window.Telegram && window.Telegram.WebApp;
 if (tgw) { try { tgw.ready(); tgw.expand(); tgw.setHeaderColor && tgw.setHeaderColor("#071a21"); tgw.setBackgroundColor && tgw.setBackgroundColor("#071a21"); } catch (e) {} }
@@ -214,7 +329,10 @@ const BOT_USERNAME = "UTYA_miner_bot";
 
 let S = null;            // state from the server
 let lang = "en";
-let tab = "buy";
+let tab = "mine";
+let wdAmount = "";       // what the player typed into the withdraw box
+let chartRange = "24h", chartData = null, chartErr = false, chartFlash = "", chartHold = false, chartGeo = null;
+let clockSkew = 0;       // server clock minus phone clock, so the mining timer is right even when the phone clock is wrong
 let amount = "5";
 let quote = null, quoteErr = null, quoteAt = 0, quoting = false;
 let busy = false;
@@ -238,6 +356,8 @@ async function api(path, body) {
   let data = {};
   try { data = await res.json(); } catch (e) {}
   if (!res.ok) { const err = new Error(data.error || "Error"); err.code = data.code; err.vars = data.vars; err.data = data; throw err; }
+  const serverNow = data && (data.now || (data.state && data.state.now));
+  if (serverNow) clockSkew = serverNow - Date.now();
   return data;
 }
 function errText(e) {
@@ -252,6 +372,16 @@ function toast(msg, kind) {
 }
 const closeOverlay = () => { $("#ov").innerHTML = ""; };
 function openOverlay(html) { $("#ov").innerHTML = '<div class="ov"><div class="sheet">' + html + "</div></div>"; }
+const nowMs = () => Date.now() + clockSkew;
+const floor4 = (n) => Math.floor(n * 1e4 + 1e-6) / 1e4;
+/** A price: 4 decimals from 1 USD up, more digits below (UTYA is a small number). */
+function pf(p) {
+  const n = Number(p);
+  if (p == null || !isFinite(n) || n <= 0) return "-";
+  if (n >= 1) return nf(n, 4);
+  return nf(n, Math.min(12, Math.max(4, 3 - Math.floor(Math.log10(n)))));
+}
+const clock = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ":" : "") + String(m).padStart(h ? 2 : 1, "0") + ":" + String(x).padStart(2, "0"); };
 const short = (a) => (a ? a.slice(0, 6) + "…" + a.slice(-6) : "-");
 const dateText = (ms) => new Date(ms).toLocaleString(lang === "ru" ? "ru-RU" : lang === "bn" ? "bn-BD" : "en-GB", { dateStyle: "medium", timeStyle: "short" });
 
@@ -284,7 +414,13 @@ function priceChip() {
   const p = S && S.price;
   if (!p) return '<div class="chip" id="chip"><b><span class="dot off"></span>' + esc(t("price.none")) + "</b></div>";
   const age = Math.max(0, Math.round((Date.now() - p.at) / 1000));
-  return '<div class="chip" id="chip"><b><span class="dot"></span>$' + esc(nf(p.utyaUsd, 6)) + "</b>" + esc(t("price.live")) + " · " + esc(t("price.age", { s: age })) + "</div>";
+  return '<div class="chip" id="chip"><b><span class="dot"></span>$' + esc(pf(p.utyaUsd)) + "</b>" + esc(t("price.live")) + " · " + esc(t("price.age", { s: age })) + "</div>";
+}
+
+/** "Independent service" by default; "Official service" only when the owner turned UTYA_OFFICIAL on. */
+function brandNote() {
+  const off = S && S.official;
+  return '<div class="card warn"><b>' + esc(t(off ? "official.title" : "unofficial.title")) + '</b><div class="muted" style="margin-top:4px">' + esc(t(off ? "official.body" : "unofficial.body")) + "</div></div>";
 }
 
 function walletCard() {
@@ -320,7 +456,7 @@ function payBtn() {
 function viewBuy() {
   const st = S.settings;
   const presets = [1, 5, 10, 25].filter((n) => n >= st.minTon && n <= st.maxTon);
-  return '<div class="card warn"><b>' + esc(t("unofficial.title")) + '</b><div class="muted" style="margin-top:4px">' + esc(t("unofficial.body")) + "</div></div>" +
+  return brandNote() +
     walletCard() +
     '<div class="card"><h3>' + esc(t("buy.title")) + '</h3><div class="muted" style="margin-bottom:8px">' + esc(t("buy.amount")) + " · " + esc(t("buy.limits", { min: nf(st.minTon, 4), max: nf(st.maxTon, 4) })) + "</div>" +
     '<div class="field"><input id="amt" inputmode="decimal" autocomplete="off" value="' + esc(amount) + '" /><span>TON</span></div>' +
@@ -349,11 +485,173 @@ function viewOrders() {
   return '<div class="card"><h3>' + esc(t("orders.title")) + "</h3>" + (list.length ? '<div class="muted">' + esc(list.length) + "</div>" : '<div class="muted">' + esc(t("orders.empty")) + "</div>") + "</div>" + list.map(orderCard).join("");
 }
 
+// ------------------------------------------------------------------ mining
+const minePending = (ses) => floor4(ses.rate * Math.min(Math.max(nowMs() - ses.start, 0), ses.end - ses.start) / 3600000);
+
+function mineBox() {
+  const m = S.mining, ses = m.session;
+  if (!ses) return m.open ? '<button class="btn" data-a="mineStart" style="margin-top:0">' + esc(t("mine.start")) + "</button>" : '<div class="muted">' + esc(t("mine.closed")) + "</div>";
+  if (nowMs() >= ses.end) {
+    return '<div class="row"><span>' + esc(t("mine.ready")) + '</span><span class="big">' + esc(nf(ses.earned, 4)) + ' UTYA</span></div><button class="btn" data-a="mineClaim">' + esc(t("mine.claim", { n: nf(ses.earned, 4) })) + "</button>";
+  }
+  const pct = Math.min(100, ((nowMs() - ses.start) / (ses.end - ses.start)) * 100);
+  return '<div class="row"><span>' + esc(t("mine.thisSession")) + '</span><span id="minePend" style="font-weight:800;color:var(--duck)">' + esc(nf(minePending(ses), 4)) + " UTYA</span></div>" +
+    '<div class="bar"><i id="mineBar" style="width:' + pct + '%"></i></div><div class="muted" id="mineLeft">' + esc(t("mine.left", { t: clock(ses.end - nowMs()) })) + "</div>" +
+    '<button class="btn" disabled>' + esc(t("mine.running")) + "</button>";
+}
+
+function tickMining() {
+  if (tab !== "mine" || !S || !S.mining.session) return;
+  const ses = S.mining.session;
+  const pend = $("#minePend");
+  if (!pend) return; // the claim button is already showing
+  if (nowMs() >= ses.end) { const b = $("#mineBox"); if (b) b.innerHTML = mineBox(); return; }
+  pend.textContent = nf(minePending(ses), 4) + " UTYA";
+  const bar = $("#mineBar"); if (bar) bar.style.width = Math.min(100, ((nowMs() - ses.start) / (ses.end - ses.start)) * 100) + "%";
+  const left = $("#mineLeft"); if (left) left.textContent = t("mine.left", { t: clock(ses.end - nowMs()) });
+}
+
+function mineCard() {
+  const m = S.mining;
+  return '<div class="card"><h3>' + esc(t("mine.title")) + '</h3><div class="muted">' + esc(t("mine.balance")) + "</div>" +
+    '<div class="bal">' + esc(nf(m.balance, 4)) + " <small>UTYA</small></div>" +
+    '<div class="stats3"><div>' + esc(t("mine.total")) + "<b>" + esc(nf(m.total, 4)) + "</b></div><div>" + esc(t("mine.withdrawn")) + "<b>" + esc(nf(m.withdrawn, 4)) + "</b></div><div>" + esc(t("mine.speed")) + "<b>" + esc(t("mine.speedVal", { n: nf(m.rate, 4) })) + "</b></div></div>" +
+    '<div id="mineBox" style="margin-top:12px">' + mineBox() + "</div>" +
+    '<div class="muted" style="margin-top:10px">' + esc(t("mine.hint")) + " (" + esc(t("mine.sessionVal", { h: m.sessionHours })) + ")</div></div>";
+}
+
+function withdrawCard() {
+  const m = S.mining, acc = connectedAccount();
+  let body;
+  if (!m.withdrawOpen) body = '<div class="muted">' + esc(t("wd.closed")) + "</div>";
+  else if (!acc) body = '<div class="muted">' + esc(t("wd.connect")) + "</div>";
+  else {
+    body = '<div class="muted" style="margin-bottom:8px">' + esc(t("wd.amount")) + " · " + esc(t("wd.min", { min: nf(m.minWithdraw, 4) })) + "</div>" +
+      '<div class="field"><input id="wdAmt" inputmode="decimal" autocomplete="off" placeholder="0" value="' + esc(wdAmount) + '" /><span>UTYA</span><button class="btn ghost small" data-a="wdAll">' + esc(t("wd.all")) + "</button></div>" +
+      '<button class="btn" data-a="wdSubmit">' + esc(t("wd.btn")) + "</button>" +
+      '<div class="muted" style="margin-top:10px">' + esc(t("wd.note", { hours: S.settings.deliveryHours })) + "</div>";
+  }
+  return '<div class="card"><h3>' + esc(t("wd.title")) + "</h3>" + body + "</div>";
+}
+
+function wdRow(w) {
+  return '<div class="wd"><div><b>' + esc(nf(w.amount, 4)) + " UTYA</b><div class=\"muted\">" + esc(dateText(w.doneAt || w.createdAt)) + "</div>" +
+    (w.tx ? '<div class="addr">Tx: ' + esc(w.tx) + "</div>" : "") + (w.status === "rejected" && w.reason ? '<div class="muted">' + esc(w.reason) + "</div>" : "") +
+    '</div><div style="text-align:right"><span class="status st-' + esc(w.status) + '">' + esc(t("wst." + w.status)) + "</span>" +
+    (w.status === "pending" ? '<div style="margin-top:6px"><button class="btn ghost small" data-a="wdCancel" data-id="' + esc(w.id) + '">' + esc(t("wd.cancel")) + "</button></div>" : "") + "</div></div>";
+}
+
+function viewMine() {
+  const list = S.withdrawals;
+  return brandNote() + mineCard() + walletCard() + withdrawCard() +
+    '<div class="card"><h3>' + esc(t("wd.history")) + "</h3>" + (list.length ? list.map(wdRow).join("") : '<div class="muted">' + esc(t("wd.empty")) + "</div>") + "</div>";
+}
+
+// ------------------------------------------------------------------ price chart (live)
+const CHART_RANGES = [["1h", "1H"], ["24h", "24H"], ["7d", "7D"]];
+const locale = () => (lang === "ru" ? "ru-RU" : lang === "bn" ? "bn-BD" : "en-GB");
+const chartTime = (ms) => new Date(ms).toLocaleString(locale(), chartRange === "7d" ? { dateStyle: "medium", timeStyle: "short" } : chartRange === "1h" ? { timeStyle: "medium" } : { timeStyle: "short" });
+
+function viewChart() {
+  return '<div class="card"><h3>' + esc(t("chart.title")) + "</h3>" +
+    '<div class="chead"><div class="cprice" id="cPrice">…</div><div class="cchg" id="cChg"></div></div>' +
+    '<div class="ranges">' + CHART_RANGES.map((r) => '<button data-a="range" data-v="' + r[0] + '" class="' + (chartRange === r[0] ? "on" : "") + '">' + r[1] + "</button>").join("") + "</div>" +
+    '<div class="cbox" id="cBox"></div><div class="stats3" id="cStats"></div>' +
+    '<div class="muted" style="margin-top:10px" id="cNote">' + esc(t("chart.note")) + "</div></div>";
+}
+
+function drawChart() {
+  const box = $("#cBox");
+  if (!box) return;
+  const d = chartData;
+  const priceEl = $("#cPrice"), chgEl = $("#cChg"), stats = $("#cStats"), note = $("#cNote");
+  chartGeo = null;
+  if (!d) {
+    box.innerHTML = '<div class="cempty muted">' + esc(chartErr ? t("chart.nodata") : t("buy.checking")) + "</div>";
+    return;
+  }
+  priceEl.textContent = d.last ? "$" + pf(d.last) : "-";
+  if (chartFlash) { priceEl.classList.remove("f-up", "f-down"); void priceEl.offsetWidth; priceEl.classList.add("f-" + chartFlash); chartFlash = ""; }
+  const chg = d.changePct;
+  chgEl.className = "cchg " + (chg == null ? "" : chg >= 0 ? "up" : "down");
+  chgEl.textContent = chg == null ? "–" : (chg >= 0 ? "▲ " : "▼ ") + nf(Math.abs(chg), 2) + "%";
+  const age = d.at ? Math.max(0, Math.round((nowMs() - d.at) / 1000)) : null;
+  stats.innerHTML = "<div>" + esc(t("chart.high")) + "<b>$" + esc(pf(d.high)) + "</b></div><div>" + esc(t("chart.low")) + "<b>$" + esc(pf(d.low)) + "</b></div><div>" +
+    esc(t("price.live")) + "<b>" + (age == null ? "-" : esc(t("price.age", { s: age }))) + "</b></div>";
+  note.textContent = (d.live ? "" : t("chart.stale") + " ") + t("chart.note");
+  const pts = d.points || [];
+  if (pts.length < 2) { box.innerHTML = '<div class="cempty muted">' + esc(t("chart.nodata")) + "</div>"; return; }
+  const t0 = pts[0][0], span = Math.max(1, pts[pts.length - 1][0] - t0);
+  let lo = Infinity, hi = -Infinity;
+  for (const p of pts) { if (p[1] < lo) lo = p[1]; if (p[1] > hi) hi = p[1]; }
+  const X = (ms) => ((ms - t0) / span) * 97;
+  const Y = (v) => (hi > lo ? 8 + (1 - (v - lo) / (hi - lo)) * 84 : 50);
+  const xs = pts.map((p) => X(p[0])), ys = pts.map((p) => Y(p[1]));
+  const line = pts.map((p, i) => (i ? "L" : "M") + xs[i].toFixed(2) + " " + ys[i].toFixed(2)).join(" ");
+  const area = line + " L" + xs[xs.length - 1].toFixed(2) + " 100 L" + xs[0].toFixed(2) + " 100 Z";
+  const col = pts[pts.length - 1][1] >= pts[0][1] ? "var(--green)" : "var(--red)";
+  chartGeo = { pts, xs, ys };
+  box.innerHTML = '<svg viewBox="0 0 100 100" preserveAspectRatio="none" style="color:' + col + '"><defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".32"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs>' +
+    [8, 50, 92].map((y) => '<line x1="0" x2="100" y1="' + y + '" y2="' + y + '" stroke="rgba(255,255,255,.08)" vector-effect="non-scaling-stroke"/>').join("") +
+    '<path d="' + area + '" fill="url(#cg)"/><path d="' + line + '" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/></svg>' +
+    '<span class="clab" style="top:0">$' + esc(pf(hi)) + '</span><span class="clab" style="bottom:0">$' + esc(pf(lo)) + "</span>" +
+    '<div class="cdot" style="left:' + xs[xs.length - 1] + "%;top:" + ys[ys.length - 1] + "%;--c:" + col + '"></div><div class="cline" id="cLine"></div><div class="ctip" id="cTip"></div>';
+}
+
+function bindChart() {
+  const box = $("#cBox");
+  if (!box) return;
+  const move = (ev) => {
+    if (!chartGeo) return;
+    chartHold = true;
+    const r = box.getBoundingClientRect();
+    const fx = Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width)) * 100;
+    let best = 0, bd = Infinity;
+    chartGeo.xs.forEach((x, i) => { const dd = Math.abs(x - fx); if (dd < bd) { bd = dd; best = i; } });
+    const line = $("#cLine"), tip = $("#cTip");
+    if (!line || !tip) return;
+    const x = chartGeo.xs[best], p = chartGeo.pts[best];
+    line.style.display = "block"; line.style.left = x + "%";
+    tip.style.display = "block";
+    tip.innerHTML = "$" + esc(pf(p[1])) + '<br><span style="color:var(--muted)">' + esc(chartTime(p[0])) + "</span>";
+    if (x > 55) { tip.style.left = "auto"; tip.style.right = 100 - x + "%"; } else { tip.style.right = "auto"; tip.style.left = x + "%"; }
+  };
+  const leave = () => { chartHold = false; drawChart(); };
+  box.addEventListener("pointermove", move);
+  box.addEventListener("pointerdown", move);
+  box.addEventListener("pointerleave", leave);
+  box.addEventListener("pointercancel", leave);
+  box.addEventListener("pointerup", (ev) => { if (ev.pointerType === "touch") leave(); });
+}
+
+async function loadChart() {
+  if (!S || tab !== "chart") return;
+  const range = chartRange;
+  try {
+    const d = await api("/api/chart?range=" + encodeURIComponent(range));
+    if (range !== chartRange || tab !== "chart") return;
+    const prev = chartData && chartData.range === range ? chartData.last : null;
+    chartFlash = prev && d.last && d.last !== prev ? (d.last > prev ? "up" : "down") : "";
+    chartData = d; chartErr = false;
+    if (d.last) S.price = Object.assign({}, S.price || { tonUsd: 0, perTon: 0 }, { utyaUsd: d.last, at: d.at || (S.price && S.price.at) || nowMs() });
+  } catch (e) {
+    if (e && (e.code === "banned" || e.code === "join_required")) return fail(e);
+    chartErr = true;
+  }
+  if (tab === "chart" && !chartHold) drawChart();
+}
+
+async function fail(e) {
+  if (e && e.code === "banned") return showBanned(e.data);
+  if (e && e.code === "join_required") return showGate(e.data.channels);
+  toast(errText(e), "err");
+}
+
 function viewInfo() {
   const st = S.settings;
   const langs = [["en", "English"], ["bn", "বাংলা"], ["ru", "Русский"]];
   return '<div class="card"><h3>' + esc(t("info.title")) + "</h3><ul>" +
-    "<li>" + esc(t("info.1")) + "</li><li>" + esc(t("info.2", { hours: st.deliveryHours })) + "</li><li>" + esc(t("info.3")) + "</li><li>" + esc(t("info.4", { pct: nf(st.feePct, 2) })) + "</li><li>" + esc(t("info.5")) + "</li><li>" + esc(t("info.6")) + "</li><li>" + esc(t("info.7")) + "</li></ul></div>" +
+    "<li>" + esc(t("info.1")) + "</li><li>" + esc(t("info.2", { hours: st.deliveryHours })) + "</li><li>" + esc(t("info.3")) + "</li><li>" + esc(t("info.4", { pct: nf(st.feePct, 2) })) + "</li><li>" + esc(t("info.5")) + "</li><li>" + esc(t("info.6")) + "</li><li>" + esc(t(S.official ? "info.7o" : "info.7")) + "</li><li>" + esc(t("info.8", { h: S.mining.sessionHours })) + "</li><li>" + esc(t("info.9", { hours: st.deliveryHours })) + "</li></ul></div>" +
     '<div class="card"><div class="muted">' + esc(t("info.payTo")) + '</div><div class="addr" style="margin-bottom:10px">' + esc(st.payAddress || "-") + '</div><div class="muted">' + esc(t("info.contract")) + '</div><div class="addr">' + esc(S.token.jetton) + "</div></div>" +
     (st.support ? '<div class="card"><button class="btn ghost" data-a="support">' + esc(t("info.support")) + "</button></div>" : "") +
     '<div class="card"><h3>' + esc(t("info.lang")) + '</h3><div class="langs">' + langs.map((l) => '<button data-a="lang" data-v="' + l[0] + '" class="' + (lang === l[0] ? "on" : "") + '">' + l[1] + "</button>").join("") + "</div></div>";
@@ -362,12 +660,15 @@ function viewInfo() {
 function render() {
   if (!S) return;
   document.documentElement.lang = lang;
-  const body = tab === "buy" ? viewBuy() : tab === "orders" ? viewOrders() : viewInfo();
-  const nav = [["buy", "🦆"], ["orders", "📦"], ["info", "ℹ️"]];
+  const body = tab === "mine" ? viewMine() : tab === "buy" ? viewBuy() : tab === "chart" ? viewChart() : tab === "orders" ? viewOrders() : viewInfo();
+  const nav = [["mine", "⛏️"], ["buy", "🦆"], ["chart", "📈"], ["orders", "📦"], ["info", "ℹ️"]];
   $("#app").innerHTML = '<div class="top">' + DUCK + '<div class="brand">UTYA Miner<small>' + esc(t("brand.sub")) + "</small></div>" + priceChip() + "</div>" + body +
     '<div class="nav">' + nav.map((n) => '<button data-a="tab" data-v="' + n[0] + '" class="' + (tab === n[0] ? "on" : "") + '"><span>' + n[1] + "</span>" + esc(t("nav." + n[0])) + "</button>").join("") + "</div>";
   const input = $("#amt");
   if (input) input.addEventListener("input", onAmount);
+  const wd = $("#wdAmt");
+  if (wd) wd.addEventListener("input", (e) => { wdAmount = e.target.value.replace(",", "."); });
+  if (tab === "chart") { bindChart(); drawChart(); loadChart(); }
 }
 
 function refreshQuoteUI() {
@@ -405,7 +706,8 @@ async function refreshState() {
     const r = await api("/api/state");
     S = r;
     lang = S.user.lang || lang;
-    if (tab === "orders" || tab === "info") render(); else { const c = $("#chip"); if (c) c.outerHTML = priceChip(); }
+    const typing = document.activeElement && document.activeElement.id === "wdAmt";
+    if (tab === "orders" || tab === "info" || (tab === "mine" && !typing)) render(); else { const c = $("#chip"); if (c) c.outerHTML = priceChip(); }
   } catch (e) { /* keep the old state */ }
 }
 
@@ -473,6 +775,39 @@ document.addEventListener("click", async (ev) => {
   if (a === "connect") { const ui = ton(); if (ui) ui.openModal(); else toast(t("err.generic"), "err"); return; }
   if (a === "disconnect") { const ui = ton(); if (ui) { try { await ui.disconnect(); } catch (e) {} } render(); return; }
   if (a === "pay") return startPay();
+  if (a === "range") { chartRange = el.dataset.v; chartData = null; chartErr = false; render(); return; }
+  if (a === "mineStart") {
+    try { const r = await api("/api/mine/start", {}); S = r.state; toast(t("mine.started"), "ok"); buzz("ok"); render(); } catch (e) { await fail(e); await refreshState(); }
+    return;
+  }
+  if (a === "mineClaim") {
+    try { const r = await api("/api/mine/claim", {}); S = r.state; toast(t("mine.claimed", { n: nf(r.claimed, 4) }), "ok"); buzz("ok"); render(); } catch (e) { await fail(e); await refreshState(); }
+    return;
+  }
+  if (a === "wdAll") { wdAmount = String(floor4(S.mining.balance)); const i = $("#wdAmt"); if (i) i.value = wdAmount; return; }
+  if (a === "wdSubmit") {
+    const acc = connectedAccount();
+    if (!acc) { const ui = ton(); if (ui) ui.openModal(); return; }
+    if (busy) return;
+    busy = true;
+    try {
+      await syncWallet(acc.address);
+      const r = await api("/api/withdraw", { amount: Number(String(wdAmount).replace(",", ".")) });
+      S = r.state; wdAmount = ""; toast(t("wd.done"), "ok"); buzz("ok"); render();
+    } catch (e) { await fail(e); await refreshState(); } finally { busy = false; }
+    return;
+  }
+  if (a === "wdCancel") {
+    const w = S.withdrawals.find((x) => x.id === el.dataset.id);
+    if (!w) return;
+    openOverlay("<h2>↩️</h2><p>" + esc(t("wd.cancelAsk", { n: nf(w.amount, 4) })) + '</p><button class="btn" data-a="wdCancelYes" data-id="' + esc(w.id) + '">' + esc(t("wd.cancelYes")) + '</button><button class="btn ghost" data-a="closeov">' + esc(t("wd.cancelNo")) + "</button>");
+    return;
+  }
+  if (a === "wdCancelYes") {
+    closeOverlay();
+    try { const r = await api("/api/withdraw/cancel", { id: el.dataset.id }); S = r.state; toast(t("wd.cancelled"), "ok"); render(); } catch (e) { await fail(e); await refreshState(); }
+    return;
+  }
   if (a === "closeov") return closeOverlay();
   if (a === "toOrders") { closeOverlay(); tab = "orders"; render(); return; }
   if (a === "support") return openLink(el.dataset.url || (S && S.settings.support));
@@ -513,6 +848,8 @@ async function boot() {
   refreshQuote();
   setInterval(() => { if (!document.hidden) { refreshState(); if (tab === "buy" && !busy) refreshQuote(); } }, 15000);
   setInterval(() => { const c = $("#chip"); if (c && S) c.outerHTML = priceChip(); }, 1000);
+  setInterval(tickMining, 1000); // the mining counter runs live
+  setInterval(() => { if (!document.hidden && tab === "chart") loadChart(); }, 5000); // the chart follows the live price
 }
 boot();
 </script>
