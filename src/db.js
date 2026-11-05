@@ -16,6 +16,7 @@ class MemoryDB {
     this.file = file;
     this.users = new Map();
     this.orders = new Map();
+    this.withdrawals = new Map();
     this.meta = {};
     this.timer = null;
     this.load();
@@ -26,6 +27,7 @@ class MemoryDB {
       const raw = JSON.parse(fs.readFileSync(this.file, "utf8"));
       for (const u of raw.users ?? []) this.users.set(u.id, u);
       for (const o of raw.orders ?? []) this.orders.set(o.id, o);
+      for (const w of raw.withdrawals ?? []) this.withdrawals.set(w.id, w);
       this.meta = { ...(raw.meta ?? {}) };
     } catch (err) {
       console.error("[db] could not read", this.file, err.message);
@@ -37,7 +39,7 @@ class MemoryDB {
       this.timer = null;
       try {
         fs.mkdirSync(path.dirname(this.file), { recursive: true });
-        const data = { users: [...this.users.values()], orders: [...this.orders.values()], meta: this.meta };
+        const data = { users: [...this.users.values()], orders: [...this.orders.values()], withdrawals: [...this.withdrawals.values()], meta: this.meta };
         fs.writeFileSync(this.file + ".tmp", JSON.stringify(data));
         fs.renameSync(this.file + ".tmp", this.file);
       } catch (err) {
@@ -98,6 +100,29 @@ class MemoryDB {
       .sort((a, b) => (oldestFirst ? a.createdAt - b.createdAt : b.createdAt - a.createdAt));
     return rows.slice(0, limit).map((o) => structuredClone(o));
   }
+  // ---- withdrawals (mined UTYA the user asked to get paid out)
+  async addWithdrawal(w) {
+    this.withdrawals.set(w.id, structuredClone(w));
+    this.dirty();
+  }
+  async getWithdrawal(id) {
+    const w = this.withdrawals.get(id);
+    return w ? structuredClone(w) : null;
+  }
+  /** Changes a withdrawal only if its status is one of `from`. Returns the new row, or null when somebody else was first. */
+  async transitionWithdrawal(id, from, patch) {
+    const w = this.withdrawals.get(id);
+    if (!w || !from.includes(w.status)) return null;
+    Object.assign(w, structuredClone(patch));
+    this.dirty();
+    return structuredClone(w);
+  }
+  async listWithdrawals({ statuses, userId, limit = 50, oldestFirst = false } = {}) {
+    const rows = [...this.withdrawals.values()]
+      .filter((w) => (statuses ? statuses.includes(w.status) : true) && (userId ? w.userId === userId : true))
+      .sort((a, b) => (oldestFirst ? a.createdAt - b.createdAt : b.createdAt - a.createdAt));
+    return rows.slice(0, limit).map((w) => structuredClone(w));
+  }
 }
 
 // --------------------------------- MongoDB ----------------------------------
@@ -109,6 +134,7 @@ class MongoDB {
     this.users = db.collection("users");
     this.ordersCol = db.collection("orders");
     this.metaCol = db.collection("meta");
+    this.withdrawCol = db.collection("withdrawals");
   }
   static async connect(uri) {
     const { MongoClient } = await import("mongodb");
@@ -119,6 +145,8 @@ class MongoDB {
     await self.users.createIndex({ createdAt: -1 });
     await self.ordersCol.createIndex({ status: 1, createdAt: -1 });
     await self.ordersCol.createIndex({ userId: 1, createdAt: -1 });
+    await self.withdrawCol.createIndex({ status: 1, createdAt: 1 });
+    await self.withdrawCol.createIndex({ userId: 1, createdAt: -1 });
     return self;
   }
   async getUser(id) {
@@ -163,6 +191,22 @@ class MongoDB {
     if (userId) q.userId = userId;
     if (since) q.createdAt = { $gte: since };
     return (await this.ordersCol.find(q).sort({ createdAt: oldestFirst ? 1 : -1 }).limit(limit).toArray()).map(strip);
+  }
+  async addWithdrawal(w) {
+    await this.withdrawCol.insertOne({ ...w, _id: w.id });
+  }
+  async getWithdrawal(id) {
+    return strip(await this.withdrawCol.findOne({ _id: id }));
+  }
+  async transitionWithdrawal(id, from, patch) {
+    const res = await this.withdrawCol.findOneAndUpdate({ _id: id, status: { $in: from } }, { $set: patch }, { returnDocument: "after" });
+    return strip(res?.value !== undefined ? res.value : res);
+  }
+  async listWithdrawals({ statuses, userId, limit = 50, oldestFirst = false } = {}) {
+    const q = {};
+    if (statuses) q.status = { $in: statuses };
+    if (userId) q.userId = userId;
+    return (await this.withdrawCol.find(q).sort({ createdAt: oldestFirst ? 1 : -1 }).limit(limit).toArray()).map(strip);
   }
 }
 
