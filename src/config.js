@@ -3,6 +3,9 @@
 export const BRAND = {
   name: "UTYA Miner",
   username: "UTYA_miner_bot",
+  // Set the environment variable UTYA_OFFICIAL=1 ONLY if you really are the Utya project (or have its written permission).
+  // Then the app and the bot say "official". Otherwise they say "independent service, not affiliated" (the truth for everybody else).
+  official: process.env.UTYA_OFFICIAL === "1",
 };
 
 /** The token that is sold. A real jetton on TON, traded on DeDust. */
@@ -21,6 +24,28 @@ export const DEFAULTS = {
   maxTon: 500, // largest order, in TON
   feePct: 0, // service fee in percent. It is always shown to the buyer before paying.
   deliveryHours: 24, // what the app promises: "UTYA is sent within this time"
+};
+
+/** Mining. The mined UTYA is paid by YOU (the operator) from your own wallet when you approve a withdrawal, so keep the rate low. */
+export const MINING = {
+  sessionHours: 4, // one session; the user comes back, claims, and starts the next one
+  sessionMs: 4 * 3600_000,
+  // first values; an admin changes them later with /setminerate and /setminwithdraw
+  ratePerHour: 1, // UTYA per hour for every user
+  minWithdraw: 100, // smallest withdrawal, in UTYA
+  maxOpenWithdrawals: 2, // withdrawal requests one user may have waiting at the same time
+};
+
+/** The price chart: how far back each range goes and how many points the app gets at most. */
+export const CHART = {
+  ranges: {
+    "1h": { ms: 3600_000, points: 120 },
+    "24h": { ms: 24 * 3600_000, points: 144 },
+    "7d": { ms: 7 * 24 * 3600_000, points: 168 },
+  },
+  defaultRange: "24h",
+  historyCacheMs: 60_000, // the long history (TonAPI chart) is fetched at most this often per range
+  maxTicks: 6000, // live prices kept in memory (about 25 hours at one every 15 s)
 };
 
 export const PRICE = {
