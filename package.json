@@ -1,0 +1,19 @@
+{
+  "name": "utya-miner-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "UTYA Miner (unofficial) - Telegram Mini App to buy UTYA with TON. An admin sends the UTYA by hand.",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node test/smoke.mjs && node test/bot.mjs && node test/server.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "mongodb": "^6.10.0"
+  }
+}

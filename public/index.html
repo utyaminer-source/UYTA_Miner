@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+<meta name="theme-color" content="#071a21" />
+<title>UTYA Miner</title>
+<link rel="icon" href="/icon.png" />
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2/dist/tonconnect-ui.min.js"></script>
+<style>
+:root{
+  --bg:#071a21; --bg2:#0c2630; --card:#10303b; --card2:#143a47; --line:rgba(120,220,210,.16);
+  --text:#e9f7f5; --muted:#9bbdbb; --dim:#6f9795;
+  --duck:#ffcd38; --duck2:#ff9d2e; --aqua:#37d6c4; --red:#ff8a7a; --green:#6fe3a0;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;overscroll-behavior:none}
+body{padding:calc(env(safe-area-inset-top,0px) + 10px) 14px calc(86px + env(safe-area-inset-bottom,0px));background:radial-gradient(120% 60% at 50% -10%,#12414d 0%,var(--bg) 60%) fixed}
+button{font:inherit;color:inherit;cursor:pointer}
+.top{display:flex;align-items:center;gap:10px;margin:2px 0 12px}
+.top svg{flex:none}
+.brand{font-weight:800;font-size:19px;letter-spacing:.2px}
+.brand small{display:block;font-weight:500;font-size:11px;color:var(--muted);letter-spacing:0}
+.chip{margin-left:auto;text-align:right;font-size:12px;color:var(--muted);line-height:1.25}
+.chip b{display:block;color:var(--text);font-size:14px}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:5px;box-shadow:0 0 8px var(--green)}
+.dot.off{background:var(--red);box-shadow:0 0 8px var(--red)}
+.card{background:linear-gradient(180deg,var(--card),var(--bg2));border:1px solid var(--line);border-radius:20px;padding:15px;margin-bottom:12px}
+.card h3{margin:0 0 10px;font-size:15px;letter-spacing:.2px}
+.warn{background:rgba(255,205,56,.09);border-color:rgba(255,205,56,.35)}
+.warn b{color:var(--duck)}
+.muted{color:var(--muted);font-size:13px;line-height:1.45}
+.row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.row:last-child{border-bottom:0}
+.row span:first-child{color:var(--muted)}
+.big{font-size:26px;font-weight:800;color:var(--duck)}
+.field{display:flex;align-items:center;background:var(--bg);border:1px solid var(--line2,rgba(120,220,210,.3));border-radius:14px;padding:4px 6px 4px 14px}
+.field input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--text);font-size:24px;font-weight:700;padding:8px 0}
+.field span{font-weight:700;color:var(--muted);padding:0 8px}
+.chips{display:flex;gap:8px;margin:10px 0 4px;flex-wrap:wrap}
+.chips button{flex:1;min-width:56px;background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:9px 0;font-weight:700}
+.chips button.on{background:var(--duck);color:#2b1d00;border-color:var(--duck)}
+.btn{width:100%;border:0;border-radius:16px;padding:15px;font-size:16px;font-weight:800;background:linear-gradient(180deg,var(--duck),var(--duck2));color:#2b1d00;margin-top:10px}
+.btn.ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+.btn.small{width:auto;padding:9px 14px;font-size:13px;border-radius:12px;margin-top:0}
+.btn[disabled]{opacity:.45;cursor:default}
+.addr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;word-break:break-all;color:var(--muted)}
+.status{display:inline-block;padding:3px 9px;border-radius:99px;font-size:11.5px;font-weight:700;background:var(--card2)}
+.st-paid{background:rgba(255,205,56,.2);color:var(--duck)}
+.st-delivered{background:rgba(111,227,160,.2);color:var(--green)}
+.st-refund_requested{background:rgba(255,157,46,.2);color:var(--duck2)}
+.st-refunded{background:rgba(55,214,196,.2);color:var(--aqua)}
+.st-failed,.st-expired{background:rgba(255,138,122,.16);color:var(--red)}
+ol,ul{margin:0;padding-left:20px}
+li{margin:7px 0;font-size:14px;line-height:1.45}
+.nav{position:fixed;left:0;right:0;bottom:0;display:flex;gap:6px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:rgba(7,26,33,.92);backdrop-filter:blur(12px);border-top:1px solid var(--line)}
+.nav button{flex:1;background:transparent;border:0;padding:8px 0;border-radius:14px;color:var(--muted);font-size:12px;font-weight:700}
+.nav button.on{background:var(--card2);color:var(--duck)}
+.nav button span{display:block;font-size:20px;line-height:1.1}
+.ov{position:fixed;inset:0;background:rgba(3,12,16,.78);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+.sheet{width:100%;max-width:520px;background:var(--card);border:1px solid var(--line);border-radius:24px 24px 0 0;padding:22px 18px calc(20px + env(safe-area-inset-bottom,0px));text-align:center}
+.sheet h2{margin:8px 0}
+.spin{width:44px;height:44px;border-radius:50%;border:4px solid var(--card2);border-top-color:var(--duck);margin:6px auto 12px;animation:r 1s linear infinite}
+@keyframes r{to{transform:rotate(360deg)}}
+.toast{position:fixed;left:14px;right:14px;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:99;padding:12px 14px;border-radius:14px;background:var(--card2);border:1px solid var(--line);font-size:14px;text-align:center}
+.toast.err{border-color:rgba(255,138,122,.6)}
+.toast.ok{border-color:rgba(111,227,160,.6)}
+.langs{display:flex;gap:8px}
+.langs button{flex:1;padding:9px 0;border-radius:12px;background:var(--card2);border:1px solid var(--line);font-weight:700}
+.langs button.on{background:var(--duck);color:#2b1d00;border-color:var(--duck)}
+.full{min-height:70vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px}
+a{color:var(--aqua)}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="ov"></div>
+<div id="toast"></div>
+<script>
+"use strict";
+// ------------------------------------------------------------------ translations
+const I18N = {
+  en: {
+    "brand.sub": "Buy UTYA with TON",
+    "price.live": "Live price", "price.age": "{s}s ago", "price.none": "no price",
+    "unofficial.title": "Unofficial service",
+    "unofficial.body": "UTYA Miner is not affiliated with the Utya project. UTYA is a community token and its price can go up and down.",
+    "wallet.title": "Your wallet", "wallet.connect": "Connect wallet", "wallet.disconnect": "Disconnect",
+    "wallet.hint": "The UTYA will be sent to this wallet.", "wallet.none": "No wallet connected yet.",
+    "buy.title": "Buy UTYA", "buy.amount": "Amount in TON", "buy.limits": "Min {min} · Max {max} TON",
+    "buy.youPay": "You pay", "buy.rate": "Rate", "buy.rateVal": "1 TON = {n} UTYA", "buy.fee": "Service fee", "buy.feeVal": "{pct}% ({ton} TON)",
+    "buy.receive": "You receive", "buy.updated": "Price updates live. Quote shown {s}s ago.",
+    "buy.note": "You also pay the small network fee of your wallet. The price is locked for 30 minutes after you press Pay.",
+    "buy.btn": "Pay {ton} TON", "buy.btnConnect": "Connect wallet to pay", "buy.checking": "Getting the price…",
+    "how.title": "How it works", "how.1": "You pay in TON from your own wallet.", "how.2": "An admin sends the UTYA to your wallet by hand, within about {hours} hours.", "how.3": "Until it is sent, you can request a refund here.",
+    "pay.confirm": "Confirm the payment in your wallet…", "pay.wait": "Waiting for the blockchain…", "pay.done": "Payment received!",
+    "pay.doneBody": "{utya} UTYA will be sent to your wallet within about {hours} hours. You will get a message in Telegram.",
+    "pay.cancelled": "Payment cancelled.", "pay.slow": "Still waiting. You can close this window: when the payment is found you get a message in Telegram.",
+    "pay.close": "Close", "pay.toOrders": "My orders",
+    "orders.title": "My orders", "orders.empty": "No orders yet.", "orders.refund": "Request refund",
+    "orders.refundAsk": "Request a refund of {ton} TON? The team will send the TON back to your wallet.", "orders.refundYes": "Yes, request refund", "orders.refundNo": "Cancel",
+    "orders.refundDone": "Refund requested.", "orders.to": "Wallet", "orders.requoted": "Paid after the quote expired, so the amount was recalculated at the live price.",
+    "orders.refundNote": "The team will send {ton} TON back to your wallet.",
+    "status.pending": "Waiting for payment", "status.expired": "Quote expired", "status.failed": "Not paid", "status.paid": "Paid · waiting for UTYA",
+    "status.delivered": "UTYA sent", "status.refund_requested": "Refund requested", "status.refunded": "Refunded",
+    "info.title": "Terms", "info.1": "You buy UTYA with TON at the live market price shown before you pay.",
+    "info.2": "An admin sends the UTYA to your wallet by hand, within about {hours} hours.",
+    "info.3": "Until the UTYA is sent, you can request a refund of your TON in this app. After it is sent, it can not be refunded.",
+    "info.4": "The service fee is {pct}% and is part of every quote.",
+    "info.5": "If your payment arrives after the quote expired, the amount is recalculated at the live price.",
+    "info.6": "Crypto prices change all the time. UTYA is a community token and you can lose value. This is not financial advice.",
+    "info.7": "UTYA Miner is unofficial and not affiliated with the Utya project.",
+    "info.payTo": "Payments go to", "info.contract": "UTYA contract", "info.support": "Contact support", "info.lang": "Language",
+    "nav.buy": "Buy", "nav.orders": "Orders", "nav.info": "Terms",
+    "gate.title": "Join our channel first", "gate.body": "Join the channel below, then tap the button.", "gate.btn": "I joined",
+    "banned.title": "Your account is blocked.", "banned.contact": "Contact admin",
+    "err.generic": "Something went wrong. Please try again.", "err.no_wallet": "Connect your TON wallet first.",
+    "err.too_small": "The minimum order is {min} TON.", "err.too_big": "The maximum order is {max} TON.", "err.bad_amount": "Enter how many TON you want to spend.",
+    "err.price_unavailable": "The live price is not available right now. Please try again in a minute.", "err.buy_closed": "Buying is paused right now.",
+    "err.too_many_orders": "You have too many unpaid orders. Finish or wait for them first.", "err.refund_not_possible": "This order can not be refunded any more.",
+    "err.order_missing": "Order not found.", "err.pay_closed": "Payments are not open yet.", "err.slow_down": "Too many requests. Please slow down.",
+    "err.bad_wallet": "That is not a valid TON wallet address.", "err.no_account": "Open the bot and press Start.",
+  },
+  bn: {
+    "brand.sub": "TON দিয়ে UTYA কিনুন",
+    "price.live": "লাইভ দাম", "price.age": "{s} সেকেন্ড আগে", "price.none": "দাম নেই",
+    "unofficial.title": "আনঅফিসিয়াল সার্ভিস",
+    "unofficial.body": "UTYA Miner, Utya প্রজেক্টের সাথে যুক্ত নয়। UTYA একটি কমিউনিটি টোকেন, এর দাম বাড়তে বা কমতে পারে।",
+    "wallet.title": "আপনার ওয়ালেট", "wallet.connect": "ওয়ালেট কানেক্ট করুন", "wallet.disconnect": "ডিসকানেক্ট",
+    "wallet.hint": "UTYA এই ওয়ালেটে পাঠানো হবে।", "wallet.none": "এখনও কোনো ওয়ালেট কানেক্ট করা নেই।",
+    "buy.title": "UTYA কিনুন", "buy.amount": "TON-এ পরিমাণ", "buy.limits": "সর্বনিম্ন {min} · সর্বোচ্চ {max} TON",
+    "buy.youPay": "আপনি দিচ্ছেন", "buy.rate": "রেট", "buy.rateVal": "১ TON = {n} UTYA", "buy.fee": "সার্ভিস ফি", "buy.feeVal": "{pct}% ({ton} TON)",
+    "buy.receive": "আপনি পাবেন", "buy.updated": "দাম লাইভ আপডেট হয়। কোট দেখানো হয়েছে {s} সেকেন্ড আগে।",
+    "buy.note": "ওয়ালেটের ছোট নেটওয়ার্ক ফি আপনাকেই দিতে হবে। Pay চাপার পর ৩০ মিনিট দাম লক থাকে।",
+    "buy.btn": "{ton} TON পেমেন্ট করুন", "buy.btnConnect": "পেমেন্টের জন্য ওয়ালেট কানেক্ট করুন", "buy.checking": "দাম আনা হচ্ছে…",
+    "how.title": "কীভাবে কাজ করে", "how.1": "আপনি নিজের ওয়ালেট থেকে TON দিয়ে পেমেন্ট করেন।", "how.2": "অ্যাডমিন প্রায় {hours} ঘণ্টার মধ্যে হাতে করে আপনার ওয়ালেটে UTYA পাঠায়।", "how.3": "পাঠানোর আগ পর্যন্ত এখান থেকে রিফান্ড চাইতে পারবেন।",
+    "pay.confirm": "ওয়ালেটে পেমেন্ট কনফার্ম করুন…", "pay.wait": "ব্লকচেইনের জন্য অপেক্ষা…", "pay.done": "পেমেন্ট পাওয়া গেছে!",
+    "pay.doneBody": "প্রায় {hours} ঘণ্টার মধ্যে আপনার ওয়ালেটে {utya} UTYA পাঠানো হবে। টেলিগ্রামে মেসেজ পাবেন।",
+    "pay.cancelled": "পেমেন্ট বাতিল হয়েছে।", "pay.slow": "এখনও অপেক্ষা চলছে। জানালা বন্ধ করতে পারেন: পেমেন্ট পাওয়া গেলে টেলিগ্রামে মেসেজ পাবেন।",
+    "pay.close": "বন্ধ করুন", "pay.toOrders": "আমার অর্ডার",
+    "orders.title": "আমার অর্ডার", "orders.empty": "এখনও কোনো অর্ডার নেই।", "orders.refund": "রিফান্ড চান",
+    "orders.refundAsk": "{ton} TON রিফান্ড চাইবেন? টিম আপনার ওয়ালেটে TON ফেরত পাঠাবে।", "orders.refundYes": "হ্যাঁ, রিফান্ড চাই", "orders.refundNo": "বাতিল",
+    "orders.refundDone": "রিফান্ড চাওয়া হয়েছে।", "orders.to": "ওয়ালেট", "orders.requoted": "কোট শেষ হওয়ার পরে পেমেন্ট এসেছে, তাই লাইভ দামে আবার হিসাব করা হয়েছে।",
+    "orders.refundNote": "টিম আপনার ওয়ালেটে {ton} TON ফেরত পাঠাবে।",
+    "status.pending": "পেমেন্টের অপেক্ষায়", "status.expired": "কোটের সময় শেষ", "status.failed": "পেমেন্ট হয়নি", "status.paid": "পেমেন্ট হয়েছে · UTYA-র অপেক্ষায়",
+    "status.delivered": "UTYA পাঠানো হয়েছে", "status.refund_requested": "রিফান্ড চাওয়া হয়েছে", "status.refunded": "রিফান্ড হয়েছে",
+    "info.title": "শর্তাবলী", "info.1": "পেমেন্টের আগে দেখানো লাইভ বাজারদরে আপনি TON দিয়ে UTYA কেনেন।",
+    "info.2": "অ্যাডমিন প্রায় {hours} ঘণ্টার মধ্যে হাতে করে আপনার ওয়ালেটে UTYA পাঠায়।",
+    "info.3": "UTYA পাঠানোর আগ পর্যন্ত এই অ্যাপ থেকে TON রিফান্ড চাইতে পারবেন। পাঠানোর পরে রিফান্ড করা যায় না।",
+    "info.4": "সার্ভিস ফি {pct}% এবং এটি প্রতিটি কোটের অংশ।",
+    "info.5": "কোট শেষ হওয়ার পরে পেমেন্ট এলে লাইভ দামে পরিমাণ আবার হিসাব করা হয়।",
+    "info.6": "ক্রিপ্টোর দাম সবসময় বদলায়। UTYA একটি কমিউনিটি টোকেন, আপনার লোকসান হতে পারে। এটি আর্থিক পরামর্শ নয়।",
+    "info.7": "UTYA Miner আনঅফিসিয়াল এবং Utya প্রজেক্টের সাথে যুক্ত নয়।",
+    "info.payTo": "পেমেন্ট যায়", "info.contract": "UTYA কন্ট্রাক্ট", "info.support": "সাপোর্টে যোগাযোগ", "info.lang": "ভাষা",
+    "nav.buy": "কিনুন", "nav.orders": "অর্ডার", "nav.info": "শর্ত",
+    "gate.title": "আগে আমাদের চ্যানেলে জয়েন করুন", "gate.body": "নিচের চ্যানেলে জয়েন করে বাটনে ট্যাপ করুন।", "gate.btn": "জয়েন করেছি",
+    "banned.title": "আপনার অ্যাকাউন্ট ব্লক করা হয়েছে।", "banned.contact": "অ্যাডমিনের সাথে যোগাযোগ",
+    "err.generic": "কিছু একটা ভুল হয়েছে। আবার চেষ্টা করুন।", "err.no_wallet": "আগে আপনার TON ওয়ালেট কানেক্ট করুন।",
+    "err.too_small": "সর্বনিম্ন অর্ডার {min} TON।", "err.too_big": "সর্বোচ্চ অর্ডার {max} TON।", "err.bad_amount": "কত TON খরচ করবেন তা লিখুন।",
+    "err.price_unavailable": "এই মুহূর্তে লাইভ দাম পাওয়া যাচ্ছে না। এক মিনিট পরে আবার চেষ্টা করুন।", "err.buy_closed": "এই মুহূর্তে কেনা বন্ধ আছে।",
+    "err.too_many_orders": "আপনার অনেকগুলো অপেক্ষমাণ অর্ডার আছে। আগে সেগুলো শেষ করুন বা অপেক্ষা করুন।", "err.refund_not_possible": "এই অর্ডার আর রিফান্ড করা যাবে না।",
+    "err.order_missing": "অর্ডার পাওয়া যায়নি।", "err.pay_closed": "পেমেন্ট এখনও চালু হয়নি।", "err.slow_down": "অনেক বেশি রিকোয়েস্ট। একটু ধীরে করুন।",
+    "err.bad_wallet": "এটি সঠিক TON ওয়ালেট ঠিকানা নয়।", "err.no_account": "বট খুলে Start চাপুন।",
+  },
+  ru: {
+    "brand.sub": "Покупка UTYA за TON",
+    "price.live": "Цена сейчас", "price.age": "{s} с назад", "price.none": "нет цены",
+    "unofficial.title": "Неофициальный сервис",
+    "unofficial.body": "UTYA Miner не связан с проектом Utya. UTYA — токен сообщества, его цена может расти и падать.",
+    "wallet.title": "Ваш кошелёк", "wallet.connect": "Подключить кошелёк", "wallet.disconnect": "Отключить",
+    "wallet.hint": "UTYA будут отправлены на этот кошелёк.", "wallet.none": "Кошелёк ещё не подключён.",
+    "buy.title": "Купить UTYA", "buy.amount": "Сумма в TON", "buy.limits": "Мин {min} · Макс {max} TON",
+    "buy.youPay": "Вы платите", "buy.rate": "Курс", "buy.rateVal": "1 TON = {n} UTYA", "buy.fee": "Комиссия сервиса", "buy.feeVal": "{pct}% ({ton} TON)",
+    "buy.receive": "Вы получите", "buy.updated": "Цена обновляется в реальном времени. Котировка {s} с назад.",
+    "buy.note": "Небольшую сетевую комиссию кошелька платите вы. Цена фиксируется на 30 минут после нажатия «Оплатить».",
+    "buy.btn": "Оплатить {ton} TON", "buy.btnConnect": "Подключите кошелёк для оплаты", "buy.checking": "Получаем цену…",
+    "how.title": "Как это работает", "how.1": "Вы платите в TON со своего кошелька.", "how.2": "Администратор вручную отправляет UTYA на ваш кошелёк примерно в течение {hours} ч.", "how.3": "До отправки здесь можно запросить возврат.",
+    "pay.confirm": "Подтвердите платёж в кошельке…", "pay.wait": "Ждём блокчейн…", "pay.done": "Платёж получен!",
+    "pay.doneBody": "{utya} UTYA будут отправлены на ваш кошелёк примерно в течение {hours} ч. Вы получите сообщение в Telegram.",
+    "pay.cancelled": "Платёж отменён.", "pay.slow": "Всё ещё ждём. Окно можно закрыть: когда платёж найдут, придёт сообщение в Telegram.",
+    "pay.close": "Закрыть", "pay.toOrders": "Мои заказы",
+    "orders.title": "Мои заказы", "orders.empty": "Заказов пока нет.", "orders.refund": "Запросить возврат",
+    "orders.refundAsk": "Запросить возврат {ton} TON? Команда вернёт TON на ваш кошелёк.", "orders.refundYes": "Да, запросить возврат", "orders.refundNo": "Отмена",
+    "orders.refundDone": "Возврат запрошен.", "orders.to": "Кошелёк", "orders.requoted": "Оплата пришла после истечения котировки, поэтому сумма пересчитана по актуальной цене.",
+    "orders.refundNote": "Команда вернёт {ton} TON на ваш кошелёк.",
+    "status.pending": "Ожидает оплаты", "status.expired": "Котировка истекла", "status.failed": "Не оплачен", "status.paid": "Оплачен · ждёт UTYA",
+    "status.delivered": "UTYA отправлены", "status.refund_requested": "Запрошен возврат", "status.refunded": "Возвращён",
+    "info.title": "Условия", "info.1": "Вы покупаете UTYA за TON по рыночной цене, которая показана до оплаты.",
+    "info.2": "Администратор вручную отправляет UTYA на ваш кошелёк примерно в течение {hours} ч.",
+    "info.3": "Пока UTYA не отправлены, можно запросить возврат TON в этом приложении. После отправки возврат невозможен.",
+    "info.4": "Комиссия сервиса — {pct}%, она входит в каждую котировку.",
+    "info.5": "Если платёж пришёл после истечения котировки, сумма пересчитывается по актуальной цене.",
+    "info.6": "Цены криптовалют постоянно меняются. UTYA — токен сообщества, вы можете потерять часть стоимости. Это не финансовая рекомендация.",
+    "info.7": "UTYA Miner — неофициальный сервис, не связанный с проектом Utya.",
+    "info.payTo": "Платежи идут на", "info.contract": "Контракт UTYA", "info.support": "Связаться с поддержкой", "info.lang": "Язык",
+    "nav.buy": "Купить", "nav.orders": "Заказы", "nav.info": "Условия",
+    "gate.title": "Сначала вступите в наш канал", "gate.body": "Вступите в канал ниже и нажмите кнопку.", "gate.btn": "Я вступил",
+    "banned.title": "Ваш аккаунт заблокирован.", "banned.contact": "Связаться с админом",
+    "err.generic": "Что-то пошло не так. Попробуйте ещё раз.", "err.no_wallet": "Сначала подключите TON-кошелёк.",
+    "err.too_small": "Минимальный заказ — {min} TON.", "err.too_big": "Максимальный заказ — {max} TON.", "err.bad_amount": "Введите, сколько TON хотите потратить.",
+    "err.price_unavailable": "Актуальная цена сейчас недоступна. Попробуйте через минуту.", "err.buy_closed": "Покупка сейчас приостановлена.",
+    "err.too_many_orders": "У вас слишком много неоплаченных заказов. Завершите их или подождите.", "err.refund_not_possible": "Этот заказ уже нельзя вернуть.",
+    "err.order_missing": "Заказ не найден.", "err.pay_closed": "Платежи ещё не открыты.", "err.slow_down": "Слишком много запросов. Помедленнее.",
+    "err.bad_wallet": "Это не TON-адрес.", "err.no_account": "Откройте бота и нажмите Start.",
+  },
+};
+
+// ------------------------------------------------------------------ helpers
+const tgw = window.Telegram && window.Telegram.WebApp;
+if (tgw) { try { tgw.ready(); tgw.expand(); tgw.setHeaderColor && tgw.setHeaderColor("#071a21"); tgw.setBackgroundColor && tgw.setBackgroundColor("#071a21"); } catch (e) {} }
+const INIT = (tgw && tgw.initData) || "";
+const BOT_USERNAME = "UTYA_miner_bot";
+
+let S = null;            // state from the server
+let lang = "en";
+let tab = "buy";
+let amount = "5";
+let quote = null, quoteErr = null, quoteAt = 0, quoting = false;
+let busy = false;
+let tonUI = null;
+
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const t = (key, vars) => {
+  const raw = (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
+  return raw.replace(/\{(\w+)\}/g, (_, k) => (vars && vars[k] !== undefined ? String(vars[k]) : "{" + k + "}"));
+};
+const nf = (n, max) => Number(n).toLocaleString(lang === "ru" ? "ru-RU" : lang === "bn" ? "bn-BD" : "en-US", { maximumFractionDigits: max === undefined ? 2 : max });
+const buzz = (kind) => { try { tgw && tgw.HapticFeedback && (kind === "ok" ? tgw.HapticFeedback.notificationOccurred("success") : tgw.HapticFeedback.impactOccurred("light")); } catch (e) {} };
+
+async function api(path, body) {
+  const res = await fetch(path, {
+    method: body === undefined ? "GET" : "POST",
+    headers: { "content-type": "application/json", "x-init-data": INIT },
+    body: body === undefined ? undefined : JSON.stringify(body),
+  });
+  let data = {};
+  try { data = await res.json(); } catch (e) {}
+  if (!res.ok) { const err = new Error(data.error || "Error"); err.code = data.code; err.vars = data.vars; err.data = data; throw err; }
+  return data;
+}
+function errText(e) {
+  if (e && e.code && I18N.en["err." + e.code]) return t("err." + e.code, e.vars || {});
+  return e && e.message && e.code ? e.message : t("err.generic");
+}
+let toastTimer = null;
+function toast(msg, kind) {
+  $("#toast").innerHTML = '<div class="toast ' + (kind || "") + '">' + esc(msg) + "</div>";
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { $("#toast").innerHTML = ""; }, 3500);
+}
+const closeOverlay = () => { $("#ov").innerHTML = ""; };
+function openOverlay(html) { $("#ov").innerHTML = '<div class="ov"><div class="sheet">' + html + "</div></div>"; }
+const short = (a) => (a ? a.slice(0, 6) + "…" + a.slice(-6) : "-");
+const dateText = (ms) => new Date(ms).toLocaleString(lang === "ru" ? "ru-RU" : lang === "bn" ? "bn-BD" : "en-GB", { dateStyle: "medium", timeStyle: "short" });
+
+const DUCK = '<svg width="42" height="42" viewBox="0 0 100 100" aria-hidden="true"><rect width="100" height="100" rx="22" fill="#12414d"/><circle cx="45" cy="82" r="20" fill="#f7be28"/><circle cx="22" cy="66" r="10" fill="#f7be28"/><circle cx="50" cy="46" r="27" fill="#ffcd38"/><path d="M64 43 L87 50 L64 57 Z" fill="#ff8028"/><circle cx="56" cy="40" r="4.6" fill="#fff"/><circle cx="57.5" cy="40" r="2.2" fill="#101820"/></svg>';
+
+// ------------------------------------------------------------------ wallet (TonConnect)
+function ton() {
+  if (tonUI) return tonUI;
+  try {
+    if (!window.TON_CONNECT_UI) return null;
+    tonUI = new window.TON_CONNECT_UI.TonConnectUI({
+      manifestUrl: window.location.origin + "/tonconnect-manifest.json",
+      actionsConfiguration: { twaReturnUrl: "https://t.me/" + BOT_USERNAME },
+    });
+    tonUI.onStatusChange((w) => {
+      if (w && w.account && S) syncWallet(w.account.address).then(() => render()).catch(() => render());
+      else if (S) render();
+    });
+    return tonUI;
+  } catch (e) { return null; }
+}
+const connectedAccount = () => { const ui = ton(); return ui && ui.account ? ui.account : null; };
+async function syncWallet(rawAddress) {
+  const r = await api("/api/wallet", { address: rawAddress });
+  S = r.state;
+}
+
+// ------------------------------------------------------------------ rendering
+function priceChip() {
+  const p = S && S.price;
+  if (!p) return '<div class="chip" id="chip"><b><span class="dot off"></span>' + esc(t("price.none")) + "</b></div>";
+  const age = Math.max(0, Math.round((Date.now() - p.at) / 1000));
+  return '<div class="chip" id="chip"><b><span class="dot"></span>$' + esc(nf(p.utyaUsd, 6)) + "</b>" + esc(t("price.live")) + " · " + esc(t("price.age", { s: age })) + "</div>";
+}
+
+function walletCard() {
+  const acc = connectedAccount();
+  const w = S.user.wallet;
+  if (!acc) {
+    return '<div class="card"><h3>' + esc(t("wallet.title")) + '</h3><div class="muted">' + esc(t("wallet.none")) + '</div><button class="btn" data-a="connect">' + esc(t("wallet.connect")) + "</button></div>";
+  }
+  return '<div class="card"><h3>' + esc(t("wallet.title")) + '</h3><div class="addr">' + esc(w || acc.address) + '</div><div class="muted" style="margin-top:6px">' + esc(t("wallet.hint")) +
+    '</div><div style="margin-top:10px"><button class="btn ghost small" data-a="disconnect">' + esc(t("wallet.disconnect")) + "</button></div></div>";
+}
+
+function quoteBox() {
+  if (!S.settings.buyOpen) return '<div class="muted">' + esc(t("err.buy_closed")) + "</div>";
+  if (quoteErr) return '<div class="muted" style="color:var(--red)">' + esc(quoteErr) + "</div>";
+  if (!quote) return '<div class="muted">' + esc(t("buy.checking")) + "</div>";
+  const q = quote;
+  const age = Math.max(0, Math.round((Date.now() - q.at) / 1000));
+  return '<div class="row"><span>' + esc(t("buy.youPay")) + "</span><span>" + esc(nf(q.ton, 4)) + " TON · ≈ $" + esc(nf(q.ton * q.tonUsd, 2)) + "</span></div>" +
+    '<div class="row"><span>' + esc(t("buy.rate")) + "</span><span>" + esc(t("buy.rateVal", { n: nf(q.perTon, 2) })) + "</span></div>" +
+    '<div class="row"><span>' + esc(t("buy.fee")) + "</span><span>" + esc(t("buy.feeVal", { pct: nf(q.feePct, 2), ton: nf(q.feeTon, 4) })) + "</span></div>" +
+    '<div class="row"><span>' + esc(t("buy.receive")) + '</span><span class="big">' + esc(nf(q.utya, 2)) + " UTYA</span></div>" +
+    '<div class="muted" style="margin-top:6px">' + esc(t("buy.updated", { s: age })) + "</div>";
+}
+
+function payBtn() {
+  const acc = connectedAccount();
+  const ok = S.settings.buyOpen && quote && !quoteErr;
+  if (!acc) return '<button class="btn" data-a="connect" id="payBtn">' + esc(t("buy.btnConnect")) + "</button>";
+  return '<button class="btn" data-a="pay" id="payBtn"' + (ok ? "" : " disabled") + ">" + esc(ok ? t("buy.btn", { ton: nf(quote.ton, 4) }) : t("buy.btn", { ton: nf(Number(String(amount).replace(",", ".")) || 0, 4) })) + "</button>";
+}
+
+function viewBuy() {
+  const st = S.settings;
+  const presets = [1, 5, 10, 25].filter((n) => n >= st.minTon && n <= st.maxTon);
+  return '<div class="card warn"><b>' + esc(t("unofficial.title")) + '</b><div class="muted" style="margin-top:4px">' + esc(t("unofficial.body")) + "</div></div>" +
+    walletCard() +
+    '<div class="card"><h3>' + esc(t("buy.title")) + '</h3><div class="muted" style="margin-bottom:8px">' + esc(t("buy.amount")) + " · " + esc(t("buy.limits", { min: nf(st.minTon, 4), max: nf(st.maxTon, 4) })) + "</div>" +
+    '<div class="field"><input id="amt" inputmode="decimal" autocomplete="off" value="' + esc(amount) + '" /><span>TON</span></div>' +
+    '<div class="chips">' + presets.map((n) => '<button data-a="preset" data-v="' + n + '" class="' + (String(n) === String(amount) ? "on" : "") + '">' + n + "</button>").join("") + "</div>" +
+    '<div id="quoteBox" style="margin-top:8px">' + quoteBox() + "</div>" +
+    '<div id="payWrap">' + payBtn() + "</div>" +
+    '<div class="muted" style="margin-top:10px">' + esc(t("buy.note")) + "</div></div>" +
+    '<div class="card"><h3>' + esc(t("how.title")) + "</h3><ol><li>" + esc(t("how.1")) + "</li><li>" + esc(t("how.2", { hours: st.deliveryHours })) + "</li><li>" + esc(t("how.3")) + "</li></ol></div>";
+}
+
+function orderCard(o) {
+  const tonTxt = nf(o.ton, 4) + " TON → " + nf(o.utya, 2) + " UTYA";
+  const when = o.deliveredAt || o.refundedAt || o.paidAt || o.createdAt;
+  return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>#' + esc(o.id) + '</b><span class="status st-' + esc(o.status) + '">' + esc(t("status." + o.status)) + "</span></div>" +
+    '<div style="margin:8px 0 2px;font-weight:700">' + esc(tonTxt) + '</div><div class="muted">' + esc(dateText(when)) + "</div>" +
+    '<div class="muted" style="margin-top:6px">' + esc(t("orders.to")) + ': <span class="addr">' + esc(short(o.wallet)) + "</span></div>" +
+    (o.requoted ? '<div class="muted" style="margin-top:6px">' + esc(t("orders.requoted")) + "</div>" : "") +
+    (o.status === "refund_requested" ? '<div class="muted" style="margin-top:6px">' + esc(t("orders.refundNote", { ton: nf(o.ton, 4) })) + "</div>" : "") +
+    (o.deliveryTx ? '<div class="muted" style="margin-top:6px">Tx: <span class="addr">' + esc(o.deliveryTx) + "</span></div>" : "") +
+    (o.refundTx ? '<div class="muted" style="margin-top:6px">Tx: <span class="addr">' + esc(o.refundTx) + "</span></div>" : "") +
+    (o.status === "paid" ? '<button class="btn ghost small" style="margin-top:10px" data-a="refund" data-id="' + esc(o.id) + '">' + esc(t("orders.refund")) + "</button>" : "") + "</div>";
+}
+
+function viewOrders() {
+  const list = S.orders;
+  return '<div class="card"><h3>' + esc(t("orders.title")) + "</h3>" + (list.length ? '<div class="muted">' + esc(list.length) + "</div>" : '<div class="muted">' + esc(t("orders.empty")) + "</div>") + "</div>" + list.map(orderCard).join("");
+}
+
+function viewInfo() {
+  const st = S.settings;
+  const langs = [["en", "English"], ["bn", "বাংলা"], ["ru", "Русский"]];
+  return '<div class="card"><h3>' + esc(t("info.title")) + "</h3><ul>" +
+    "<li>" + esc(t("info.1")) + "</li><li>" + esc(t("info.2", { hours: st.deliveryHours })) + "</li><li>" + esc(t("info.3")) + "</li><li>" + esc(t("info.4", { pct: nf(st.feePct, 2) })) + "</li><li>" + esc(t("info.5")) + "</li><li>" + esc(t("info.6")) + "</li><li>" + esc(t("info.7")) + "</li></ul></div>" +
+    '<div class="card"><div class="muted">' + esc(t("info.payTo")) + '</div><div class="addr" style="margin-bottom:10px">' + esc(st.payAddress || "-") + '</div><div class="muted">' + esc(t("info.contract")) + '</div><div class="addr">' + esc(S.token.jetton) + "</div></div>" +
+    (st.support ? '<div class="card"><button class="btn ghost" data-a="support">' + esc(t("info.support")) + "</button></div>" : "") +
+    '<div class="card"><h3>' + esc(t("info.lang")) + '</h3><div class="langs">' + langs.map((l) => '<button data-a="lang" data-v="' + l[0] + '" class="' + (lang === l[0] ? "on" : "") + '">' + l[1] + "</button>").join("") + "</div></div>";
+}
+
+function render() {
+  if (!S) return;
+  document.documentElement.lang = lang;
+  const body = tab === "buy" ? viewBuy() : tab === "orders" ? viewOrders() : viewInfo();
+  const nav = [["buy", "🦆"], ["orders", "📦"], ["info", "ℹ️"]];
+  $("#app").innerHTML = '<div class="top">' + DUCK + '<div class="brand">UTYA Miner<small>' + esc(t("brand.sub")) + "</small></div>" + priceChip() + "</div>" + body +
+    '<div class="nav">' + nav.map((n) => '<button data-a="tab" data-v="' + n[0] + '" class="' + (tab === n[0] ? "on" : "") + '"><span>' + n[1] + "</span>" + esc(t("nav." + n[0])) + "</button>").join("") + "</div>";
+  const input = $("#amt");
+  if (input) input.addEventListener("input", onAmount);
+}
+
+function refreshQuoteUI() {
+  const qb = $("#quoteBox"), pw = $("#payWrap");
+  if (qb) qb.innerHTML = quoteBox();
+  if (pw) pw.innerHTML = payBtn();
+}
+
+// ------------------------------------------------------------------ quote
+let amtTimer = null;
+function onAmount(e) {
+  amount = e.target.value.replace(",", ".");
+  quote = null; quoteErr = null;
+  document.querySelectorAll(".chips button").forEach((b) => b.classList.toggle("on", b.dataset.v === String(amount)));
+  refreshQuoteUI();
+  clearTimeout(amtTimer);
+  amtTimer = setTimeout(refreshQuote, 350);
+}
+async function refreshQuote() {
+  if (!S || tab !== "buy" || quoting) return;
+  const wanted = amount;
+  quoting = true;
+  try {
+    const r = await api("/api/quote", { ton: Number(wanted) });
+    if (wanted === amount) { quote = r.quote; quoteErr = null; }
+  } catch (e) {
+    if (e && e.code === "banned") return showBanned(e.data);
+    if (wanted === amount) { quote = null; quoteErr = errText(e); }
+  } finally { quoting = false; }
+  if (wanted !== amount) return refreshQuote();
+  refreshQuoteUI();
+}
+async function refreshState() {
+  try {
+    const r = await api("/api/state");
+    S = r;
+    lang = S.user.lang || lang;
+    if (tab === "orders" || tab === "info") render(); else { const c = $("#chip"); if (c) c.outerHTML = priceChip(); }
+  } catch (e) { /* keep the old state */ }
+}
+
+// ------------------------------------------------------------------ payment
+function showPay(stage, extra) {
+  if (stage === "confirm") openOverlay('<div class="spin"></div><h2>' + esc(t("pay.confirm")) + "</h2>");
+  else if (stage === "wait") openOverlay('<div class="spin"></div><h2>' + esc(t("pay.wait")) + "</h2>");
+  else if (stage === "slow") openOverlay("<h2>⏳</h2><p class=\"muted\">" + esc(t("pay.slow")) + '</p><button class="btn" data-a="closeov">' + esc(t("pay.close")) + "</button>");
+  else if (stage === "done") openOverlay('<div style="font-size:54px">🦆</div><h2>' + esc(t("pay.done")) + '</h2><p class="muted">' + esc(t("pay.doneBody", { utya: nf(extra.utya, 2), hours: S.settings.deliveryHours })) + '</p><button class="btn" data-a="toOrders">' + esc(t("pay.toOrders")) + "</button>");
+}
+
+async function startPay() {
+  if (busy) return;
+  const ui = ton();
+  if (!ui) return toast(t("err.generic"), "err");
+  const acc = ui.account;
+  if (!acc) return ui.openModal();
+  busy = true;
+  let prepared;
+  try {
+    await syncWallet(acc.address);
+    prepared = (await api("/api/pay/prepare", { ton: Number(amount) })).payment;
+  } catch (e) {
+    busy = false;
+    if (e && e.code === "join_required") return showGate(e.data.channels);
+    if (e && e.code === "banned") return showBanned(e.data);
+    return toast(errText(e), "err");
+  }
+  showPay("confirm");
+  try {
+    await ui.sendTransaction({ validUntil: prepared.validUntil, from: acc.address, messages: prepared.messages });
+  } catch (e) { busy = false; closeOverlay(); return toast(t("pay.cancelled"), "err"); }
+  showPay("wait");
+  const started = Date.now();
+  while (Date.now() - started < 180000) {
+    let r = null;
+    try { r = await api("/api/pay/check", { id: prepared.id }); } catch (e) { /* keep trying */ }
+    if (r && r.order && ["paid", "delivered", "refund_requested", "refunded"].includes(r.order.status)) {
+      busy = false; S = r.state; buzz("ok"); showPay("done", r.order); render(); return;
+    }
+    await new Promise((res) => setTimeout(res, 3000));
+  }
+  busy = false; showPay("slow");
+}
+
+// ------------------------------------------------------------------ special screens
+function showBanned(data) {
+  const support = data && data.support;
+  $("#app").innerHTML = '<div class="full"><div style="font-size:54px">🚫</div><h2>' + esc(t("banned.title")) + "</h2>" + (support ? '<button class="btn" data-a="support" data-url="' + esc(support) + '">' + esc(t("banned.contact")) + "</button>" : "") + "</div>";
+}
+function showGate(channels) {
+  $("#app").innerHTML = '<div class="full"><div style="font-size:54px">📣</div><h2>' + esc(t("gate.title")) + '</h2><p class="muted">' + esc(t("gate.body")) + "</p>" +
+    (channels || []).map((c) => '<button class="btn ghost" data-a="link" data-url="' + esc(c.url) + '">' + esc(c.name) + "</button>").join("") + '<button class="btn" data-a="reload">' + esc(t("gate.btn")) + "</button></div>";
+}
+function openLink(url) { try { if (tgw && /^https:\/\/t\.me\//.test(url) && tgw.openTelegramLink) return tgw.openTelegramLink(url); if (tgw && tgw.openLink) return tgw.openLink(url); } catch (e) {} window.open(url, "_blank"); }
+
+// ------------------------------------------------------------------ clicks
+document.addEventListener("click", async (ev) => {
+  const el = ev.target.closest("[data-a]");
+  if (!el) return;
+  const a = el.dataset.a;
+  buzz();
+  if (a === "tab") { tab = el.dataset.v; render(); if (tab === "buy") { quote = null; refreshQuote(); } return; }
+  if (a === "preset") { amount = el.dataset.v; const i = $("#amt"); if (i) i.value = amount; document.querySelectorAll(".chips button").forEach((b) => b.classList.toggle("on", b.dataset.v === amount)); quote = null; quoteErr = null; refreshQuoteUI(); refreshQuote(); return; }
+  if (a === "connect") { const ui = ton(); if (ui) ui.openModal(); else toast(t("err.generic"), "err"); return; }
+  if (a === "disconnect") { const ui = ton(); if (ui) { try { await ui.disconnect(); } catch (e) {} } render(); return; }
+  if (a === "pay") return startPay();
+  if (a === "closeov") return closeOverlay();
+  if (a === "toOrders") { closeOverlay(); tab = "orders"; render(); return; }
+  if (a === "support") return openLink(el.dataset.url || (S && S.settings.support));
+  if (a === "link") return openLink(el.dataset.url);
+  if (a === "reload") return location.reload();
+  if (a === "lang") {
+    try { const r = await api("/api/lang", { lang: el.dataset.v }); S = r.state; lang = S.user.lang; render(); } catch (e) { toast(errText(e), "err"); }
+    return;
+  }
+  if (a === "refund") {
+    const o = S.orders.find((x) => x.id === el.dataset.id);
+    if (!o) return;
+    openOverlay("<h2>↩️</h2><p>" + esc(t("orders.refundAsk", { ton: nf(o.ton, 4) })) + '</p><button class="btn" data-a="refundYes" data-id="' + esc(o.id) + '">' + esc(t("orders.refundYes")) + '</button><button class="btn ghost" data-a="closeov">' + esc(t("orders.refundNo")) + "</button>");
+    return;
+  }
+  if (a === "refundYes") {
+    closeOverlay();
+    try { const r = await api("/api/refund", { id: el.dataset.id }); S = r.state; toast(t("orders.refundDone"), "ok"); render(); } catch (e) { toast(errText(e), "err"); await refreshState(); }
+    return;
+  }
+});
+
+// ------------------------------------------------------------------ start
+async function boot() {
+  try {
+    S = await api("/api/state");
+  } catch (e) {
+    if (e && e.code === "join_required") return showGate(e.data.channels);
+    if (e && e.code === "banned") return showBanned(e.data);
+    $("#app").innerHTML = '<div class="full"><div style="font-size:54px">🦆</div><p class="muted">' + esc(errText(e)) + "</p></div>";
+    return;
+  }
+  lang = S.user.lang || "en";
+  ton(); // create the wallet connector early so a restored wallet shows up
+  render();
+  const acc = connectedAccount();
+  if (acc) syncWallet(acc.address).then(render).catch(() => {});
+  refreshQuote();
+  setInterval(() => { if (!document.hidden) { refreshState(); if (tab === "buy" && !busy) refreshQuote(); } }, 15000);
+  setInterval(() => { const c = $("#chip"); if (c && S) c.outerHTML = priceChip(); }, 1000);
+}
+boot();
+</script>
+</body>
+</html>
