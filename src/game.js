@@ -9,7 +9,7 @@
 //         mined balance. Everything is calculated on the server, the app only shows it.
 // Withdrawal status: pending (balance is held) -> sent (admin sent the UTYA) | rejected (balance goes back) | cancelled (user took it back)
 import crypto from "node:crypto";
-import { BRAND, DEFAULTS, LANGS, MINING, ORDER, TOKEN } from "./config.js";
+import { BRAND, DEFAULTS, LANGS, MINING, ORDER, REFERRAL, TOKEN } from "./config.js";
 import { T } from "./messages.js";
 import { normalizeWallet, toNano } from "./ton.js";
 
@@ -83,6 +83,7 @@ export async function getSettings() {
     withdrawOpen: s.withdrawOpen !== false, // /withdrawon /withdrawoff
     mineRate: pos(s.mineRate, MINING.ratePerHour), // UTYA per hour
     minWithdraw: pos(s.minWithdraw, MINING.minWithdraw), // UTYA
+    refBonus: Number.isFinite(s.refBonus) && s.refBonus >= 0 ? s.refBonus : REFERRAL.bonusUtya, // UTYA per counted friend (0 = referrals pay nothing)
   };
 }
 export async function updateSettings(patch) {
@@ -104,6 +105,7 @@ function displayName(tg) {
 }
 const langFromTelegram = (code) => {
   const l = String(code ?? "").slice(0, 2).toLowerCase();
+  if (l === "fa") return "ar"; // Persian speakers get Arabic (the closest language the app has)
   return LANGS.includes(l) ? l : "en";
 };
 const langOf = (u) => (u && LANGS.includes(u.lang) ? u.lang : "en");
@@ -114,13 +116,19 @@ async function mustUser(id) {
   return u;
 }
 
-export async function ensureUser(tg) {
+/**
+ * Creates the account on the first contact. `opts.ref` is the Telegram id of the inviter (from the link t.me/bot?start=ref_ID).
+ * A referral is only remembered for a brand-new account, for a real inviter, and never for yourself.
+ */
+export async function ensureUser(tg, opts = {}) {
   return withLock("u" + tg.id, async () => {
     const now = Date.now();
     const name = displayName(tg);
     let u = await db.getUser(tg.id);
     if (!u) {
       u = { id: tg.id, name, username: tg.username ?? "", lang: langFromTelegram(tg.language_code), createdAt: now, lastSeen: now, wallet: "", banned: false };
+      const ref = Number(opts.ref);
+      if (Number.isSafeInteger(ref) && ref > 0 && ref !== tg.id && (await db.getUser(ref))) u.referredBy = ref;
       await db.putUser(u);
       return u;
     }
@@ -136,7 +144,7 @@ export async function ensureUser(tg) {
 
 /** The mining data of a user. Old accounts get it the first time it is needed. */
 function mineOf(u) {
-  u.mining = { balance: 0, total: 0, withdrawn: 0, sessionStart: 0, sessionRate: 0, ...(u.mining ?? {}) };
+  u.mining = { balance: 0, total: 0, withdrawn: 0, sessionStart: 0, sessionRate: 0, refEarned: 0, refCount: 0, ...(u.mining ?? {}) };
   return u.mining;
 }
 
@@ -172,7 +180,42 @@ export async function setWallet(id, address) {
   await patchUser(id, (u) => {
     u.wallet = friendly;
   });
+  await creditReferral(id).catch((err) => console.error("[game] referral:", err.message));
   return friendly;
+}
+
+/**
+ * A friend counts once: he came with the link of an inviter, and he connected a wallet that no other account uses.
+ * Then the inviter gets the bonus in his mined balance and a message.
+ */
+async function creditReferral(id) {
+  const first = await db.getUser(id);
+  if (!first?.referredBy || first.refCounted || !first.wallet) return false;
+  const s = await getSettings();
+  let inviter = 0;
+  const counted = await patchUser(id, async (u) => {
+    if (!u.referredBy || u.refCounted || !u.wallet) return false;
+    if (await db.findUserByWallet(u.wallet, id)) return false; // the same wallet on two accounts is not a new friend
+    u.refCounted = true;
+    u.refCountedAt = Date.now();
+    inviter = u.referredBy;
+    return true;
+  });
+  if (!counted) return false;
+  const paid = await patchUser(inviter, (r) => {
+    if (r.banned) return false;
+    const m = mineOf(r);
+    m.refCount += 1;
+    m.balance = round4(m.balance + s.refBonus);
+    m.refEarned = round4(m.refEarned + s.refBonus);
+    return true;
+  }).catch(() => false);
+  if (paid && s.refBonus > 0) {
+    await db.incMeta("bonusUtya4", Math.round(s.refBonus * 1e4));
+    const r = await db.getUser(inviter);
+    void hooks.notify(inviter, T(langOf(r), "ref.counted", { name: first.name, bonus: fmt(s.refBonus), symbol: TOKEN.symbol }));
+  }
+  return true;
 }
 
 // ---------------------------------- quotes -----------------------------------
@@ -258,6 +301,7 @@ export async function createOrder(userId, rawTon) {
     wallet: u.wallet, // the UTYA goes to this wallet, even if the player connects another one later
   };
   await db.addOrder(o);
+  void hooks.notify(userId, T(langOf(u), "order.created", { id: o.id, ton: o.ton, utya: fmt(o.utya), symbol: TOKEN.symbol, minutes: Math.round(ORDER.pendingMs / 60_000) }));
   return o;
 }
 
@@ -276,7 +320,11 @@ export async function openOrders() {
   for (const o of rows) {
     if (o.status === "pending" && now > o.expiresAt) {
       const moved = await db.transitionOrder(o.id, ["pending"], { status: "expired" });
-      if (moved) o.status = "expired";
+      if (moved) {
+        o.status = "expired";
+        const user = await db.getUser(o.userId);
+        void hooks.notify(o.userId, T(langOf(user), "order.expired", { id: o.id, ton: o.ton }));
+      }
     }
   }
   const dead = await db.listOrders({ statuses: ["pending", "expired"], limit: 500 });
@@ -529,8 +577,17 @@ export async function stateFor(id) {
   const orders = await db.listOrders({ userId: id, limit: 20 });
   const withdrawals = await db.listWithdrawals({ userId: id, limit: 20 });
   const m = mineOf(u);
+  const friends = await db.listReferrals(id, 100);
   return {
     official: BRAND.official,
+    referral: {
+      bonus: s.refBonus,
+      link: `https://t.me/${hooks.botUsername || BRAND.username}?start=ref_${id}`,
+      invited: friends.length,
+      counted: friends.filter((f) => f.refCounted).length,
+      earned: m.refEarned,
+      friends: friends.slice(0, 50).map((f) => ({ name: f.name, counted: Boolean(f.refCounted), at: f.createdAt })),
+    },
     mining: {
       open: s.mineOpen,
       withdrawOpen: s.withdrawOpen,
@@ -570,6 +627,7 @@ export async function adminStats() {
     withdrawals,
     minedUtya: (meta.minedUtya4 ?? 0) / 1e4,
     withdrawnUtya: (meta.withdrawnUtya4 ?? 0) / 1e4,
+    bonusUtya: (meta.bonusUtya4 ?? 0) / 1e4,
     receivedTon: (meta.receivedMilliTon ?? 0) / 1000,
     refundedTon: (meta.refundedMilliTon ?? 0) / 1000,
     deliveredUtya: (meta.deliveredUtyaCents ?? 0) / 100,
