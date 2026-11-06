@@ -65,6 +65,18 @@ class MemoryDB {
   async allUserIds() {
     return [...this.users.keys()];
   }
+  /** Another account that already uses this wallet (used so one wallet can only count for one referral). */
+  async findUserByWallet(wallet, exceptId) {
+    for (const u of this.users.values()) if (u.wallet && u.wallet === wallet && u.id !== exceptId) return structuredClone(u);
+    return null;
+  }
+  async listReferrals(referrerId, limit = 100) {
+    return [...this.users.values()]
+      .filter((u) => u.referredBy === referrerId)
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .slice(0, limit)
+      .map((u) => structuredClone(u));
+  }
   async getMeta() {
     return structuredClone(this.meta);
   }
@@ -143,6 +155,8 @@ class MongoDB {
     const db = client.db(); // database name comes from the connection string
     const self = new MongoDB(client, db);
     await self.users.createIndex({ createdAt: -1 });
+    await self.users.createIndex({ referredBy: 1 });
+    await self.users.createIndex({ wallet: 1 });
     await self.ordersCol.createIndex({ status: 1, createdAt: -1 });
     await self.ordersCol.createIndex({ userId: 1, createdAt: -1 });
     await self.withdrawCol.createIndex({ status: 1, createdAt: 1 });
@@ -163,6 +177,12 @@ class MongoDB {
   }
   async allUserIds() {
     return (await this.users.find({}, { projection: { _id: 1 } }).toArray()).map((d) => d._id);
+  }
+  async findUserByWallet(wallet, exceptId) {
+    return strip(await this.users.findOne({ wallet, _id: { $ne: exceptId } }));
+  }
+  async listReferrals(referrerId, limit = 100) {
+    return (await this.users.find({ referredBy: referrerId }).sort({ createdAt: -1 }).limit(limit).toArray()).map(strip);
   }
   async getMeta() {
     const doc = await this.metaCol.findOne({ _id: "global" });
