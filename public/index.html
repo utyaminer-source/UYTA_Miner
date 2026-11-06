@@ -27,7 +27,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 
 /* ---------- animated RGB background ---------- */
 .aurora{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;background:radial-gradient(120% 70% at 50% -10%,#0d1030 0%,var(--bg) 65%)}
-.aurora i{position:absolute;width:85vmax;height:85vmax;border-radius:50%;will-change:transform;opacity:.55}
+.aurora i{position:absolute;width:85vmax;height:85vmax;border-radius:50%;will-change:transform;opacity:.4}
 .aurora i:nth-child(1){left:-40vmax;top:-30vmax;background:radial-gradient(circle,rgba(34,211,238,.5),transparent 62%);animation:fl1 19s ease-in-out infinite alternate}
 .aurora i:nth-child(2){right:-45vmax;top:5vmax;background:radial-gradient(circle,rgba(139,92,246,.55),transparent 62%);animation:fl2 23s ease-in-out infinite alternate}
 .aurora i:nth-child(3){left:-20vmax;bottom:-45vmax;background:radial-gradient(circle,rgba(236,72,153,.42),transparent 62%);animation:fl3 27s ease-in-out infinite alternate}
@@ -45,21 +45,21 @@ button{font:inherit;color:inherit;cursor:pointer}
 .brand{font-weight:900;font-size:20px;letter-spacing:.3px;background:linear-gradient(100deg,#22d3ee,#a78bfa,#ec4899,#22d3ee);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;animation:shimmer 6s linear infinite}
 .brand small{display:block;font-weight:500;font-size:11px;letter-spacing:0;-webkit-text-fill-color:var(--muted)}
 @keyframes shimmer{to{background-position:-250% 0}}
-.chip{margin-left:auto;text-align:right;font-size:11.5px;color:var(--muted);line-height:1.25;padding:7px 11px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.chip{flex:none;text-align:end;font-size:11px;color:var(--muted);line-height:1.25;padding:6px 10px;border-radius:14px;background:rgba(255,255,255,.05);border:1px solid var(--line);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
 .chip b{display:block;color:var(--text);font-size:14px}
 .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--green);margin-right:5px;box-shadow:0 0 10px var(--green);animation:blink 1.8s ease-in-out infinite}
 .dot.off{background:var(--red);box-shadow:0 0 10px var(--red)}
 @keyframes blink{50%{opacity:.35}}
 
 /* ---------- cards ---------- */
-.card{position:relative;background:linear-gradient(160deg,rgba(30,32,70,.7),rgba(10,12,30,.78));border:1px solid var(--line);border-radius:22px;padding:16px;margin-bottom:14px;backdrop-filter:blur(16px) saturate(1.3);-webkit-backdrop-filter:blur(16px) saturate(1.3);box-shadow:0 14px 44px -16px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.07)}
-.card h3{margin:0 0 10px;font-size:15px;letter-spacing:.3px;font-weight:800}
+.card{position:relative;background:linear-gradient(160deg,rgba(30,32,70,.3),rgba(10,12,30,.4));border:1px solid var(--line);border-radius:22px;padding:16px;margin-bottom:14px;backdrop-filter:blur(4px) saturate(1.5);-webkit-backdrop-filter:blur(4px) saturate(1.5);box-shadow:0 14px 44px -16px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.07)}
+.card h3{text-shadow:0 1px 10px rgba(0,0,0,.7);margin:0 0 10px;font-size:15px;letter-spacing:.3px;font-weight:800}
 .card.hero{border-color:transparent}
 .card.hero::before{content:"";position:absolute;inset:0;border-radius:inherit;padding:1.6px;background:conic-gradient(from var(--a),transparent 0 50%,var(--c1),var(--c2),var(--c3),transparent 96%);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);mask-composite:exclude;animation:spin 7s linear infinite;animation-delay:var(--sd);pointer-events:none}
 @keyframes spin{to{--a:360deg}}
 .warn{background:linear-gradient(135deg,rgba(139,92,246,.16),rgba(236,72,153,.09));border-color:rgba(168,125,255,.38)}
 .warn b{color:#d9c8ff}
-.muted{color:var(--muted);font-size:13px;line-height:1.45}
+.muted{color:var(--muted);font-size:13px;line-height:1.45;text-shadow:0 1px 8px rgba(0,0,0,.75)}
 .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:14px}
 .row:last-child{border-bottom:0}
 .row span:first-child{color:var(--muted)}
@@ -71,7 +71,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 /* ---------- inputs & buttons ---------- */
 .field{display:flex;align-items:center;background:rgba(2,3,12,.62);border:1px solid var(--line2);border-radius:16px;padding:4px 6px 4px 14px;transition:border-color .25s,box-shadow .25s}
 .field:focus-within{border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211,238,.16),0 0 28px -6px rgba(139,92,246,.7)}
-.field input{flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--text);font-size:24px;font-weight:800;padding:8px 0}
+.field input{direction:ltr;text-align:left;flex:1;min-width:0;background:transparent;border:0;outline:0;color:var(--text);font-size:24px;font-weight:800;padding:8px 0}
 .field span{font-weight:800;color:var(--muted);padding:0 8px}
 .chips{display:flex;gap:8px;margin:10px 0 4px;flex-wrap:wrap}
 .chips button,.langs button,.ranges button{background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:13px;padding:9px 0;font-weight:800;transition:transform .15s,background .25s,box-shadow .25s}
@@ -90,7 +90,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .btn[disabled]::after{display:none}
 .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.5);transform:scale(0);animation:rip .65s ease-out;pointer-events:none}
 @keyframes rip{to{transform:scale(3.2);opacity:0}}
-.addr{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;word-break:break-all;color:var(--muted)}
+.addr{direction:ltr;text-align:left;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11.5px;word-break:break-all;color:var(--muted)}
 
 /* ---------- status pills ---------- */
 .status{display:inline-block;padding:3px 10px;border-radius:99px;font-size:11.5px;font-weight:800;background:rgba(255,255,255,.08)}
@@ -99,7 +99,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .st-refund_requested,.st-pending{background:rgba(139,92,246,.24);color:#c9b3ff}
 .st-refunded{background:rgba(34,211,238,.18);color:var(--c1)}
 .st-failed,.st-expired,.st-rejected,.st-cancelled{background:rgba(255,77,125,.16);color:var(--red)}
-ol,ul{margin:0;padding-left:20px}
+ol,ul{margin:0;padding:0;padding-inline-start:20px}
 li{margin:7px 0;font-size:14px;line-height:1.45}
 a{color:var(--c1)}
 
@@ -163,7 +163,7 @@ a{color:var(--c1)}
 .f-up{animation:fup 1s}.f-down{animation:fdown 1s}
 @keyframes fup{0%{color:var(--green);text-shadow:0 0 22px var(--green)}100%{color:var(--text);text-shadow:none}}
 @keyframes fdown{0%{color:var(--red);text-shadow:0 0 22px var(--red)}100%{color:var(--text);text-shadow:none}}
-.cbox{position:relative;height:240px;margin-top:6px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.cbox{direction:ltr;position:relative;height:240px;margin-top:6px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .cbox svg{position:absolute;inset:0;width:100%;height:100%;display:block;overflow:visible}
 .cbox svg path:nth-of-type(2){filter:drop-shadow(0 0 5px currentColor)}
 .cbox.draw svg{animation:reveal 1.2s cubic-bezier(.3,.7,.2,1) both}
@@ -176,15 +176,124 @@ a{color:var(--c1)}
 .cempty{height:100%;display:flex;align-items:center;justify-content:center;text-align:center;padding:0 20px}
 
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+
+/* ---------- nobody can select or copy the text by holding it (only the Copy buttons copy) ---------- */
+html,body,#app,.ov,.sheet,.toast{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea{-webkit-user-select:text;user-select:text}
+img{-webkit-user-drag:none;user-drag:none}
+
+/* ---------- the magician in the background ---------- */
+.magic{position:fixed;inset:0;z-index:0;pointer-events:none;display:flex;align-items:flex-end;justify-content:center;overflow:hidden;opacity:.9}
+.magic svg{height:92vh;width:auto;max-width:none;margin-bottom:-3vh;filter:drop-shadow(0 0 34px rgba(124,77,255,.5))}
+.m-wiz{animation:wiz 7s ease-in-out infinite}
+@keyframes wiz{50%{transform:translateY(-18px)}}
+.m-robe{transform-origin:200px 506px;animation:sway 7s ease-in-out infinite}
+@keyframes sway{0%,100%{transform:skewX(0)}50%{transform:skewX(-1.8deg)}}
+.m-orb{transform-origin:338px 52px;animation:orbp 2.6s ease-in-out infinite}
+.m-orb2{transform-origin:76px 296px;animation:orbp 3.1s ease-in-out infinite}
+@keyframes orbp{50%{transform:scale(1.2);opacity:.82}}
+.m-eye{transform-box:fill-box;transform-origin:center;animation:blink2 5s infinite}
+@keyframes blink2{0%,92%,100%{transform:scaleY(1)}95%{transform:scaleY(.1)}}
+.m-orbit{transform-origin:200px 300px;animation:rot 22s linear infinite}
+.m-floor-a{transform-origin:0 0;animation:rot 40s linear infinite}
+.m-floor-b{transform-origin:0 0;animation:rotr 28s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+@keyframes rotr{to{transform:rotate(-360deg)}}
+.m-spk{transform-box:fill-box;transform-origin:center;animation:twk 3.2s ease-in-out infinite}
+@keyframes twk{0%,100%{transform:scale(.2);opacity:0}50%{transform:scale(1);opacity:1}}
+
+/* ---------- logo (the duck), language pill ---------- */
+.avatar{position:relative;flex:none;width:52px;height:52px;border-radius:50%;padding:2.5px;background:conic-gradient(from var(--a),var(--c1),var(--c2),var(--c3),var(--c1));animation:spin 5s linear infinite;box-shadow:0 0 22px -2px rgba(139,92,246,.8);display:inline-block}
+.avatar img{width:100%;height:100%;border-radius:50%;display:block;background:#071438;pointer-events:none}
+.avatar.big{width:92px;height:92px;padding:3px}
+.langpill{flex:none;display:flex;align-items:center;gap:4px;padding:9px 9px;border-radius:14px;background:rgba(255,255,255,.06);border:1px solid var(--line);font-size:12px;font-weight:900;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.langpill svg{width:16px;height:16px;stroke:var(--c1);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.top{gap:9px}
+.brand{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:18px}
+.brand small{overflow:hidden;text-overflow:ellipsis}
+
+/* ---------- buttons with icons, copy rows, referral ---------- */
+.btn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.btn.ic{display:flex;align-items:center;justify-content:center;gap:8px}
+.back{display:inline-flex;align-items:center;gap:6px;margin-bottom:12px}
+[dir=rtl] .back svg{transform:scaleX(-1)}
+.center{text-align:center}
+.card.mine{text-align:center}
+.card.mine .stats3 b{font-size:12.5px}
+.addrrow{display:flex;align-items:center;gap:10px;margin:6px 0 16px}
+.addrrow:last-child{margin-bottom:2px}
+.addrrow .addr{flex:1;min-width:0}
+.btn.copy{display:inline-flex;align-items:center;gap:6px}
+.linkbox{margin:12px 0 2px;padding:12px;border-radius:14px;background:rgba(2,3,12,.55);border:1px dashed var(--line2);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;word-break:break-all;direction:ltr;text-align:left;color:var(--c1)}
+.two{display:flex;gap:10px}
+.two .btn{flex:1;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 8px;font-size:14.5px}
+.refhero{text-align:center}
+.refhero .bal{margin:2px 0}
+.fr{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px dashed var(--line)}
+.fr:last-child{border-bottom:0}
+.fav{flex:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;background:var(--rgb);box-shadow:0 6px 18px -6px rgba(139,92,246,.9)}
+.fn{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.termsbtn{margin-top:4px}
 </style>
 </head>
 <body>
 <div class="aurora"><i></i><i></i><i></i><i></i></div>
+<div class="magic" aria-hidden="true"><svg viewBox="0 0 400 560" xmlns="http://www.w3.org/2000/svg"><defs>
+<linearGradient id="mRobe" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6d4dff"/><stop offset=".55" stop-color="#3a2bb0"/><stop offset="1" stop-color="#150f45"/></linearGradient>
+<linearGradient id="mHat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#2a1a7a"/></linearGradient>
+<linearGradient id="mBeard" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#aab8ff"/></linearGradient>
+<linearGradient id="mRing" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#22d3ee"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#ec4899"/></linearGradient>
+<radialGradient id="mOrb"><stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="#7df3ff"/><stop offset="1" stop-color="#8b5cf6"/></radialGradient>
+<radialGradient id="mOrbP"><stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="#ff9bd8"/><stop offset="1" stop-color="#ec4899"/></radialGradient>
+<radialGradient id="mGlow"><stop offset="0" stop-color="#7df3ff" stop-opacity=".7"/><stop offset="1" stop-color="#7df3ff" stop-opacity="0"/></radialGradient>
+<radialGradient id="mGlowP"><stop offset="0" stop-color="#ff9bd8" stop-opacity=".65"/><stop offset="1" stop-color="#ff9bd8" stop-opacity="0"/></radialGradient>
+<radialGradient id="mFloor"><stop offset="0" stop-color="#8b5cf6" stop-opacity=".55"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient>
+</defs>
+<g transform="translate(200 508) scale(1 .26)"><circle r="215" fill="url(#mFloor)"/>
+<g class="m-floor-a"><circle r="190" fill="none" stroke="url(#mRing)" stroke-width="3"/><circle r="160" fill="none" stroke="url(#mRing)" stroke-width="2" stroke-dasharray="6 12"/></g>
+<g class="m-floor-b"><circle r="125" fill="none" stroke="url(#mRing)" stroke-width="3"/><path d="M0 -125 L108 62 L-108 62 Z M0 125 L108 -62 L-108 -62 Z" fill="none" stroke="url(#mRing)" stroke-width="2.5"/></g></g>
+<g class="m-orbit"><circle cx="365" cy="300" r="14" fill="url(#mGlow)"/><circle cx="365" cy="300" r="5" fill="#7df3ff"/><circle cx="200" cy="130" r="12" fill="url(#mGlowP)"/><circle cx="200" cy="130" r="4" fill="#ff9bd8"/><circle cx="35" cy="300" r="14" fill="url(#mGlow)"/><circle cx="35" cy="300" r="5" fill="#a78bfa"/><circle cx="200" cy="470" r="12" fill="url(#mGlowP)"/><circle cx="200" cy="470" r="4" fill="#60a5fa"/></g>
+<g class="m-wiz">
+<g class="m-robe"><path d="M200 205 C150 215 122 262 108 332 C98 392 84 452 72 506 Q200 530 328 506 C316 452 302 392 292 332 C278 262 250 215 200 205Z" fill="url(#mRobe)"/>
+<path d="M200 214 C196 300 190 410 186 506 M200 214 C206 300 214 410 224 506" stroke="#fff" stroke-opacity=".09" stroke-width="3" fill="none"/>
+<path d="M150 300 C180 312 220 312 250 300" stroke="#c9b8ff" stroke-opacity=".5" stroke-width="5" fill="none"/><path d="M72 506 Q200 530 328 506" stroke="url(#mRing)" stroke-width="5" fill="none"/></g>
+<path d="M140 242 C108 258 84 296 74 338 L100 348 C110 316 130 290 156 278Z" fill="#4a35c8"/><circle cx="84" cy="344" r="12" fill="#e9defe"/>
+<circle class="m-orb2" cx="76" cy="296" r="32" fill="url(#mGlowP)"/><circle class="m-orb2" cx="76" cy="296" r="15" fill="url(#mOrbP)"/>
+<path d="M338 62 L360 506" stroke="#3a2a7a" stroke-width="9" stroke-linecap="round"/><path d="M336 70 L357 500" stroke="#7b5cff" stroke-opacity=".5" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M316 56 a22 22 0 0 0 44 0" stroke="#cdbdff" stroke-width="4" fill="none" stroke-linecap="round"/>
+<g class="m-orb"><circle cx="338" cy="52" r="46" fill="url(#mGlow)"/><circle cx="338" cy="52" r="17" fill="url(#mOrb)"/></g>
+<path d="M258 238 C290 232 318 204 332 166 L354 174 C344 222 312 262 272 276Z" fill="#4a35c8"/><circle cx="343" cy="170" r="13" fill="#e9defe"/>
+<path d="M164 196 C158 252 176 304 200 350 C224 304 242 252 236 196 C220 214 180 214 164 196Z" fill="url(#mBeard)"/>
+<path d="M186 232 C188 270 194 300 200 322 M214 232 C212 270 206 300 200 322" stroke="#8d9bff" stroke-opacity=".45" stroke-width="2" fill="none"/>
+<ellipse cx="200" cy="186" rx="38" ry="31" fill="#0a0820"/>
+<ellipse class="m-eye" cx="187" cy="184" rx="4.5" ry="3.4" fill="#7df3ff"/><ellipse class="m-eye" cx="213" cy="184" rx="4.5" ry="3.4" fill="#7df3ff"/>
+<path d="M172 204 C190 194 210 194 228 204 C214 210 186 210 172 204Z" fill="url(#mBeard)"/>
+<ellipse cx="200" cy="164" rx="80" ry="15" fill="#2a1a7a" stroke="#8b5cf6" stroke-width="2"/>
+<path d="M142 162 C150 112 168 62 216 14 C214 44 226 66 222 98 C219 126 228 146 258 162Z" fill="url(#mHat)"/>
+<path d="M146 152 C180 160 222 160 254 152 L258 163 C222 172 180 172 142 163Z" fill="url(#mRing)" opacity=".9"/>
+<path class="m-spk" d="M200 94 l5 12 13 1 -10 8 3 13 -11 -7 -11 7 3 -13 -10 -8 13 -1z" fill="#fff" opacity=".85"/>
+</g>
+<g transform="translate(58 150)"><path class="m-spk" d="M0 -8L2 -2 8 0 2 2 0 8-2 2-8 0-2-2Z" fill="#7df3ff"/></g>
+<g transform="translate(120 70)"><path class="m-spk" style="animation-delay:.7s" d="M0 -6L1.5 -1.5 6 0 1.5 1.5 0 6-1.5 1.5-6 0-1.5-1.5Z" fill="#fff"/></g>
+<g transform="translate(300 110)"><path class="m-spk" style="animation-delay:1.3s" d="M0 -9L2.2 -2.2 9 0 2.2 2.2 0 9-2.2 2.2-9 0-2.2-2.2Z" fill="#ff9bd8"/></g>
+<g transform="translate(372 230)"><path class="m-spk" style="animation-delay:.4s" d="M0 -7L1.8 -1.8 7 0 1.8 1.8 0 7-1.8 1.8-7 0-1.8-1.8Z" fill="#a78bfa"/></g>
+<g transform="translate(30 400)"><path class="m-spk" style="animation-delay:1.9s" d="M0 -8L2 -2 8 0 2 2 0 8-2 2-8 0-2-2Z" fill="#7df3ff"/></g>
+<g transform="translate(250 40)"><path class="m-spk" style="animation-delay:2.4s" d="M0 -6L1.5 -1.5 6 0 1.5 1.5 0 6-1.5 1.5-6 0-1.5-1.5Z" fill="#fff"/></g>
+<g transform="translate(110 330)"><path class="m-spk" style="animation-delay:1s" d="M0 -6L1.5 -1.5 6 0 1.5 1.5 0 6-1.5 1.5-6 0-1.5-1.5Z" fill="#ff9bd8"/></g>
+<g transform="translate(330 380)"><path class="m-spk" style="animation-delay:2.1s" d="M0 -8L2 -2 8 0 2 2 0 8-2 2-8 0-2-2Z" fill="#60a5fa"/></g>
+</svg></div>
 <canvas id="fx"></canvas>
 <div id="app"></div>
 <div id="ov"></div>
 <div id="toast"></div>
 <script>
+// text can not be selected or copied by holding it; only the Copy buttons copy (inputs still work)
+(function () {
+  window.__allowCopy = false;
+  function inField(t) { var n = t && t.nodeType === 3 ? t.parentElement : t; return !!(n && n.closest && n.closest("input,textarea")); }
+  ["selectstart", "contextmenu", "dragstart"].forEach(function (ev) { document.addEventListener(ev, function (e) { if (!inField(e.target)) e.preventDefault(); }, true); });
+  ["copy", "cut"].forEach(function (ev) { document.addEventListener(ev, function (e) { if (!window.__allowCopy && !inField(e.target)) e.preventDefault(); }, true); });
+})();
 // floating RGB particles (light: 34 dots, 30 fps, paused when the app is hidden, off for "reduce motion")
 (function () {
   var cv = document.getElementById("fx");
@@ -221,213 +330,565 @@ document.addEventListener("pointerdown", function (e) {
 "use strict";
 // ------------------------------------------------------------------ translations
 const I18N = {
-  en: {
-    "brand.sub": "Buy UTYA with TON",
-    "price.live": "Live price", "price.age": "{s}s ago", "price.none": "no price",
-    "unofficial.title": "Unofficial service",
-    "unofficial.body": "UTYA Miner is not affiliated with the Utya project. UTYA is a community token and its price can go up and down.",
-    "wallet.title": "Your wallet", "wallet.connect": "Connect wallet", "wallet.disconnect": "Disconnect",
-    "wallet.hint": "The UTYA will be sent to this wallet.", "wallet.none": "No wallet connected yet.",
-    "buy.title": "Buy UTYA", "buy.amount": "Amount in TON", "buy.limits": "Min {min} · Max {max} TON",
-    "buy.youPay": "You pay", "buy.rate": "Rate", "buy.rateVal": "1 TON = {n} UTYA", "buy.fee": "Service fee", "buy.feeVal": "{pct}% ({ton} TON)",
-    "buy.receive": "You receive", "buy.updated": "Price updates live. Quote shown {s}s ago.",
-    "buy.note": "You also pay the small network fee of your wallet. The price is locked for 30 minutes after you press Pay.",
-    "buy.btn": "Pay {ton} TON", "buy.btnConnect": "Connect wallet to pay", "buy.checking": "Getting the price…",
-    "how.title": "How it works", "how.1": "You pay in TON from your own wallet.", "how.2": "An admin sends the UTYA to your wallet by hand, within about {hours} hours.", "how.3": "Until it is sent, you can request a refund here.",
-    "pay.confirm": "Confirm the payment in your wallet…", "pay.wait": "Waiting for the blockchain…", "pay.done": "Payment received!",
-    "pay.doneBody": "{utya} UTYA will be sent to your wallet within about {hours} hours. You will get a message in Telegram.",
-    "pay.cancelled": "Payment cancelled.", "pay.slow": "Still waiting. You can close this window: when the payment is found you get a message in Telegram.",
-    "pay.close": "Close", "pay.toOrders": "My orders",
-    "orders.title": "My orders", "orders.empty": "No orders yet.", "orders.refund": "Request refund",
-    "orders.refundAsk": "Request a refund of {ton} TON? The team will send the TON back to your wallet.", "orders.refundYes": "Yes, request refund", "orders.refundNo": "Cancel",
-    "orders.refundDone": "Refund requested.", "orders.to": "Wallet", "orders.requoted": "Paid after the quote expired, so the amount was recalculated at the live price.",
-    "orders.refundNote": "The team will send {ton} TON back to your wallet.",
-    "status.pending": "Waiting for payment", "status.expired": "Quote expired", "status.failed": "Not paid", "status.paid": "Paid · waiting for UTYA",
-    "status.delivered": "UTYA sent", "status.refund_requested": "Refund requested", "status.refunded": "Refunded",
-    "info.title": "Terms", "info.1": "You buy UTYA with TON at the live market price shown before you pay.",
-    "info.2": "An admin sends the UTYA to your wallet by hand, within about {hours} hours.",
-    "info.3": "Until the UTYA is sent, you can request a refund of your TON in this app. After it is sent, it can not be refunded.",
-    "info.4": "The service fee is {pct}% and is part of every quote.",
-    "info.5": "If your payment arrives after the quote expired, the amount is recalculated at the live price.",
-    "info.6": "Crypto prices change all the time. UTYA is a community token and you can lose value. This is not financial advice.",
-    "info.7": "UTYA Miner is unofficial and not affiliated with the Utya project.",
-    "info.payTo": "Payments go to", "info.contract": "UTYA contract", "info.support": "Contact support", "info.lang": "Language",
-    "nav.buy": "Buy", "nav.orders": "Orders", "nav.info": "Terms",
-    "gate.title": "Join our channel first", "gate.body": "Join the channel below, then tap the button.", "gate.btn": "I joined",
-    "banned.title": "Your account is blocked.", "banned.contact": "Contact admin",
-    "err.generic": "Something went wrong. Please try again.", "err.no_wallet": "Connect your TON wallet first.",
-    "err.too_small": "The minimum order is {min} TON.", "err.too_big": "The maximum order is {max} TON.", "err.bad_amount": "Enter how many TON you want to spend.",
-    "err.price_unavailable": "The live price is not available right now. Please try again in a minute.", "err.buy_closed": "Buying is paused right now.",
-    "err.too_many_orders": "You have too many unpaid orders. Finish or wait for them first.", "err.refund_not_possible": "This order can not be refunded any more.",
-    "err.order_missing": "Order not found.", "err.pay_closed": "Payments are not open yet.", "err.slow_down": "Too many requests. Please slow down.",
-    "err.bad_wallet": "That is not a valid TON wallet address.", "err.no_account": "Open the bot and press Start.",
-  },
-  bn: {
-    "brand.sub": "TON দিয়ে UTYA কিনুন",
-    "price.live": "লাইভ দাম", "price.age": "{s} সেকেন্ড আগে", "price.none": "দাম নেই",
-    "unofficial.title": "আনঅফিসিয়াল সার্ভিস",
-    "unofficial.body": "UTYA Miner, Utya প্রজেক্টের সাথে যুক্ত নয়। UTYA একটি কমিউনিটি টোকেন, এর দাম বাড়তে বা কমতে পারে।",
-    "wallet.title": "আপনার ওয়ালেট", "wallet.connect": "ওয়ালেট কানেক্ট করুন", "wallet.disconnect": "ডিসকানেক্ট",
-    "wallet.hint": "UTYA এই ওয়ালেটে পাঠানো হবে।", "wallet.none": "এখনও কোনো ওয়ালেট কানেক্ট করা নেই।",
-    "buy.title": "UTYA কিনুন", "buy.amount": "TON-এ পরিমাণ", "buy.limits": "সর্বনিম্ন {min} · সর্বোচ্চ {max} TON",
-    "buy.youPay": "আপনি দিচ্ছেন", "buy.rate": "রেট", "buy.rateVal": "১ TON = {n} UTYA", "buy.fee": "সার্ভিস ফি", "buy.feeVal": "{pct}% ({ton} TON)",
-    "buy.receive": "আপনি পাবেন", "buy.updated": "দাম লাইভ আপডেট হয়। কোট দেখানো হয়েছে {s} সেকেন্ড আগে।",
-    "buy.note": "ওয়ালেটের ছোট নেটওয়ার্ক ফি আপনাকেই দিতে হবে। Pay চাপার পর ৩০ মিনিট দাম লক থাকে।",
-    "buy.btn": "{ton} TON পেমেন্ট করুন", "buy.btnConnect": "পেমেন্টের জন্য ওয়ালেট কানেক্ট করুন", "buy.checking": "দাম আনা হচ্ছে…",
-    "how.title": "কীভাবে কাজ করে", "how.1": "আপনি নিজের ওয়ালেট থেকে TON দিয়ে পেমেন্ট করেন।", "how.2": "অ্যাডমিন প্রায় {hours} ঘণ্টার মধ্যে হাতে করে আপনার ওয়ালেটে UTYA পাঠায়।", "how.3": "পাঠানোর আগ পর্যন্ত এখান থেকে রিফান্ড চাইতে পারবেন।",
-    "pay.confirm": "ওয়ালেটে পেমেন্ট কনফার্ম করুন…", "pay.wait": "ব্লকচেইনের জন্য অপেক্ষা…", "pay.done": "পেমেন্ট পাওয়া গেছে!",
-    "pay.doneBody": "প্রায় {hours} ঘণ্টার মধ্যে আপনার ওয়ালেটে {utya} UTYA পাঠানো হবে। টেলিগ্রামে মেসেজ পাবেন।",
-    "pay.cancelled": "পেমেন্ট বাতিল হয়েছে।", "pay.slow": "এখনও অপেক্ষা চলছে। জানালা বন্ধ করতে পারেন: পেমেন্ট পাওয়া গেলে টেলিগ্রামে মেসেজ পাবেন।",
-    "pay.close": "বন্ধ করুন", "pay.toOrders": "আমার অর্ডার",
-    "orders.title": "আমার অর্ডার", "orders.empty": "এখনও কোনো অর্ডার নেই।", "orders.refund": "রিফান্ড চান",
-    "orders.refundAsk": "{ton} TON রিফান্ড চাইবেন? টিম আপনার ওয়ালেটে TON ফেরত পাঠাবে।", "orders.refundYes": "হ্যাঁ, রিফান্ড চাই", "orders.refundNo": "বাতিল",
-    "orders.refundDone": "রিফান্ড চাওয়া হয়েছে।", "orders.to": "ওয়ালেট", "orders.requoted": "কোট শেষ হওয়ার পরে পেমেন্ট এসেছে, তাই লাইভ দামে আবার হিসাব করা হয়েছে।",
-    "orders.refundNote": "টিম আপনার ওয়ালেটে {ton} TON ফেরত পাঠাবে।",
-    "status.pending": "পেমেন্টের অপেক্ষায়", "status.expired": "কোটের সময় শেষ", "status.failed": "পেমেন্ট হয়নি", "status.paid": "পেমেন্ট হয়েছে · UTYA-র অপেক্ষায়",
-    "status.delivered": "UTYA পাঠানো হয়েছে", "status.refund_requested": "রিফান্ড চাওয়া হয়েছে", "status.refunded": "রিফান্ড হয়েছে",
-    "info.title": "শর্তাবলী", "info.1": "পেমেন্টের আগে দেখানো লাইভ বাজারদরে আপনি TON দিয়ে UTYA কেনেন।",
-    "info.2": "অ্যাডমিন প্রায় {hours} ঘণ্টার মধ্যে হাতে করে আপনার ওয়ালেটে UTYA পাঠায়।",
-    "info.3": "UTYA পাঠানোর আগ পর্যন্ত এই অ্যাপ থেকে TON রিফান্ড চাইতে পারবেন। পাঠানোর পরে রিফান্ড করা যায় না।",
-    "info.4": "সার্ভিস ফি {pct}% এবং এটি প্রতিটি কোটের অংশ।",
-    "info.5": "কোট শেষ হওয়ার পরে পেমেন্ট এলে লাইভ দামে পরিমাণ আবার হিসাব করা হয়।",
-    "info.6": "ক্রিপ্টোর দাম সবসময় বদলায়। UTYA একটি কমিউনিটি টোকেন, আপনার লোকসান হতে পারে। এটি আর্থিক পরামর্শ নয়।",
-    "info.7": "UTYA Miner আনঅফিসিয়াল এবং Utya প্রজেক্টের সাথে যুক্ত নয়।",
-    "info.payTo": "পেমেন্ট যায়", "info.contract": "UTYA কন্ট্রাক্ট", "info.support": "সাপোর্টে যোগাযোগ", "info.lang": "ভাষা",
-    "nav.buy": "কিনুন", "nav.orders": "অর্ডার", "nav.info": "শর্ত",
-    "gate.title": "আগে আমাদের চ্যানেলে জয়েন করুন", "gate.body": "নিচের চ্যানেলে জয়েন করে বাটনে ট্যাপ করুন।", "gate.btn": "জয়েন করেছি",
-    "banned.title": "আপনার অ্যাকাউন্ট ব্লক করা হয়েছে।", "banned.contact": "অ্যাডমিনের সাথে যোগাযোগ",
-    "err.generic": "কিছু একটা ভুল হয়েছে। আবার চেষ্টা করুন।", "err.no_wallet": "আগে আপনার TON ওয়ালেট কানেক্ট করুন।",
-    "err.too_small": "সর্বনিম্ন অর্ডার {min} TON।", "err.too_big": "সর্বোচ্চ অর্ডার {max} TON।", "err.bad_amount": "কত TON খরচ করবেন তা লিখুন।",
-    "err.price_unavailable": "এই মুহূর্তে লাইভ দাম পাওয়া যাচ্ছে না। এক মিনিট পরে আবার চেষ্টা করুন।", "err.buy_closed": "এই মুহূর্তে কেনা বন্ধ আছে।",
-    "err.too_many_orders": "আপনার অনেকগুলো অপেক্ষমাণ অর্ডার আছে। আগে সেগুলো শেষ করুন বা অপেক্ষা করুন।", "err.refund_not_possible": "এই অর্ডার আর রিফান্ড করা যাবে না।",
-    "err.order_missing": "অর্ডার পাওয়া যায়নি।", "err.pay_closed": "পেমেন্ট এখনও চালু হয়নি।", "err.slow_down": "অনেক বেশি রিকোয়েস্ট। একটু ধীরে করুন।",
-    "err.bad_wallet": "এটি সঠিক TON ওয়ালেট ঠিকানা নয়।", "err.no_account": "বট খুলে Start চাপুন।",
-  },
-  ru: {
-    "brand.sub": "Покупка UTYA за TON",
-    "price.live": "Цена сейчас", "price.age": "{s} с назад", "price.none": "нет цены",
-    "unofficial.title": "Неофициальный сервис",
-    "unofficial.body": "UTYA Miner не связан с проектом Utya. UTYA — токен сообщества, его цена может расти и падать.",
-    "wallet.title": "Ваш кошелёк", "wallet.connect": "Подключить кошелёк", "wallet.disconnect": "Отключить",
-    "wallet.hint": "UTYA будут отправлены на этот кошелёк.", "wallet.none": "Кошелёк ещё не подключён.",
-    "buy.title": "Купить UTYA", "buy.amount": "Сумма в TON", "buy.limits": "Мин {min} · Макс {max} TON",
-    "buy.youPay": "Вы платите", "buy.rate": "Курс", "buy.rateVal": "1 TON = {n} UTYA", "buy.fee": "Комиссия сервиса", "buy.feeVal": "{pct}% ({ton} TON)",
-    "buy.receive": "Вы получите", "buy.updated": "Цена обновляется в реальном времени. Котировка {s} с назад.",
-    "buy.note": "Небольшую сетевую комиссию кошелька платите вы. Цена фиксируется на 30 минут после нажатия «Оплатить».",
-    "buy.btn": "Оплатить {ton} TON", "buy.btnConnect": "Подключите кошелёк для оплаты", "buy.checking": "Получаем цену…",
-    "how.title": "Как это работает", "how.1": "Вы платите в TON со своего кошелька.", "how.2": "Администратор вручную отправляет UTYA на ваш кошелёк примерно в течение {hours} ч.", "how.3": "До отправки здесь можно запросить возврат.",
-    "pay.confirm": "Подтвердите платёж в кошельке…", "pay.wait": "Ждём блокчейн…", "pay.done": "Платёж получен!",
-    "pay.doneBody": "{utya} UTYA будут отправлены на ваш кошелёк примерно в течение {hours} ч. Вы получите сообщение в Telegram.",
-    "pay.cancelled": "Платёж отменён.", "pay.slow": "Всё ещё ждём. Окно можно закрыть: когда платёж найдут, придёт сообщение в Telegram.",
-    "pay.close": "Закрыть", "pay.toOrders": "Мои заказы",
-    "orders.title": "Мои заказы", "orders.empty": "Заказов пока нет.", "orders.refund": "Запросить возврат",
-    "orders.refundAsk": "Запросить возврат {ton} TON? Команда вернёт TON на ваш кошелёк.", "orders.refundYes": "Да, запросить возврат", "orders.refundNo": "Отмена",
-    "orders.refundDone": "Возврат запрошен.", "orders.to": "Кошелёк", "orders.requoted": "Оплата пришла после истечения котировки, поэтому сумма пересчитана по актуальной цене.",
-    "orders.refundNote": "Команда вернёт {ton} TON на ваш кошелёк.",
-    "status.pending": "Ожидает оплаты", "status.expired": "Котировка истекла", "status.failed": "Не оплачен", "status.paid": "Оплачен · ждёт UTYA",
-    "status.delivered": "UTYA отправлены", "status.refund_requested": "Запрошен возврат", "status.refunded": "Возвращён",
-    "info.title": "Условия", "info.1": "Вы покупаете UTYA за TON по рыночной цене, которая показана до оплаты.",
-    "info.2": "Администратор вручную отправляет UTYA на ваш кошелёк примерно в течение {hours} ч.",
-    "info.3": "Пока UTYA не отправлены, можно запросить возврат TON в этом приложении. После отправки возврат невозможен.",
-    "info.4": "Комиссия сервиса — {pct}%, она входит в каждую котировку.",
-    "info.5": "Если платёж пришёл после истечения котировки, сумма пересчитывается по актуальной цене.",
-    "info.6": "Цены криптовалют постоянно меняются. UTYA — токен сообщества, вы можете потерять часть стоимости. Это не финансовая рекомендация.",
-    "info.7": "UTYA Miner — неофициальный сервис, не связанный с проектом Utya.",
-    "info.payTo": "Платежи идут на", "info.contract": "Контракт UTYA", "info.support": "Связаться с поддержкой", "info.lang": "Язык",
-    "nav.buy": "Купить", "nav.orders": "Заказы", "nav.info": "Условия",
-    "gate.title": "Сначала вступите в наш канал", "gate.body": "Вступите в канал ниже и нажмите кнопку.", "gate.btn": "Я вступил",
-    "banned.title": "Ваш аккаунт заблокирован.", "banned.contact": "Связаться с админом",
-    "err.generic": "Что-то пошло не так. Попробуйте ещё раз.", "err.no_wallet": "Сначала подключите TON-кошелёк.",
-    "err.too_small": "Минимальный заказ — {min} TON.", "err.too_big": "Максимальный заказ — {max} TON.", "err.bad_amount": "Введите, сколько TON хотите потратить.",
-    "err.price_unavailable": "Актуальная цена сейчас недоступна. Попробуйте через минуту.", "err.buy_closed": "Покупка сейчас приостановлена.",
-    "err.too_many_orders": "У вас слишком много неоплаченных заказов. Завершите их или подождите.", "err.refund_not_possible": "Этот заказ уже нельзя вернуть.",
-    "err.order_missing": "Заказ не найден.", "err.pay_closed": "Платежи ещё не открыты.", "err.slow_down": "Слишком много запросов. Помедленнее.",
-    "err.bad_wallet": "Это не TON-адрес.", "err.no_account": "Откройте бота и нажмите Start.",
-  },
-};
-
-// ---- mining, withdrawals and the price chart (added on top of the texts above; a key here wins)
-Object.assign(I18N.en, {
-  "nav.mine": "Mine", "nav.chart": "Chart",
+ "en": {
   "brand.sub": "Mine & buy UTYA",
-  "unofficial.title": "Independent service", "unofficial.body": "UTYA Miner is not affiliated with the Utya project. UTYA is a community token and its price can go up and down.",
-  "official.title": "Official service", "official.body": "UTYA Miner is the official service of the Utya project. Crypto prices can go up and down.",
-  "info.7": "UTYA Miner is an independent service and not affiliated with the Utya project.", "info.7o": "UTYA Miner is the official service of the Utya project.",
+  "price.live": "Live price",
+  "price.age": "{s}s ago",
+  "price.none": "no price",
+  "unofficial.title": "Independent service",
+  "unofficial.body": "UTYA Miner is not affiliated with the Utya project. UTYA is a community token and its price can go up and down.",
+  "wallet.title": "Your wallet",
+  "wallet.connect": "Connect wallet",
+  "wallet.disconnect": "Disconnect",
+  "wallet.hint": "The UTYA will be sent to this wallet.",
+  "wallet.none": "No wallet connected yet.",
+  "buy.title": "Buy UTYA",
+  "buy.amount": "Amount in TON",
+  "buy.limits": "Min {min} · Max {max} TON",
+  "buy.youPay": "You pay",
+  "buy.rate": "Rate",
+  "buy.rateVal": "1 TON = {n} UTYA",
+  "buy.fee": "Service fee",
+  "buy.feeVal": "{pct}% ({ton} TON)",
+  "buy.receive": "You receive",
+  "buy.updated": "Price updates live. Quote shown {s}s ago.",
+  "buy.note": "You also pay the small network fee of your wallet. The price is locked for 30 minutes after you press Pay.",
+  "buy.btn": "Pay {ton} TON",
+  "buy.btnConnect": "Connect wallet to pay",
+  "buy.checking": "Getting the price…",
+  "how.title": "How it works",
+  "how.1": "You pay in TON from your own wallet.",
+  "how.2": "An admin sends the UTYA to your wallet by hand, within about {hours} hours.",
+  "how.3": "Until it is sent, you can request a refund here.",
+  "pay.confirm": "Confirm the payment in your wallet…",
+  "pay.wait": "Waiting for the blockchain…",
+  "pay.done": "Payment received!",
+  "pay.doneBody": "{utya} UTYA will be sent to your wallet within about {hours} hours. You will get a message in Telegram.",
+  "pay.cancelled": "Payment cancelled.",
+  "pay.slow": "Still waiting. You can close this window: when the payment is found you get a message in Telegram.",
+  "pay.close": "Close",
+  "pay.toOrders": "My orders",
+  "orders.title": "My orders",
+  "orders.empty": "No orders yet.",
+  "orders.refund": "Request refund",
+  "orders.refundAsk": "Request a refund of {ton} TON? The team will send the TON back to your wallet.",
+  "orders.refundYes": "Yes, request refund",
+  "orders.refundNo": "Cancel",
+  "orders.refundDone": "Refund requested.",
+  "orders.to": "Wallet",
+  "orders.requoted": "Paid after the quote expired, so the amount was recalculated at the live price.",
+  "orders.refundNote": "The team will send {ton} TON back to your wallet.",
+  "status.pending": "Waiting for payment",
+  "status.expired": "Quote expired",
+  "status.failed": "Not paid",
+  "status.paid": "Paid · waiting for UTYA",
+  "status.delivered": "UTYA sent",
+  "status.refund_requested": "Refund requested",
+  "status.refunded": "Refunded",
+  "info.title": "Terms",
+  "info.1": "You buy UTYA with TON at the live market price shown before you pay.",
+  "info.2": "An admin sends the UTYA to your wallet by hand, within about {hours} hours.",
+  "info.3": "Until the UTYA is sent, you can request a refund of your TON in this app. After it is sent, it can not be refunded.",
+  "info.4": "The service fee is {pct}% and is part of every quote.",
+  "info.5": "If your payment arrives after the quote expired, the amount is recalculated at the live price.",
+  "info.6": "Crypto prices change all the time. UTYA is a community token and you can lose value. This is not financial advice.",
+  "info.7": "UTYA Miner is an independent service and not affiliated with the Utya project.",
+  "info.payTo": "Payments go to",
+  "info.contract": "UTYA contract",
+  "info.support": "Contact support",
+  "info.lang": "Language",
+  "nav.buy": "Buy",
+  "nav.orders": "Orders",
+  "nav.info": "Terms",
+  "gate.title": "Join our channel first",
+  "gate.body": "Join the channel below, then tap the button.",
+  "gate.btn": "I joined",
+  "banned.title": "Your account is blocked.",
+  "banned.contact": "Contact admin",
+  "err.generic": "Something went wrong. Please try again.",
+  "err.no_wallet": "Connect your TON wallet first.",
+  "err.too_small": "The minimum order is {min} TON.",
+  "err.too_big": "The maximum order is {max} TON.",
+  "err.bad_amount": "Enter how many TON you want to spend.",
+  "err.price_unavailable": "The live price is not available right now. Please try again in a minute.",
+  "err.buy_closed": "Buying is paused right now.",
+  "err.too_many_orders": "You have too many unpaid orders. Finish or wait for them first.",
+  "err.refund_not_possible": "This order can not be refunded any more.",
+  "err.order_missing": "Order not found.",
+  "err.pay_closed": "Payments are not open yet.",
+  "err.slow_down": "Too many requests. Please slow down.",
+  "err.bad_wallet": "That is not a valid TON wallet address.",
+  "err.no_account": "Open the bot and press Start.",
+  "nav.mine": "Mine",
+  "nav.chart": "Chart",
+  "official.title": "Official service",
+  "official.body": "UTYA Miner is the official service of the Utya project. Crypto prices can go up and down.",
+  "info.7o": "UTYA Miner is the official service of the Utya project.",
   "info.8": "Mining: you start a session of {h} hours, come back and claim it. The speed is shown in the app; the team can change it for new sessions.",
   "info.9": "Mined UTYA is paid out by the team by hand after you request a withdrawal (within about {hours} hours). Accounts that cheat (many accounts, bots) can be blocked and lose their balance.",
-  "mine.title": "Mining", "mine.balance": "Mined balance", "mine.total": "Mined in total", "mine.withdrawn": "Withdrawn",
-  "mine.speed": "Speed", "mine.speedVal": "{n} UTYA / hour", "mine.session": "Session", "mine.sessionVal": "{h} hours",
-  "mine.start": "⛏️ Start mining", "mine.running": "Mining…", "mine.left": "{t} left", "mine.thisSession": "This session",
-  "mine.claim": "Claim {n} UTYA", "mine.ready": "Session finished!", "mine.started": "Mining started.", "mine.claimed": "{n} UTYA added to your balance.",
-  "mine.closed": "Mining is paused right now.", "mine.hint": "Start a session and come back when it ends. Nothing is lost if you close the app.",
-  "wd.title": "Withdraw", "wd.amount": "Amount in UTYA", "wd.min": "Minimum {min} UTYA", "wd.all": "All", "wd.btn": "Request withdrawal",
+  "mine.title": "Mining",
+  "mine.balance": "Mined balance",
+  "mine.total": "Mined in total",
+  "mine.withdrawn": "Withdrawn",
+  "mine.speed": "Speed",
+  "mine.speedVal": "{n} UTYA / hour",
+  "mine.session": "Session",
+  "mine.sessionVal": "{h} hours",
+  "mine.start": "⛏️ Start mining",
+  "mine.running": "Mining…",
+  "mine.left": "{t} left",
+  "mine.thisSession": "This session",
+  "mine.claim": "Claim {n} UTYA",
+  "mine.ready": "Session finished!",
+  "mine.started": "Mining started.",
+  "mine.claimed": "{n} UTYA added to your balance.",
+  "mine.closed": "Mining is paused right now.",
+  "mine.hint": "Start a session and come back when it ends. Nothing is lost if you close the app.",
+  "wd.title": "Withdraw",
+  "wd.amount": "Amount in UTYA",
+  "wd.min": "Minimum {min} UTYA",
+  "wd.all": "All",
+  "wd.btn": "Request withdrawal",
   "wd.note": "An admin sends the UTYA to your wallet by hand, within about {hours} hours. The amount is held until it is sent or rejected.",
-  "wd.done": "Withdrawal requested.", "wd.cancel": "Cancel request", "wd.cancelAsk": "Cancel this withdrawal? {n} UTYA go back to your balance.",
-  "wd.cancelYes": "Yes, cancel", "wd.cancelNo": "Keep it", "wd.cancelled": "Request cancelled.", "wd.history": "Withdrawals", "wd.empty": "No withdrawals yet.",
-  "wd.closed": "Withdrawals are paused right now.", "wd.connect": "Connect your wallet to withdraw.",
-  "wst.pending": "Waiting for admin", "wst.sent": "UTYA sent", "wst.rejected": "Rejected", "wst.cancelled": "Cancelled",
-  "chart.title": "UTYA price", "chart.change": "Change", "chart.high": "High", "chart.low": "Low", "chart.updated": "Updated {s}s ago",
-  "chart.nodata": "No price data yet. Try again in a minute.", "chart.stale": "The live price is not available right now.",
+  "wd.done": "Withdrawal requested.",
+  "wd.cancel": "Cancel request",
+  "wd.cancelAsk": "Cancel this withdrawal? {n} UTYA go back to your balance.",
+  "wd.cancelYes": "Yes, cancel",
+  "wd.cancelNo": "Keep it",
+  "wd.cancelled": "Request cancelled.",
+  "wd.history": "Withdrawals",
+  "wd.empty": "No withdrawals yet.",
+  "wd.closed": "Withdrawals are paused right now.",
+  "wd.connect": "Connect your wallet to withdraw.",
+  "wst.pending": "Waiting for admin",
+  "wst.sent": "UTYA sent",
+  "wst.rejected": "Rejected",
+  "wst.cancelled": "Cancelled",
+  "chart.title": "UTYA price",
+  "chart.change": "Change",
+  "chart.high": "High",
+  "chart.low": "Low",
+  "chart.updated": "Updated {s}s ago",
+  "chart.nodata": "No price data yet. Try again in a minute.",
+  "chart.stale": "The live price is not available right now.",
   "chart.note": "Prices come from public markets and can differ a little from DeDust. Not financial advice.",
-  "err.mine_closed": "Mining is paused right now.", "err.already_mining": "You are already mining.", "err.claim_first": "Claim your finished session first.",
-  "err.not_mining": "No mining session is running.", "err.not_ready": "Your session is not finished yet.", "err.withdraw_closed": "Withdrawals are paused right now.",
-  "err.bad_utya_amount": "Enter how many UTYA you want to withdraw.", "err.too_low": "The minimum withdrawal is {min} UTYA.", "err.no_balance": "Not enough mined UTYA.",
-  "err.too_many_withdrawals": "You already have withdrawal requests waiting.", "err.withdraw_missing": "Withdrawal not found.", "err.cannot_cancel": "This withdrawal can not be cancelled any more.",
-});
-Object.assign(I18N.bn, {
-  "nav.mine": "মাইন", "nav.chart": "চার্ট",
-  "brand.sub": "UTYA মাইন করুন ও কিনুন",
-  "unofficial.title": "স্বাধীন সার্ভিস", "unofficial.body": "UTYA Miner, Utya প্রজেক্টের সাথে যুক্ত নয়। UTYA একটি কমিউনিটি টোকেন, এর দাম বাড়তে বা কমতে পারে।",
-  "official.title": "অফিসিয়াল সার্ভিস", "official.body": "UTYA Miner হলো Utya প্রজেক্টের অফিসিয়াল সার্ভিস। ক্রিপ্টোর দাম বাড়তে বা কমতে পারে।",
-  "info.7": "UTYA Miner একটি স্বাধীন সার্ভিস এবং Utya প্রজেক্টের সাথে যুক্ত নয়।", "info.7o": "UTYA Miner হলো Utya প্রজেক্টের অফিসিয়াল সার্ভিস।",
-  "info.8": "মাইনিং: আপনি {h} ঘণ্টার একটি সেশন শুরু করেন, শেষ হলে ফিরে এসে ক্লেইম করেন। স্পিড অ্যাপে দেখানো হয়; নতুন সেশনের জন্য টিম এটি বদলাতে পারে।",
-  "info.9": "মাইন করা UTYA উইথড্র রিকোয়েস্টের পর টিম হাতে করে পাঠায় (প্রায় {hours} ঘণ্টার মধ্যে)। যারা প্রতারণা করে (একাধিক অ্যাকাউন্ট, বট) তাদের অ্যাকাউন্ট ব্লক হতে পারে এবং ব্যালেন্স হারাতে পারে।",
-  "mine.title": "মাইনিং", "mine.balance": "মাইনিং ব্যালেন্স", "mine.total": "মোট মাইন করেছেন", "mine.withdrawn": "উইথড্র করেছেন",
-  "mine.speed": "স্পিড", "mine.speedVal": "প্রতি ঘণ্টায় {n} UTYA", "mine.session": "সেশন", "mine.sessionVal": "{h} ঘণ্টা",
-  "mine.start": "⛏️ মাইনিং শুরু করুন", "mine.running": "মাইনিং চলছে…", "mine.left": "আর {t} বাকি", "mine.thisSession": "এই সেশনে",
-  "mine.claim": "{n} UTYA ক্লেইম করুন", "mine.ready": "সেশন শেষ!", "mine.started": "মাইনিং শুরু হয়েছে।", "mine.claimed": "আপনার ব্যালেন্সে {n} UTYA যোগ হয়েছে।",
-  "mine.closed": "এই মুহূর্তে মাইনিং বন্ধ আছে।", "mine.hint": "সেশন শুরু করে শেষ হলে ফিরে আসুন। অ্যাপ বন্ধ করলেও কিছু হারায় না।",
-  "wd.title": "উইথড্র", "wd.amount": "UTYA-তে পরিমাণ", "wd.min": "সর্বনিম্ন {min} UTYA", "wd.all": "সব", "wd.btn": "উইথড্র রিকোয়েস্ট করুন",
-  "wd.note": "অ্যাডমিন প্রায় {hours} ঘণ্টার মধ্যে হাতে করে আপনার ওয়ালেটে UTYA পাঠায়। পাঠানো বা বাতিল না হওয়া পর্যন্ত পরিমাণটি আটকে থাকে।",
-  "wd.done": "উইথড্র চাওয়া হয়েছে।", "wd.cancel": "রিকোয়েস্ট বাতিল করুন", "wd.cancelAsk": "এই উইথড্র বাতিল করবেন? {n} UTYA আপনার ব্যালেন্সে ফিরে যাবে।",
-  "wd.cancelYes": "হ্যাঁ, বাতিল", "wd.cancelNo": "রাখুন", "wd.cancelled": "রিকোয়েস্ট বাতিল হয়েছে।", "wd.history": "উইথড্র", "wd.empty": "এখনও কোনো উইথড্র নেই।",
-  "wd.closed": "এই মুহূর্তে উইথড্র বন্ধ আছে।", "wd.connect": "উইথড্রের জন্য ওয়ালেট কানেক্ট করুন।",
-  "wst.pending": "অ্যাডমিনের অপেক্ষায়", "wst.sent": "UTYA পাঠানো হয়েছে", "wst.rejected": "বাতিল করা হয়েছে", "wst.cancelled": "বাতিল",
-  "chart.title": "UTYA-র দাম", "chart.change": "পরিবর্তন", "chart.high": "সর্বোচ্চ", "chart.low": "সর্বনিম্ন", "chart.updated": "{s} সেকেন্ড আগে আপডেট",
-  "chart.nodata": "এখনও কোনো দামের ডেটা নেই। এক মিনিট পরে আবার চেষ্টা করুন।", "chart.stale": "এই মুহূর্তে লাইভ দাম পাওয়া যাচ্ছে না।",
-  "chart.note": "দাম পাবলিক বাজার থেকে আসে এবং DeDust-এর থেকে সামান্য আলাদা হতে পারে। এটি আর্থিক পরামর্শ নয়।",
-  "err.mine_closed": "এই মুহূর্তে মাইনিং বন্ধ আছে।", "err.already_mining": "আপনি ইতিমধ্যে মাইনিং করছেন।", "err.claim_first": "আগে শেষ হওয়া সেশনটি ক্লেইম করুন।",
-  "err.not_mining": "কোনো মাইনিং সেশন চলছে না।", "err.not_ready": "আপনার সেশন এখনও শেষ হয়নি।", "err.withdraw_closed": "এই মুহূর্তে উইথড্র বন্ধ আছে।",
-  "err.bad_utya_amount": "কত UTYA উইথড্র করবেন তা লিখুন।", "err.too_low": "সর্বনিম্ন উইথড্র {min} UTYA।", "err.no_balance": "পর্যাপ্ত মাইন করা UTYA নেই।",
-  "err.too_many_withdrawals": "আপনার ইতিমধ্যে উইথড্র রিকোয়েস্ট অপেক্ষমাণ আছে।", "err.withdraw_missing": "উইথড্র পাওয়া যায়নি।", "err.cannot_cancel": "এই উইথড্র আর বাতিল করা যাবে না।",
-});
-Object.assign(I18N.ru, {
-  "nav.mine": "Майнинг", "nav.chart": "График",
+  "err.mine_closed": "Mining is paused right now.",
+  "err.already_mining": "You are already mining.",
+  "err.claim_first": "Claim your finished session first.",
+  "err.not_mining": "No mining session is running.",
+  "err.not_ready": "Your session is not finished yet.",
+  "err.withdraw_closed": "Withdrawals are paused right now.",
+  "err.bad_utya_amount": "Enter how many UTYA you want to withdraw.",
+  "err.too_low": "The minimum withdrawal is {min} UTYA.",
+  "err.no_balance": "Not enough mined UTYA.",
+  "err.too_many_withdrawals": "You already have withdrawal requests waiting.",
+  "err.withdraw_missing": "Withdrawal not found.",
+  "err.cannot_cancel": "This withdrawal can not be cancelled any more.",
+  "nav.wallet": "Wallet",
+  "nav.ref": "Referral",
+  "terms.btn": "Terms & conditions",
+  "terms.back": "Back",
+  "copy.btn": "Copy",
+  "copy.done": "Copied",
+  "copy.fail": "Could not copy",
+  "hist.title": "History",
+  "buy.details": "Details",
+  "lang.title": "Language",
+  "wallet.balance": "Mined balance",
+  "ref.title": "Invite friends",
+  "ref.perFriend": "for every friend who connects a wallet",
+  "ref.off": "The referral bonus is not active right now.",
+  "ref.share": "Share link",
+  "ref.copy": "Copy link",
+  "ref.copied": "Link copied",
+  "ref.invited": "Invited",
+  "ref.counted": "Counted",
+  "ref.earned": "Earned",
+  "ref.friends": "Your friends",
+  "ref.none": "No friends yet. Share your link!",
+  "ref.statusOk": "Counted",
+  "ref.statusWait": "Waiting for wallet",
+  "ref.rules": "How referrals work",
+  "ref.r1": "Your friend opens the bot with your link.",
+  "ref.r2": "He must connect his own TON wallet. Only then he counts.",
+  "ref.r3": "Every friend counts once, and one wallet counts for one friend only.",
+  "ref.r4": "You get {n} UTYA for each counted friend, added to your mined balance. Withdraw it in the Wallet tab.",
+  "ref.r5": "Fake accounts and cheating are blocked and the bonuses are cancelled.",
+  "ref.shareText": "Mine and buy UTYA in Telegram. Join with my link and connect your wallet:"
+ },
+ "ar": {
+  "brand.sub": "عدِّن واشترِ UTYA",
+  "price.live": "السعر المباشر",
+  "price.age": "قبل {s} ث",
+  "price.none": "لا يوجد سعر",
+  "unofficial.title": "خدمة مستقلة",
+  "unofficial.body": "UTYA Miner غير تابعة لمشروع Utya. UTYA رمز مجتمعي ويمكن أن يرتفع سعره أو ينخفض.",
+  "wallet.title": "محفظتك",
+  "wallet.connect": "ربط المحفظة",
+  "wallet.disconnect": "قطع الاتصال",
+  "wallet.hint": "سيتم إرسال UTYA إلى هذه المحفظة.",
+  "wallet.none": "لم يتم ربط أي محفظة بعد.",
+  "buy.title": "شراء UTYA",
+  "buy.amount": "المبلغ بـ TON",
+  "buy.limits": "الحد الأدنى {min} · الحد الأقصى {max} TON",
+  "buy.youPay": "تدفع",
+  "buy.rate": "السعر",
+  "buy.rateVal": "1 TON = {n} UTYA",
+  "buy.fee": "رسوم الخدمة",
+  "buy.feeVal": "{pct}% ({ton} TON)",
+  "buy.receive": "تستلم",
+  "buy.updated": "السعر يتحدث مباشرة. عُرض العرض قبل {s} ث.",
+  "buy.note": "ستدفع أيضاً رسوم الشبكة الصغيرة الخاصة بمحفظتك. يُثبَّت السعر لمدة 30 دقيقة بعد الضغط على دفع.",
+  "buy.btn": "ادفع {ton} TON",
+  "buy.btnConnect": "اربط المحفظة للدفع",
+  "buy.checking": "جارٍ جلب السعر…",
+  "how.title": "كيف يعمل",
+  "how.1": "تدفع بعملة TON من محفظتك الخاصة.",
+  "how.2": "يرسل المشرف UTYA إلى محفظتك يدوياً خلال حوالي {hours} ساعة.",
+  "how.3": "حتى لحظة الإرسال يمكنك طلب استرداد المبلغ من هنا.",
+  "pay.confirm": "أكّد الدفع في محفظتك…",
+  "pay.wait": "في انتظار البلوكتشين…",
+  "pay.done": "تم استلام الدفع!",
+  "pay.doneBody": "سيتم إرسال {utya} UTYA إلى محفظتك خلال حوالي {hours} ساعة. ستصلك رسالة في تيليجرام.",
+  "pay.cancelled": "تم إلغاء الدفع.",
+  "pay.slow": "ما زلنا ننتظر. يمكنك إغلاق هذه النافذة: عند العثور على الدفعة ستصلك رسالة في تيليجرام.",
+  "pay.close": "إغلاق",
+  "pay.toOrders": "طلباتي",
+  "orders.title": "طلباتي",
+  "orders.empty": "لا توجد طلبات بعد.",
+  "orders.refund": "طلب استرداد",
+  "orders.refundAsk": "هل تريد طلب استرداد {ton} TON؟ سيعيد الفريق الـ TON إلى محفظتك.",
+  "orders.refundYes": "نعم، اطلب الاسترداد",
+  "orders.refundNo": "إلغاء",
+  "orders.refundDone": "تم طلب الاسترداد.",
+  "orders.to": "المحفظة",
+  "orders.requoted": "تم الدفع بعد انتهاء صلاحية العرض، لذلك أُعيد حساب المبلغ بالسعر المباشر.",
+  "orders.refundNote": "سيعيد الفريق {ton} TON إلى محفظتك.",
+  "status.pending": "بانتظار الدفع",
+  "status.expired": "انتهى العرض",
+  "status.failed": "لم يُدفع",
+  "status.paid": "تم الدفع · بانتظار UTYA",
+  "status.delivered": "تم إرسال UTYA",
+  "status.refund_requested": "تم طلب الاسترداد",
+  "status.refunded": "تم الاسترداد",
+  "info.title": "الشروط والأحكام",
+  "info.1": "تشتري UTYA مقابل TON بسعر السوق المباشر الظاهر قبل الدفع.",
+  "info.2": "يرسل المشرف UTYA إلى محفظتك يدوياً خلال حوالي {hours} ساعة.",
+  "info.3": "حتى إرسال UTYA يمكنك طلب استرداد TON من هذا التطبيق. بعد الإرسال لا يمكن استرداده.",
+  "info.4": "رسوم الخدمة {pct}% وهي جزء من كل عرض سعر.",
+  "info.5": "إذا وصل دفعك بعد انتهاء صلاحية عرض السعر، يُعاد حساب المبلغ بالسعر المباشر.",
+  "info.6": "أسعار العملات الرقمية تتغير باستمرار. UTYA رمز مجتمعي وقد تخسر قيمته. هذه ليست نصيحة مالية.",
+  "info.7": "UTYA Miner خدمة مستقلة وغير تابعة لمشروع Utya.",
+  "info.payTo": "عنوان الدفع",
+  "info.contract": "عقد UTYA",
+  "info.support": "التواصل مع الدعم",
+  "info.lang": "اللغة",
+  "nav.buy": "شراء",
+  "nav.orders": "الطلبات",
+  "nav.info": "الشروط",
+  "gate.title": "انضم إلى قناتنا أولاً",
+  "gate.body": "انضم إلى القناة أدناه ثم اضغط على الزر.",
+  "gate.btn": "انضممت",
+  "banned.title": "تم حظر حسابك.",
+  "banned.contact": "التواصل مع المشرف",
+  "err.generic": "حدث خطأ ما. حاول مرة أخرى.",
+  "err.no_wallet": "اربط محفظة TON أولاً.",
+  "err.too_small": "الحد الأدنى للطلب {min} TON.",
+  "err.too_big": "الحد الأقصى للطلب {max} TON.",
+  "err.bad_amount": "أدخل مبلغ TON الذي تريد إنفاقه.",
+  "err.price_unavailable": "السعر المباشر غير متاح حالياً. حاول بعد دقيقة.",
+  "err.buy_closed": "الشراء متوقف حالياً.",
+  "err.too_many_orders": "لديك طلبات كثيرة غير مدفوعة. أكملها أو انتظر انتهاءها أولاً.",
+  "err.refund_not_possible": "لا يمكن استرداد هذا الطلب بعد الآن.",
+  "err.order_missing": "الطلب غير موجود.",
+  "err.pay_closed": "المدفوعات غير مفتوحة بعد.",
+  "err.slow_down": "طلبات كثيرة جداً. يرجى التمهل.",
+  "err.bad_wallet": "هذا ليس عنوان محفظة TON صالحاً.",
+  "err.no_account": "افتح البوت واضغط على Start.",
+  "nav.mine": "تعدين",
+  "nav.chart": "المخطط",
+  "official.title": "الخدمة الرسمية",
+  "official.body": "UTYA Miner هي الخدمة الرسمية لمشروع Utya. أسعار العملات الرقمية قد ترتفع أو تنخفض.",
+  "info.7o": "UTYA Miner هي الخدمة الرسمية لمشروع Utya.",
+  "info.8": "التعدين: تبدأ جلسة مدتها {h} ساعات، ثم تعود وتستلمها. تظهر السرعة في التطبيق، ويمكن للفريق تغييرها للجلسات الجديدة.",
+  "info.9": "يدفع الفريق UTYA المُعدَّن يدوياً بعد طلب السحب (خلال حوالي {hours} ساعة). الحسابات التي تغش (حسابات متعددة، بوتات) قد تُحظر وتفقد رصيدها.",
+  "mine.title": "التعدين",
+  "mine.balance": "رصيد التعدين",
+  "mine.total": "إجمالي التعدين",
+  "mine.withdrawn": "تم سحبه",
+  "mine.speed": "السرعة",
+  "mine.speedVal": "{n} UTYA / ساعة",
+  "mine.session": "الجلسة",
+  "mine.sessionVal": "{h} ساعات",
+  "mine.start": "⛏️ ابدأ التعدين",
+  "mine.running": "التعدين جارٍ…",
+  "mine.left": "متبقٍ {t}",
+  "mine.thisSession": "هذه الجلسة",
+  "mine.claim": "استلم {n} UTYA",
+  "mine.ready": "انتهت الجلسة!",
+  "mine.started": "بدأ التعدين.",
+  "mine.claimed": "تمت إضافة {n} UTYA إلى رصيدك.",
+  "mine.closed": "التعدين متوقف حالياً.",
+  "mine.hint": "ابدأ جلسة وعد عند انتهائها. لا يضيع شيء إذا أغلقت التطبيق.",
+  "wd.title": "سحب",
+  "wd.amount": "المبلغ بـ UTYA",
+  "wd.min": "الحد الأدنى {min} UTYA",
+  "wd.all": "الكل",
+  "wd.btn": "طلب سحب",
+  "wd.note": "يرسل المشرف UTYA إلى محفظتك يدوياً خلال حوالي {hours} ساعة. يبقى المبلغ محجوزاً حتى يُرسل أو يُرفض.",
+  "wd.done": "تم طلب السحب.",
+  "wd.cancel": "إلغاء الطلب",
+  "wd.cancelAsk": "إلغاء هذا السحب؟ سيعود {n} UTYA إلى رصيدك.",
+  "wd.cancelYes": "نعم، إلغاء",
+  "wd.cancelNo": "إبقاؤه",
+  "wd.cancelled": "تم إلغاء الطلب.",
+  "wd.history": "عمليات السحب",
+  "wd.empty": "لا توجد عمليات سحب بعد.",
+  "wd.closed": "السحب متوقف حالياً.",
+  "wd.connect": "اربط محفظتك للسحب.",
+  "wst.pending": "بانتظار المشرف",
+  "wst.sent": "تم إرسال UTYA",
+  "wst.rejected": "مرفوض",
+  "wst.cancelled": "ملغى",
+  "chart.title": "سعر UTYA",
+  "chart.change": "التغير",
+  "chart.high": "الأعلى",
+  "chart.low": "الأدنى",
+  "chart.updated": "تم التحديث قبل {s} ث",
+  "chart.nodata": "لا توجد بيانات سعر بعد. حاول بعد دقيقة.",
+  "chart.stale": "السعر المباشر غير متاح حالياً.",
+  "chart.note": "الأسعار من أسواق عامة وقد تختلف قليلاً عن DeDust. ليست نصيحة مالية.",
+  "err.mine_closed": "التعدين متوقف حالياً.",
+  "err.already_mining": "أنت تعدّن بالفعل.",
+  "err.claim_first": "استلم جلستك المنتهية أولاً.",
+  "err.not_mining": "لا توجد جلسة تعدين جارية.",
+  "err.not_ready": "جلستك لم تنتهِ بعد.",
+  "err.withdraw_closed": "السحب متوقف حالياً.",
+  "err.bad_utya_amount": "أدخل مبلغ UTYA الذي تريد سحبه.",
+  "err.too_low": "الحد الأدنى للسحب {min} UTYA.",
+  "err.no_balance": "رصيد UTYA المُعدَّن غير كافٍ.",
+  "err.too_many_withdrawals": "لديك طلبات سحب قيد الانتظار بالفعل.",
+  "err.withdraw_missing": "طلب السحب غير موجود.",
+  "err.cannot_cancel": "لا يمكن إلغاء هذا السحب بعد الآن.",
+  "nav.wallet": "المحفظة",
+  "nav.ref": "الإحالة",
+  "terms.btn": "الشروط والأحكام",
+  "terms.back": "رجوع",
+  "copy.btn": "نسخ",
+  "copy.done": "تم النسخ",
+  "copy.fail": "تعذّر النسخ",
+  "hist.title": "السجل",
+  "buy.details": "التفاصيل",
+  "lang.title": "اللغة",
+  "wallet.balance": "رصيد التعدين",
+  "ref.title": "ادعُ أصدقاءك",
+  "ref.perFriend": "عن كل صديق يربط محفظته",
+  "ref.off": "مكافأة الإحالة غير مفعّلة حالياً.",
+  "ref.share": "مشاركة الرابط",
+  "ref.copy": "نسخ الرابط",
+  "ref.copied": "تم نسخ الرابط",
+  "ref.invited": "المدعوّون",
+  "ref.counted": "المحسوبون",
+  "ref.earned": "المكتسب",
+  "ref.friends": "أصدقاؤك",
+  "ref.none": "لا يوجد أصدقاء بعد. شارك رابطك!",
+  "ref.statusOk": "محسوب",
+  "ref.statusWait": "بانتظار المحفظة",
+  "ref.rules": "كيف تعمل الإحالة",
+  "ref.r1": "يفتح صديقك البوت عبر رابطك.",
+  "ref.r2": "يجب أن يربط محفظة TON الخاصة به. عندها فقط يُحتسب.",
+  "ref.r3": "يُحتسب كل صديق مرة واحدة، والمحفظة الواحدة تُحتسب لصديق واحد فقط.",
+  "ref.r4": "تحصل على {n} UTYA عن كل صديق محتسب، وتُضاف إلى رصيد التعدين. اسحبها من تبويب المحفظة.",
+  "ref.r5": "الحسابات الوهمية والغش يتم حظرها وتُلغى المكافآت.",
+  "ref.shareText": "عدِّن واشترِ UTYA في تيليجرام. انضم عبر رابطي واربط محفظتك:"
+ },
+ "ru": {
   "brand.sub": "Майнинг и покупка UTYA",
-  "unofficial.title": "Независимый сервис", "unofficial.body": "UTYA Miner не связан с проектом Utya. UTYA — токен сообщества, его цена может расти и падать.",
-  "official.title": "Официальный сервис", "official.body": "UTYA Miner — официальный сервис проекта Utya. Цены криптотокенов могут расти и падать.",
-  "info.7": "UTYA Miner — независимый сервис, не связанный с проектом Utya.", "info.7o": "UTYA Miner — официальный сервис проекта Utya.",
+  "price.live": "Цена сейчас",
+  "price.age": "{s} с назад",
+  "price.none": "нет цены",
+  "unofficial.title": "Независимый сервис",
+  "unofficial.body": "UTYA Miner не связан с проектом Utya. UTYA — токен сообщества, его цена может расти и падать.",
+  "wallet.title": "Ваш кошелёк",
+  "wallet.connect": "Подключить кошелёк",
+  "wallet.disconnect": "Отключить",
+  "wallet.hint": "UTYA будут отправлены на этот кошелёк.",
+  "wallet.none": "Кошелёк ещё не подключён.",
+  "buy.title": "Купить UTYA",
+  "buy.amount": "Сумма в TON",
+  "buy.limits": "Мин {min} · Макс {max} TON",
+  "buy.youPay": "Вы платите",
+  "buy.rate": "Курс",
+  "buy.rateVal": "1 TON = {n} UTYA",
+  "buy.fee": "Комиссия сервиса",
+  "buy.feeVal": "{pct}% ({ton} TON)",
+  "buy.receive": "Вы получите",
+  "buy.updated": "Цена обновляется в реальном времени. Котировка {s} с назад.",
+  "buy.note": "Небольшую сетевую комиссию кошелька платите вы. Цена фиксируется на 30 минут после нажатия «Оплатить».",
+  "buy.btn": "Оплатить {ton} TON",
+  "buy.btnConnect": "Подключите кошелёк для оплаты",
+  "buy.checking": "Получаем цену…",
+  "how.title": "Как это работает",
+  "how.1": "Вы платите в TON со своего кошелька.",
+  "how.2": "Администратор вручную отправляет UTYA на ваш кошелёк примерно в течение {hours} ч.",
+  "how.3": "До отправки здесь можно запросить возврат.",
+  "pay.confirm": "Подтвердите платёж в кошельке…",
+  "pay.wait": "Ждём блокчейн…",
+  "pay.done": "Платёж получен!",
+  "pay.doneBody": "{utya} UTYA будут отправлены на ваш кошелёк примерно в течение {hours} ч. Вы получите сообщение в Telegram.",
+  "pay.cancelled": "Платёж отменён.",
+  "pay.slow": "Всё ещё ждём. Окно можно закрыть: когда платёж найдут, придёт сообщение в Telegram.",
+  "pay.close": "Закрыть",
+  "pay.toOrders": "Мои заказы",
+  "orders.title": "Мои заказы",
+  "orders.empty": "Заказов пока нет.",
+  "orders.refund": "Запросить возврат",
+  "orders.refundAsk": "Запросить возврат {ton} TON? Команда вернёт TON на ваш кошелёк.",
+  "orders.refundYes": "Да, запросить возврат",
+  "orders.refundNo": "Отмена",
+  "orders.refundDone": "Возврат запрошен.",
+  "orders.to": "Кошелёк",
+  "orders.requoted": "Оплата пришла после истечения котировки, поэтому сумма пересчитана по актуальной цене.",
+  "orders.refundNote": "Команда вернёт {ton} TON на ваш кошелёк.",
+  "status.pending": "Ожидает оплаты",
+  "status.expired": "Котировка истекла",
+  "status.failed": "Не оплачен",
+  "status.paid": "Оплачен · ждёт UTYA",
+  "status.delivered": "UTYA отправлены",
+  "status.refund_requested": "Запрошен возврат",
+  "status.refunded": "Возвращён",
+  "info.title": "Условия",
+  "info.1": "Вы покупаете UTYA за TON по рыночной цене, которая показана до оплаты.",
+  "info.2": "Администратор вручную отправляет UTYA на ваш кошелёк примерно в течение {hours} ч.",
+  "info.3": "Пока UTYA не отправлены, можно запросить возврат TON в этом приложении. После отправки возврат невозможен.",
+  "info.4": "Комиссия сервиса — {pct}%, она входит в каждую котировку.",
+  "info.5": "Если платёж пришёл после истечения котировки, сумма пересчитывается по актуальной цене.",
+  "info.6": "Цены криптовалют постоянно меняются. UTYA — токен сообщества, вы можете потерять часть стоимости. Это не финансовая рекомендация.",
+  "info.7": "UTYA Miner — независимый сервис, не связанный с проектом Utya.",
+  "info.payTo": "Платежи идут на",
+  "info.contract": "Контракт UTYA",
+  "info.support": "Связаться с поддержкой",
+  "info.lang": "Язык",
+  "nav.buy": "Купить",
+  "nav.orders": "Заказы",
+  "nav.info": "Условия",
+  "gate.title": "Сначала вступите в наш канал",
+  "gate.body": "Вступите в канал ниже и нажмите кнопку.",
+  "gate.btn": "Я вступил",
+  "banned.title": "Ваш аккаунт заблокирован.",
+  "banned.contact": "Связаться с админом",
+  "err.generic": "Что-то пошло не так. Попробуйте ещё раз.",
+  "err.no_wallet": "Сначала подключите TON-кошелёк.",
+  "err.too_small": "Минимальный заказ — {min} TON.",
+  "err.too_big": "Максимальный заказ — {max} TON.",
+  "err.bad_amount": "Введите, сколько TON хотите потратить.",
+  "err.price_unavailable": "Актуальная цена сейчас недоступна. Попробуйте через минуту.",
+  "err.buy_closed": "Покупка сейчас приостановлена.",
+  "err.too_many_orders": "У вас слишком много неоплаченных заказов. Завершите их или подождите.",
+  "err.refund_not_possible": "Этот заказ уже нельзя вернуть.",
+  "err.order_missing": "Заказ не найден.",
+  "err.pay_closed": "Платежи ещё не открыты.",
+  "err.slow_down": "Слишком много запросов. Помедленнее.",
+  "err.bad_wallet": "Это не TON-адрес.",
+  "err.no_account": "Откройте бота и нажмите Start.",
+  "nav.mine": "Майнинг",
+  "nav.chart": "График",
+  "official.title": "Официальный сервис",
+  "official.body": "UTYA Miner — официальный сервис проекта Utya. Цены криптотокенов могут расти и падать.",
+  "info.7o": "UTYA Miner — официальный сервис проекта Utya.",
   "info.8": "Майнинг: вы запускаете сессию на {h} ч., возвращаетесь и забираете награду. Скорость показана в приложении; для новых сессий команда может её менять.",
   "info.9": "Намайненные UTYA команда отправляет вручную после запроса на вывод (примерно в течение {hours} ч). Аккаунты, которые обманывают (много аккаунтов, боты), могут быть заблокированы с потерей баланса.",
-  "mine.title": "Майнинг", "mine.balance": "Баланс майнинга", "mine.total": "Всего намайнено", "mine.withdrawn": "Выведено",
-  "mine.speed": "Скорость", "mine.speedVal": "{n} UTYA в час", "mine.session": "Сессия", "mine.sessionVal": "{h} ч.",
-  "mine.start": "⛏️ Начать майнинг", "mine.running": "Майнинг идёт…", "mine.left": "Осталось {t}", "mine.thisSession": "За эту сессию",
-  "mine.claim": "Забрать {n} UTYA", "mine.ready": "Сессия завершена!", "mine.started": "Майнинг запущен.", "mine.claimed": "{n} UTYA добавлены на ваш баланс.",
-  "mine.closed": "Майнинг сейчас приостановлен.", "mine.hint": "Запустите сессию и вернитесь после её окончания. Если закрыть приложение, ничего не потеряется.",
-  "wd.title": "Вывод", "wd.amount": "Сумма в UTYA", "wd.min": "Минимум {min} UTYA", "wd.all": "Всё", "wd.btn": "Запросить вывод",
+  "mine.title": "Майнинг",
+  "mine.balance": "Баланс майнинга",
+  "mine.total": "Всего намайнено",
+  "mine.withdrawn": "Выведено",
+  "mine.speed": "Скорость",
+  "mine.speedVal": "{n} UTYA в час",
+  "mine.session": "Сессия",
+  "mine.sessionVal": "{h} ч.",
+  "mine.start": "⛏️ Начать майнинг",
+  "mine.running": "Майнинг идёт…",
+  "mine.left": "Осталось {t}",
+  "mine.thisSession": "За эту сессию",
+  "mine.claim": "Забрать {n} UTYA",
+  "mine.ready": "Сессия завершена!",
+  "mine.started": "Майнинг запущен.",
+  "mine.claimed": "{n} UTYA добавлены на ваш баланс.",
+  "mine.closed": "Майнинг сейчас приостановлен.",
+  "mine.hint": "Запустите сессию и вернитесь после её окончания. Если закрыть приложение, ничего не потеряется.",
+  "wd.title": "Вывод",
+  "wd.amount": "Сумма в UTYA",
+  "wd.min": "Минимум {min} UTYA",
+  "wd.all": "Всё",
+  "wd.btn": "Запросить вывод",
   "wd.note": "Администратор вручную отправляет UTYA на ваш кошелёк примерно в течение {hours} ч. Сумма удерживается, пока её не отправят или не отклонят.",
-  "wd.done": "Вывод запрошен.", "wd.cancel": "Отменить запрос", "wd.cancelAsk": "Отменить этот вывод? {n} UTYA вернутся на ваш баланс.",
-  "wd.cancelYes": "Да, отменить", "wd.cancelNo": "Оставить", "wd.cancelled": "Запрос отменён.", "wd.history": "Выводы", "wd.empty": "Выводов пока нет.",
-  "wd.closed": "Вывод сейчас приостановлен.", "wd.connect": "Подключите кошелёк для вывода.",
-  "wst.pending": "Ждёт администратора", "wst.sent": "UTYA отправлены", "wst.rejected": "Отклонён", "wst.cancelled": "Отменён",
-  "chart.title": "Цена UTYA", "chart.change": "Изменение", "chart.high": "Максимум", "chart.low": "Минимум", "chart.updated": "Обновлено {s} с назад",
-  "chart.nodata": "Данных о цене пока нет. Попробуйте через минуту.", "chart.stale": "Актуальная цена сейчас недоступна.",
+  "wd.done": "Вывод запрошен.",
+  "wd.cancel": "Отменить запрос",
+  "wd.cancelAsk": "Отменить этот вывод? {n} UTYA вернутся на ваш баланс.",
+  "wd.cancelYes": "Да, отменить",
+  "wd.cancelNo": "Оставить",
+  "wd.cancelled": "Запрос отменён.",
+  "wd.history": "Выводы",
+  "wd.empty": "Выводов пока нет.",
+  "wd.closed": "Вывод сейчас приостановлен.",
+  "wd.connect": "Подключите кошелёк для вывода.",
+  "wst.pending": "Ждёт администратора",
+  "wst.sent": "UTYA отправлены",
+  "wst.rejected": "Отклонён",
+  "wst.cancelled": "Отменён",
+  "chart.title": "Цена UTYA",
+  "chart.change": "Изменение",
+  "chart.high": "Максимум",
+  "chart.low": "Минимум",
+  "chart.updated": "Обновлено {s} с назад",
+  "chart.nodata": "Данных о цене пока нет. Попробуйте через минуту.",
+  "chart.stale": "Актуальная цена сейчас недоступна.",
   "chart.note": "Цены берутся с публичных рынков и могут немного отличаться от DeDust. Это не финансовая рекомендация.",
-  "err.mine_closed": "Майнинг сейчас приостановлен.", "err.already_mining": "Вы уже майните.", "err.claim_first": "Сначала заберите завершённую сессию.",
-  "err.not_mining": "Сессия майнинга не запущена.", "err.not_ready": "Ваша сессия ещё не закончилась.", "err.withdraw_closed": "Вывод сейчас приостановлен.",
-  "err.bad_utya_amount": "Введите, сколько UTYA хотите вывести.", "err.too_low": "Минимальный вывод — {min} UTYA.", "err.no_balance": "Недостаточно намайненных UTYA.",
-  "err.too_many_withdrawals": "У вас уже есть заявки на вывод в ожидании.", "err.withdraw_missing": "Вывод не найден.", "err.cannot_cancel": "Этот вывод больше нельзя отменить.",
-});
+  "err.mine_closed": "Майнинг сейчас приостановлен.",
+  "err.already_mining": "Вы уже майните.",
+  "err.claim_first": "Сначала заберите завершённую сессию.",
+  "err.not_mining": "Сессия майнинга не запущена.",
+  "err.not_ready": "Ваша сессия ещё не закончилась.",
+  "err.withdraw_closed": "Вывод сейчас приостановлен.",
+  "err.bad_utya_amount": "Введите, сколько UTYA хотите вывести.",
+  "err.too_low": "Минимальный вывод — {min} UTYA.",
+  "err.no_balance": "Недостаточно намайненных UTYA.",
+  "err.too_many_withdrawals": "У вас уже есть заявки на вывод в ожидании.",
+  "err.withdraw_missing": "Вывод не найден.",
+  "err.cannot_cancel": "Этот вывод больше нельзя отменить.",
+  "nav.wallet": "Кошелёк",
+  "nav.ref": "Рефералы",
+  "terms.btn": "Условия использования",
+  "terms.back": "Назад",
+  "copy.btn": "Копировать",
+  "copy.done": "Скопировано",
+  "copy.fail": "Не удалось скопировать",
+  "hist.title": "История",
+  "buy.details": "Подробности",
+  "lang.title": "Язык",
+  "wallet.balance": "Баланс майнинга",
+  "ref.title": "Пригласите друзей",
+  "ref.perFriend": "за каждого друга, подключившего кошелёк",
+  "ref.off": "Реферальный бонус сейчас не действует.",
+  "ref.share": "Поделиться ссылкой",
+  "ref.copy": "Копировать ссылку",
+  "ref.copied": "Ссылка скопирована",
+  "ref.invited": "Приглашено",
+  "ref.counted": "Засчитано",
+  "ref.earned": "Заработано",
+  "ref.friends": "Ваши друзья",
+  "ref.none": "Друзей пока нет. Поделитесь ссылкой!",
+  "ref.statusOk": "Засчитан",
+  "ref.statusWait": "Ждём кошелёк",
+  "ref.rules": "Как работают рефералы",
+  "ref.r1": "Друг открывает бота по вашей ссылке.",
+  "ref.r2": "Он должен подключить собственный TON-кошелёк. Только тогда он засчитывается.",
+  "ref.r3": "Каждый друг засчитывается один раз, а один кошелёк — только за одного друга.",
+  "ref.r4": "Вы получаете {n} UTYA за каждого засчитанного друга на баланс майнинга. Выводите их во вкладке «Кошелёк».",
+  "ref.r5": "Фейковые аккаунты и обман блокируются, а бонусы аннулируются.",
+  "ref.shareText": "Майни и покупай UTYA в Telegram. Заходи по моей ссылке и подключи кошелёк:"
+ }
+};
 
 // ------------------------------------------------------------------ helpers
 const tgw = window.Telegram && window.Telegram.WebApp;
@@ -457,7 +918,8 @@ const t = (key, vars) => {
   const raw = (I18N[lang] && I18N[lang][key]) || I18N.en[key] || key;
   return raw.replace(/\{(\w+)\}/g, (_, k) => (vars && vars[k] !== undefined ? String(vars[k]) : "{" + k + "}"));
 };
-const nf = (n, max) => Number(n).toLocaleString(lang === "ru" ? "ru-RU" : lang === "bn" ? "bn-BD" : "en-US", { maximumFractionDigits: max === undefined ? 2 : max });
+const LOC = () => ({ en: "en-US", ar: "ar-u-nu-latn", ru: "ru-RU" }[lang] || "en-US"); // Arabic text with normal digits: money is easier to read
+const nf = (n, max) => Number(n).toLocaleString(LOC(), { maximumFractionDigits: max === undefined ? 2 : max });
 const buzz = (kind) => { try { tgw && tgw.HapticFeedback && (kind === "ok" ? tgw.HapticFeedback.notificationOccurred("success") : tgw.HapticFeedback.impactOccurred("light")); } catch (e) {} };
 
 async function api(path, body) {
@@ -496,16 +958,21 @@ function pf(p) {
 }
 const clock = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return (h ? h + ":" : "") + String(m).padStart(h ? 2 : 1, "0") + ":" + String(x).padStart(2, "0"); };
 const short = (a) => (a ? a.slice(0, 6) + "…" + a.slice(-6) : "-");
-const dateText = (ms) => new Date(ms).toLocaleString(lang === "ru" ? "ru-RU" : lang === "bn" ? "bn-BD" : "en-GB", { dateStyle: "medium", timeStyle: "short" });
+const dateText = (ms) => new Date(ms).toLocaleString(LOC(), { dateStyle: "medium", timeStyle: "short" });
 
-const DUCK = '<svg class="logo" width="44" height="44" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".5" stop-color="#8b5cf6"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs><rect width="100" height="100" rx="27" fill="#0a0c20"/><rect x="2" y="2" width="96" height="96" rx="25" fill="none" stroke="url(#lg)" stroke-width="3"/><path d="M50 17l27 15.5v35L50 83 23 67.500v-35z" fill="url(#lg)"/><path d="M50 17l27 15.5L50 48 23 32.500z" fill="#fff" opacity=".3"/><path d="M50 48v35" stroke="#fff" stroke-opacity=".35" stroke-width="2.500"/><path d="M23 32.500L50 48l27-15.500" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="2"/></svg>';
-const LOGO_BIG = DUCK.replace('width="44" height="44"', 'width="78" height="78"');
+const DUCK = '<span class="avatar"><img src="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAUEBAQEAwUEBAQGBQUGCA0ICAcHCBALDAkNExAUExIQEhIUFx0ZFBYcFhISGiMaHB4fISEhFBkkJyQgJh0gISD/2wBDAQUGBggHCA8ICA8gFRIVICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICD/wAARCACwALADASIAAhEBAxEB/8QAHQAAAQQDAQEAAAAAAAAAAAAABAACAwUGBwgBCf/EAD8QAAEDAwEGAwYEAQwDAQAAAAEAAgMEBREGBxIhMUFRE2FxFCIygZGhCEJSsRUjJDRDU1RigpKiwdFEcsLw/8QAHAEAAQQDAQAAAAAAAAAAAAAABAIDBQYAAQcI/8QAOBEAAgIBAgIGBwcDBQAAAAAAAQIAAxEEBSExBhJBUWFxExQiMoGh0QdCUpGxwfAVFvFTYnKS4f/aAAwDAQACEQMRAD8A4ySSSWTIkkklkyJJJGwUD5Pel9xv3KWlbOcKIlmCjJgYGTgIiOiqJPybo7u4K2hpooh7jMHv1U7WKSr0P4zBW1H4ZWMtg/rJSf8A1CnbbqcYy0n1KsGsUgjRq6Ssfdg5vY9sr/YKb+yH1KXsFN/Yj6lWPhL3w076un4R+UR6Vu+VTrbTnk1w9HKB9r57kv8AqCuzGmGNNtpKz92KF7DtmOSUVRHklm8O7eKGPArKSzghp6WGX42ce44FA2aDtQwlNT+ITH0kZPQSR+9H77fuEGo162Q4YQpWDDIiSSSSIqJJJJZMiSSSWTIk5jHyPDGNyT0SYx0jwxoySrinp2wMwOLjzKIooNp8I3ZYEEZTUjIsOOHSd+g9Ec1uV4xqJjjU9VUFGFEjXck5Ma1imbH3UrIkQyLyRi1wZnkDYuHJSNiRTYvJWdrsV2vM3g2i11dwfyxTwufj1IGB80pzXUpewgAdp4CNgsxwoyZSCHyXvg+S2ZSbGNo1WwPGnTTg/wB4qI4z9M5Us+xPaNAwuFkilx0iqo3H9woU9IdmDdQ6uvP/ADX6woaPVEZFZ/IzVhiUbo/JZVd9J6jsWTeLFW0Tf1ywnc/1DI+6onR5GR1UxVZTqE9JS4Ze8EEfmIM3XrPVcYPjK10agcxWTouHJQPjWMkUryuc3CAqaNkpL2Ya/wCxVtJGh3swg7ag4wwhVdhByJjj2OY4tcMEdE1XNTTNnb2cORVQ9jmPLXDBCgb6DUfCSVdgcRqSSSHjkSSSMoYN+XxHD3Wful1oXYKIlmCjJhVJT+FHvOHvu5+Q7IxoyvA1TxtVgqrCgKJGO5JyY+NmSjIoymRM4hGxsUgiQR2jo4+KvdP6bvGprtHa7JQvq6l/EhvBrG/qc7k0eZUulNM3LVuoqayWuPM0xy57vhiYPie7yH34Bdr7P9AWnTNrZabVHutADqqqcB4k7u5P7DkAqh0l6TrtJTR6RfSamz3V7B/ubw/XwEO0OgOpzZYcIO3v8BNbaJ2A2WgEc9/Yb9cOZhaC2njPpzd6u4eS3PHp51soGxww09HAwYbDCA0DyAAwsjdWUdBF7NSMaSOeOWfM9SqueokqHb0js9h0C4bv+oS4H+oalr7+4HCIfAeHh8Za9Mor4UoFX5mVfswA4hMdTDCPconLnbVgcpJiwyrmpt5jmPaHsIwWuGQfktW6w2OaZ1AySot8DbPcDxEtO3Ebz/iZy+YwVuFwyhJohxICP27ddZtlwu0lhQ+Hb5jkfjFPXVevUuUEThfU+lbxpS6m33im8NxyY5W8Y5m92n/jmOqx18a7e1Zpa2apsk1suUO/G8Za9vxxO6PaehH35Fcfan07X6Y1BU2a4gGSI5ZIB7srD8Lx5H7HIXp7of0ur36o03ALeo4jsYd4/cdko+67UdE3pK+KH5eB/aYvJGhJGK0kYg5GK8OsiUaVz2kICrp/EZvtHvj7hW0jUK8IC2sMCphdb4ORMfSRVZD4cu+0e677FCqvOhRipkmpDDInvNXdPF4UDWY44yfVVdHH4lU0dB7xV00KQ0VfN4NqG+7HtGQio2qFg4IuMKaQSPcyeNvFFNIAySh2Hosm0NZhqLXtmsz2l0U9Q0ygf2bfed9gR805fqE0tD6iz3UBJ8gMxlKza4rXmTidPbFdFM0zoyO6VcIbdbs1s0hcOMcfNjPocnzPktukmnc6GCpLmOA3i3gCUDG1rY2taAABgAdFKCvF+47vdr9XbrLffc5zk8BxGB4YwPITpNdC1VrWvIQhrsBO31q2/wC3LZ/p3VDtNVFbWVtxjcWTMt9K6oELhxIcRzI6hucdVn1ovFsv1nprvZq6KuoKpm/FPEcteP8Agg8CDxBGE1fo9Xp6luurKq3IkYBmgyMSoPESyLsphKbleEqPLZjgE9KjdxC0vts2zVWz19NZNPU1NUXqoiE8ktVkxU0ZdutJAIy5xBxk4AGTlWunddagtm0Wn2da+q7HW3avoW19DXWWQmKQEEmJ7TydhriCOBA8wp9ejm4PoDuKr7GM8+OO/Hd/mNesViz0eeM2JMziVpvbTpNl20u68U8Wa21gy5A4vhPxt+XxD0PdbpmAxlUtyhingfFM0PjkaWPaeoIwR9Ezsm5W7bratZVzU/mO0fEcJIPQuqpah+TD/B+E4Vc3IQsjVe3u3G0364Ws/wDiVD4RnsCQPthU8jV7TR1trWxOTAEeRnJCCjlG5jhK6RvNCSNwVYSNQkjULYsJQyuqIvFhczHHp6qm5LIHjBVNVM3KlwHI8QoTW18nklQ3ZCbczi9/oFZtCBoBimz3cVYM6IvSrisRi4+0ZOwIpgCGYiWcFJpAmkw7rauwOFs21VkrucFFM9vqd1v7ErWFLR1tb4nsVFUVXhjef4MTpNwdzgHC2BsOuLKHa5QRSndFZDNTDP6i3eA+rVX+k5NmzatKz7QRv0+kM24Y1VZblmdmsdloQl4mqqewXGehbvVUdLK+EAc3hhLfvhPhfwCKa4FeOVPVcMRnE6K64nzl0btF1Bs91vT6tsXs0twZC9jhWRmRr/EHv54g5J45BB+66X/Cxe7tdtPasdcH70RuTalmG7rWyStc6QNA4AZDTgd0Prv8Nmkq2+TX6k1UNNUdTKXy00sDZIw9xyRGd4EZOTu8cdOHBZ1pqo0ds50fFpvRokucoJe6RwI8aU8DJI/AHQcG9AAO67Dv++6Xdts9X0ilncjsI6uDnieXhwMjdDtmpe7KKSO+bEud9tVnaz+I1rIXP4tZgue4dw0ZOPNeWy+2q8tebdWsmdH8bMFr2+rTg481rFs8rH1VdcmxVddVgb0krcmPjyaOQGOHl9VQy1VTS3FtdSVDoJozmN0YwWnr6g9jwVMPR9BV7/t/L+fzwl3q2NbEIDHrd/Z9fj8pqz8UtmuNJtJivEkTzQXOjibFL+UPiy1zPXiD81iv4f7FcLttosc9LE8xW6Q1dTIOUcbWkcT5kho9V0xW64o71ZnWrVWlKK9QOwXMeR4biOR3XA4PmCsj2d1mkvYqu36Z07TWB8RD5qeBjcSA5AfvDi7qOPJWf+4NRpNmOjsp9oL1OsCMY5A9/Lw5ysano/qqLDfYvsgzNZThuFUVzhulWUz1R10uTujmuYULxh+nXjOUNpsbY9pl6DfzSMefUxtJWEyeSyXXFxjuWvL1WRODo3VLmNI6huGg/wC1Yy48F7Y2dGr23To/MIoP/UTkeuYNq7WXkWP6wWQIOQcUbIhJAirBG0MCeOKrLg34H/JWsiArm5ps9iFFapc1mH0nDCOoh/NWfP8AdGsQNEf5s35/ujWlLoPsL5RNnvGFMU7eQQzCpg7gj1MFYTujYTaKGh2R2RlIxjJrhEameTGDJI4nmeuAAB6LG9puyI1d4j1ZpNsdt1HRytqAB7sdW5pyN7Hwu4fF1691N+H+9tuGymhpt/8AlbfLJTOGeWHbzf8Aa4Lb00pqATId4rynuO56jbN21LqSLRY2e0MpJ9lh2jH85S/U0o9KZGVIHwPeJidgvH8YtENa6nkpKgjdqKWUYfBIPiYfQ8j1GCFdsk80DXW2RsvtVC4RzgY48njsf/3BQU1eHO3KiN1PKOBDuI+RVPsCWEvUMDu7pOisOvWXjMO2p0l09nobxRBz4aNr2yBoz4RdjEmO3DBPRazptb3Shpju2inqCRjxgwOI8/L7ro4OEjCCA5p4eqwq77OLTV1D6y1SOtdS45cImh0Tj5sPL5YVk2nd6tPWKLxy5H6yf27cqa6hp9QvAcj9ZpKs1NqWvO9HGyNvpn9sBCNueo2jelMbh2LMf8raM+z+/RuIZDbagfra90RPqMJ9Js7vUsg8eWioW9XR70zx6ZAH3VkO6aILnrL/AD5yyjcdCq5D/wA8sTWLp75URtZO0ROlO6yOJpL356Dqt47ONJVGnbXNW3Fu5XVbWt8LOfCjHENPnk5PyVrYNG2iwye0xxuqa0jBqZ8Of8ujR6LIXudjDQT6Kq7pvA1KGigYXtPf/wCSsbnu3rS+hpGF7Se2D1Uu608Vq/aVrCHS2mppGyj+I1YMVLHniCeb/Ro4+uFs2WkqJegHmeiwPVOyDT2rZ3VtfNWx3As3BPHOfdA5AMdluPIAJGxWbfVrK33En0YOSAM58D4d/M4lfvaxdOw05HXPLM5EMhJySSTzJ6pjnLNte7M79oSX2ifFdanu3WVkbcbpPJr2/lP2PfosCL1680W46bX0DUaRwyHtH84HwM5NdprKHKWjBieULIVM5yHeU+5mlEGk6oOs/oj/AJfujHlBVn9Ff8v3Udf7jeUMr94RlCc0+OzijmlVlA/3ns+asWlNaZs1iLtGGMKYeClzwQ7CpgVIKYKwm5dgGsG2PWE1gq5dymu4HhEng2dvwj/MMj1AXXUNQ2RgIK+cLZHxSNlie6ORhDmuacFpHEEHoV1Lsw2zUV+pYLRqCqjo74wBgkkIbHWeYPIP7t68x2HD/tC6L222/wBV0i5yPbA5jHJvLHA92My3bNrEdPVrDgjl9J0ASCENLSRTOy5vHuhKav8AFeI90756K7hpnGEyv4NH3XEkpsLdVRxlhfNJ48IDHSxR8Gt+6eYQfJTnATcpgk9sR1yeMh9nGV6IApgUsrWTM6xkYiaOicGgcgnZXmVrM1kxwie9pcxhcBzwM4Q8jMHeHRF0tXLRz+JGctPBzTyKkq5WVL3ShrW56BHCqg0B1f2+1SOzvBiA7B8EcJT3mhtl+sUlurqKOUvjMUrXD3JmEdR381wlrzS0ujNZ1llcXPgaRLTSO5vid8JPmOIPmF3PLL4NU+Bx4gbzT3BXOP4kaCItsd4YAJBJJSuPcEB4+4d9V077P95vp3QaVz7FoxjlxA4Hz4YJ7c8YBu+iV9IbO1eI8jzE5+JUTl7lMcV6MJlFAkT0DXHFNju4I56q7g/3mM8iVH6psVmFUjLCDUz/AA6hrunIq4bzVCreml8WEHPEcCgtG/NDCL17YY0qZpQzSp2lS6mAtJEx4w0nyynhenGMFO4zEcp3xs2tcdBoOww77pJDQw5e9xcTlgJOT5lbBr52MgZBHwGOPotSbINSxXrZlZKhkgMtNCKSYdWvj93j6gNPzWxJKjxX7xXj3cLLdJqNVRYPbLEHyyZ0cL6UJZ2YEfvLzPHmog5e5VcxH+rJcpZTMpZWsTWI7KWU3KWQt4mYjspAqMuAQU9yjiBHIj9RwFsIW4CLVGbgBAL9N4ddSlpwd1wP2K50/ENdo309ktAeDMZJKp7ezQNxv1Jd9FnOvNrWndP3SWmfI+4XCBnCmhGPedx95x4AYx3PkuX9RX+46nv9TebnIHTzHg1vBsbR8LWjsAu1dBejeq9Zr3C9SqIMjP3ieWPDjnMj9611NOl9UU5c8D4cc8fpKleFelMJXdyZQBGO7KkqpPEqXEchwCtKqXwoHO6ngPVUiiNdZySHadebRIilm8KX3vhdwKHSUcjFGDCFEZGDL4H6KVrlWUdQCBE88R8J7+SPaVPVWBx1hI50KnBhGThRue4JzCpQxrhxRPE8ozyma7MNplVoG9SCoY+os9YR7TCz4mEcpGf4hyI6j0C680/rGzaitrK+z3GGup3c3Ru4tPZzebT5FcGOpA7kVJQvutqrBWWquqKKobylp5Cx31HNc+6R9Cqd3c6ms9SztPMHzHf4/rJ/b959WX0Vg6y/MT6Gx10buTwpxUtPVcTW3bJtItoa2Wvp7kxv97pwXH/M3dKyel/EXqGIAVumKWXuYal7PsQVy3U/Z5u1Z9hQ3kfriWRN20FnNiPMfTM60FS3ul7SO65gj/Emcfy2kqgH/BWNP7sTn/iTYR/J6TqifOraP/lRv9j71nHoPmv1j3r2g/1R8/pOnDVNxzUT61o4lwC5XqfxHXiQEUmlYmectW532DQsdr9ue0CtBbSx2+gB6xwF7h83kj7I6j7Pt3sPtIF8yP2zGm3Tb0+/nyB/fE68qLvDG1zi/IaMk54D1K0ptE212a0wzUNjmhut2ILQYzvQwHu5w4OI/SPmQuebvqPV2ogW3q+1tXGf6p0m7H/obgfZVDKIjmr3s/2c10OLda3Wx2Dl8TzPykXqekShSulXB7zz+Ajp62qrq2asrJnz1E7zJJI85LnE5JKQJwniFrE1xwuuKnUUKOQlPZuucmMcVGSk5yr62pwDCw8T8R7eSZttFa9YxxELHAg1ZP402AfcbwHmhkklX3cuxYyTAAGBEkkkkTc9BwcqxpqoSARyHD+h7qtST1VrVnIiHQMMGX7XYKnZIqenrMYZMfR3/asGuGAQcgqapuVxkQB6yvOWLJO6IY9p5qra/HVTNl80atkFZJatDCneHGegVeyfzUzZ/NEBxGShEM8CM9Al7PH2CgFRjqvfaPNLysRhpKYYx0CaWMHRROnz1ULp8dVoss2FMme5oUD3juonS56qF0iZZ48qR73hDueV45/AknACrqmu5shPq7/pBXXqgy0JrrLHhH1VWI8sZxf37KsJJOSeKROSvFA23NacmSSIEGBEkkkmYuJJJJZMiSSSWTIlNDUSQn3Tlv6TyUKSUrFTkTRAPAy2irIn4BO47sUSHdlQKRk8sfwPIHbojq9YR74g7UA+7L4PITxIe6p2XCQfGwO9OClbcI+rHD7o1dXWe2MGhu6WolPVemZVvt8GPzfRL2+EdXfRO+tV/ijfoW7pYmQppee6rXXGP8rHH14KF9wlPBjGt+6bbWVjtixQx7Jal/DiULLWwsyAd93YKrfPLJ8byfJRoOzXE8EEfXTge9J5qmSY+8cN/SFAkko9mLHLGEgAcBEkkkkzcSSSSyZP/9k=" width="46" height="46" alt="" draggable="false"></span>';
+const LOGO_BIG = '<span class="avatar big"><img src="data:image/jpeg;base64,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" width="86" height="86" alt="" draggable="false"></span>';
 const ICON = {
   mine: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
   buy: '<circle cx="12" cy="12" r="9"/><path d="M12 6.500v11M9 9.500h4.500a2 2 0 0 1 0 4H10a2 2 0 0 0 0 4h5"/>',
   chart: '<path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/>',
-  orders: '<path d="M3 7l9-4 9 4-9 4z"/><path d="M3 7v10l9 4 9-4V7M12 11v10"/>',
-  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.500v.01"/>',
+  wallet: '<path d="M3 7a2 2 0 0 1 2-2h13v4"/><path d="M3 7v11a2 2 0 0 0 2 2h15V9H5a2 2 0 0 1-2-2z"/><circle cx="16.500" cy="14.500" r="1.200"/>',
+  ref: '<circle cx="9" cy="8" r="3.500"/><path d="M2.500 20c0-3.600 2.900-6 6.500-6s6.500 2.400 6.500 6"/><path d="M16 4.600a3.500 3.500 0 0 1 0 6.800M18.500 14.400c2 .8 3.500 2.600 3.500 5.600"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.200 3 14.800 0 18M12 3c-3 3.200-3 14.800 0 18"/>',
+  copy: '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.600 10.600l6.800-4M8.600 13.400l6.800 4"/>',
+  doc: '<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/>',
+  back: '<path d="M15 5l-7 7 7 7"/>',
 };
 const svgi = (k) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICON[k] + "</svg>";
 
@@ -536,7 +1003,7 @@ function priceChip() {
   const p = S && S.price;
   if (!p) return '<div class="chip" id="chip"><b><span class="dot off"></span>' + esc(t("price.none")) + "</b></div>";
   const age = Math.max(0, Math.round((Date.now() - p.at) / 1000));
-  return '<div class="chip" id="chip"><b><span class="dot"></span>$' + esc(pf(p.utyaUsd)) + "</b>" + esc(t("price.live")) + " · " + esc(t("price.age", { s: age })) + "</div>";
+  return '<div class="chip" id="chip"><b><span class="dot"></span>$' + esc(pf(p.utyaUsd)) + "</b>" + esc(t("price.age", { s: age })) + "</div>";
 }
 
 /** "Independent service" by default; "Official service" only when the owner turned UTYA_OFFICIAL on. */
@@ -575,25 +1042,32 @@ function payBtn() {
   return '<button class="btn" data-a="pay" id="payBtn"' + (ok ? "" : " disabled") + ">" + esc(ok ? t("buy.btn", { ton: nf(quote.ton, 4) }) : t("buy.btn", { ton: nf(Number(String(amount).replace(",", ".")) || 0, 4) })) + "</button>";
 }
 
+function addrRow(label, value) {
+  return '<div class="muted">' + esc(label) + '</div><div class="addrrow"><div class="addr">' + esc(value || "-") + "</div>" +
+    (value ? '<button class="btn small copy" data-a="copy" data-v="' + esc(value) + '">' + svgi("copy") + esc(t("copy.btn")) + "</button>" : "") + "</div>";
+}
+function addrCard() {
+  return '<div class="card">' + addrRow(t("info.payTo"), S.settings.payAddress) + addrRow(t("info.contract"), S.token.jetton) + "</div>";
+}
+
 function viewBuy() {
   const st = S.settings;
   const presets = [1, 5, 10, 25].filter((n) => n >= st.minTon && n <= st.maxTon);
-  return brandNote() +
-    walletCard() +
-    '<div class="card"><h3>' + esc(t("buy.title")) + '</h3><div class="muted" style="margin-bottom:8px">' + esc(t("buy.amount")) + " · " + esc(t("buy.limits", { min: nf(st.minTon, 4), max: nf(st.maxTon, 4) })) + "</div>" +
+  return '<div class="card hero"><h3>' + esc(t("buy.title")) + '</h3><div class="muted" style="margin-bottom:8px">' + esc(t("buy.amount")) + " · " + esc(t("buy.limits", { min: nf(st.minTon, 4), max: nf(st.maxTon, 4) })) + "</div>" +
     '<div class="field"><input id="amt" inputmode="decimal" autocomplete="off" value="' + esc(amount) + '" /><span>TON</span></div>' +
     '<div class="chips">' + presets.map((n) => '<button data-a="preset" data-v="' + n + '" class="' + (String(n) === String(amount) ? "on" : "") + '">' + n + "</button>").join("") + "</div>" +
     '<div id="quoteBox" style="margin-top:8px">' + quoteBox() + "</div>" +
     '<div id="payWrap">' + payBtn() + "</div>" +
     '<div class="muted" style="margin-top:10px">' + esc(t("buy.note")) + "</div></div>" +
-    '<div class="card"><h3>' + esc(t("how.title")) + "</h3><ol><li>" + esc(t("how.1")) + "</li><li>" + esc(t("how.2", { hours: st.deliveryHours })) + "</li><li>" + esc(t("how.3")) + "</li></ol></div>";
+    '<div class="card"><h3>' + esc(t("buy.details")) + "</h3><ol><li>" + esc(t("how.1")) + "</li><li>" + esc(t("how.2", { hours: st.deliveryHours })) + "</li><li>" + esc(t("how.3")) + "</li></ol></div>" +
+    addrCard() + brandNote();
 }
 
 function orderCard(o) {
   const tonTxt = nf(o.ton, 4) + " TON → " + nf(o.utya, 2) + " UTYA";
   const when = o.deliveredAt || o.refundedAt || o.paidAt || o.createdAt;
   return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>#' + esc(o.id) + '</b><span class="status st-' + esc(o.status) + '">' + esc(t("status." + o.status)) + "</span></div>" +
-    '<div style="margin:8px 0 2px;font-weight:700">' + esc(tonTxt) + '</div><div class="muted">' + esc(dateText(when)) + "</div>" +
+    '<div style="margin:8px 0 2px;font-weight:700"><bdi>' + esc(tonTxt) + '</bdi></div><div class="muted">' + esc(dateText(when)) + "</div>" +
     '<div class="muted" style="margin-top:6px">' + esc(t("orders.to")) + ': <span class="addr">' + esc(short(o.wallet)) + "</span></div>" +
     (o.requoted ? '<div class="muted" style="margin-top:6px">' + esc(t("orders.requoted")) + "</div>" : "") +
     (o.status === "refund_requested" ? '<div class="muted" style="margin-top:6px">' + esc(t("orders.refundNote", { ton: nf(o.ton, 4) })) + "</div>" : "") +
@@ -605,6 +1079,40 @@ function orderCard(o) {
 function viewOrders() {
   const list = S.orders;
   return '<div class="card"><h3>' + esc(t("orders.title")) + "</h3>" + (list.length ? '<div class="muted">' + esc(list.length) + "</div>" : '<div class="muted">' + esc(t("orders.empty")) + "</div>") + "</div>" + list.map(orderCard).join("");
+}
+
+/** The wallet tab: connect / disconnect, mined balance + withdraw, history, terms. */
+function viewWallet() {
+  return walletCard() + withdrawCard() +
+    '<div class="card"><h3>' + esc(t("wd.history")) + "</h3>" + (S.withdrawals.length ? S.withdrawals.map(wdRow).join("") : '<div class="muted">' + esc(t("wd.empty")) + "</div>") + "</div>" +
+    viewOrders() +
+    '<button class="btn ghost ic termsbtn" data-a="terms">' + svgi("doc") + esc(t("terms.btn")) + "</button>";
+}
+
+/** The terms page (opened with the button at the bottom of the wallet tab). */
+function viewTerms() {
+  const st = S.settings;
+  return '<button class="btn ghost small back" data-a="back">' + svgi("back") + esc(t("terms.back")) + "</button>" +
+    '<div class="card hero"><h3>' + esc(t("info.title")) + "</h3><ul>" +
+    "<li>" + esc(t("info.1")) + "</li><li>" + esc(t("info.2", { hours: st.deliveryHours })) + "</li><li>" + esc(t("info.3")) + "</li><li>" + esc(t("info.4", { pct: nf(st.feePct, 2) })) + "</li><li>" + esc(t("info.5")) + "</li><li>" + esc(t("info.6")) + "</li><li>" + esc(t(S.official ? "info.7o" : "info.7")) + "</li><li>" + esc(t("info.8", { h: S.mining.sessionHours })) + "</li><li>" + esc(t("info.9", { hours: st.deliveryHours })) + "</li></ul></div>" +
+    addrCard() +
+    (st.support ? '<div class="card"><button class="btn ghost" data-a="support" style="margin-top:0">' + esc(t("info.support")) + "</button></div>" : "");
+}
+
+/** The referral tab. */
+function viewRef() {
+  const r = S.referral;
+  const hero = '<div class="card hero refhero"><h3>' + esc(t("ref.title")) + "</h3>" +
+    (r.bonus > 0
+      ? '<div class="bal">+<span data-n="' + r.bonus + '">' + esc(nf(r.bonus, 2)) + '</span> <small>UTYA</small></div><div class="muted">' + esc(t("ref.perFriend")) + "</div>"
+      : '<div class="muted">' + esc(t("ref.off")) + "</div>") +
+    '<div class="linkbox">' + esc(r.link) + "</div>" +
+    '<div class="two"><button class="btn" data-a="share">' + svgi("share") + esc(t("ref.share")) + '</button><button class="btn ghost" data-a="copy" data-v="' + esc(r.link) + '" data-msg="ref.copied">' + svgi("copy") + esc(t("ref.copy")) + "</button></div>" +
+    '<div class="stats3"><div>' + esc(t("ref.invited")) + "<b>" + esc(r.invited) + "</b></div><div>" + esc(t("ref.counted")) + "<b>" + esc(r.counted) + "</b></div><div>" + esc(t("ref.earned")) + "<b>" + esc(nf(r.earned, 4)) + " UTYA</b></div></div></div>";
+  const rows = r.friends.map((f) => '<div class="fr"><div class="fav">' + esc(Array.from(f.name || "?")[0]) + '</div><div class="fn">' + esc(f.name) + '<div class="muted">' + esc(dateText(f.at)) + '</div></div><span class="status ' + (f.counted ? "st-sent" : "st-pending") + '">' + esc(t(f.counted ? "ref.statusOk" : "ref.statusWait")) + "</span></div>").join("");
+  const friends = '<div class="card"><h3>' + esc(t("ref.friends")) + "</h3>" + (rows || '<div class="muted">' + esc(t("ref.none")) + "</div>") + "</div>";
+  const rules = '<div class="card"><h3>' + esc(t("ref.rules")) + "</h3><ol><li>" + esc(t("ref.r1")) + "</li><li>" + esc(t("ref.r2")) + "</li><li>" + esc(t("ref.r3")) + "</li><li>" + esc(t("ref.r4", { n: nf(r.bonus, 2) })) + "</li><li>" + esc(t("ref.r5")) + "</li></ol></div>";
+  return hero + friends + rules;
 }
 
 // ------------------------------------------------------------------ mining
@@ -642,11 +1150,11 @@ function tickMining() {
 
 function mineCard() {
   const m = S.mining;
-  return '<div class="card hero"><h3>' + esc(t("mine.title")) + '</h3><div class="muted">' + esc(t("mine.balance")) + "</div>" +
+  return '<div class="card hero mine"><div class="muted">' + esc(t("mine.balance")) + "</div>" +
     '<div class="bal"><span data-n="' + m.balance + '">' + esc(nf(m.balance, 4)) + "</span> <small>UTYA</small></div>" +
-    '<div class="stats3"><div>' + esc(t("mine.total")) + "<b>" + esc(nf(m.total, 4)) + "</b></div><div>" + esc(t("mine.withdrawn")) + "<b>" + esc(nf(m.withdrawn, 4)) + "</b></div><div>" + esc(t("mine.speed")) + "<b>" + esc(t("mine.speedVal", { n: nf(m.rate, 4) })) + "</b></div></div>" +
-    '<div id="mineBox" style="margin-top:6px">' + mineBox() + "</div>" +
-    '<div class="muted" style="margin-top:10px">' + esc(t("mine.hint")) + " (" + esc(t("mine.sessionVal", { h: m.sessionHours })) + ")</div></div>";
+    '<div id="mineBox">' + mineBox() + "</div>" +
+    '<div class="stats3"><div>' + esc(t("mine.speed")) + "<b>" + esc(t("mine.speedVal", { n: nf(m.rate, 4) })) + "</b></div><div>" + esc(t("mine.session")) + "<b>" + esc(t("mine.sessionVal", { h: m.sessionHours })) + "</b></div><div>" + esc(t("mine.total")) + "<b>" + esc(nf(m.total, 4)) + "</b></div></div>" +
+    '<div class="muted" style="margin-top:12px">' + esc(t("mine.hint")) + "</div></div>";
 }
 
 function withdrawCard() {
@@ -660,25 +1168,23 @@ function withdrawCard() {
       '<button class="btn" data-a="wdSubmit">' + esc(t("wd.btn")) + "</button>" +
       '<div class="muted" style="margin-top:10px">' + esc(t("wd.note", { hours: S.settings.deliveryHours })) + "</div>";
   }
-  return '<div class="card"><h3>' + esc(t("wd.title")) + "</h3>" + body + "</div>";
+  return '<div class="card hero"><h3>' + esc(t("wd.title")) + '</h3><div class="row"><span>' + esc(t("wallet.balance")) + '</span><b><span data-n="' + m.balance + '">' + esc(nf(m.balance, 4)) + "</span> UTYA</b></div>" + body + "</div>";
 }
 
 function wdRow(w) {
   return '<div class="wd"><div><b>' + esc(nf(w.amount, 4)) + " UTYA</b><div class=\"muted\">" + esc(dateText(w.doneAt || w.createdAt)) + "</div>" +
     (w.tx ? '<div class="addr">Tx: ' + esc(w.tx) + "</div>" : "") + (w.status === "rejected" && w.reason ? '<div class="muted">' + esc(w.reason) + "</div>" : "") +
-    '</div><div style="text-align:right"><span class="status st-' + esc(w.status) + '">' + esc(t("wst." + w.status)) + "</span>" +
+    '</div><div style="text-align:end"><span class="status st-' + esc(w.status) + '">' + esc(t("wst." + w.status)) + "</span>" +
     (w.status === "pending" ? '<div style="margin-top:6px"><button class="btn ghost small" data-a="wdCancel" data-id="' + esc(w.id) + '">' + esc(t("wd.cancel")) + "</button></div>" : "") + "</div></div>";
 }
 
 function viewMine() {
-  const list = S.withdrawals;
-  return brandNote() + mineCard() + walletCard() + withdrawCard() +
-    '<div class="card"><h3>' + esc(t("wd.history")) + "</h3>" + (list.length ? list.map(wdRow).join("") : '<div class="muted">' + esc(t("wd.empty")) + "</div>") + "</div>";
+  return mineCard();
 }
 
 // ------------------------------------------------------------------ price chart (live)
 const CHART_RANGES = [["1h", "1H"], ["24h", "24H"], ["7d", "7D"]];
-const locale = () => (lang === "ru" ? "ru-RU" : lang === "bn" ? "bn-BD" : "en-GB");
+const locale = () => LOC();
 const chartTime = (ms) => new Date(ms).toLocaleString(locale(), chartRange === "7d" ? { dateStyle: "medium", timeStyle: "short" } : chartRange === "1h" ? { timeStyle: "medium" } : { timeStyle: "short" });
 
 function viewChart() {
@@ -771,33 +1277,39 @@ async function loadChart() {
   if (tab === "chart" && !chartHold) drawChart();
 }
 
+/** The only way to copy text: this button. Works inside Telegram and in a normal browser. */
+async function copyText(text) {
+  try { if (navigator.clipboard && window.isSecureContext) { await navigator.clipboard.writeText(text); return true; } } catch (e) {}
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text; ta.setAttribute("readonly", ""); ta.style.cssText = "position:fixed;left:-9999px;top:0;opacity:0";
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);
+    window.__allowCopy = true;
+    const ok = document.execCommand("copy");
+    window.__allowCopy = false; ta.remove();
+    return ok;
+  } catch (e) { window.__allowCopy = false; return false; }
+}
+
 async function fail(e) {
   if (e && e.code === "banned") return showBanned(e.data);
   if (e && e.code === "join_required") return showGate(e.data.channels);
   toast(errText(e), "err");
 }
 
-function viewInfo() {
-  const st = S.settings;
-  const langs = [["en", "English"], ["bn", "বাংলা"], ["ru", "Русский"]];
-  return '<div class="card"><h3>' + esc(t("info.title")) + "</h3><ul>" +
-    "<li>" + esc(t("info.1")) + "</li><li>" + esc(t("info.2", { hours: st.deliveryHours })) + "</li><li>" + esc(t("info.3")) + "</li><li>" + esc(t("info.4", { pct: nf(st.feePct, 2) })) + "</li><li>" + esc(t("info.5")) + "</li><li>" + esc(t("info.6")) + "</li><li>" + esc(t(S.official ? "info.7o" : "info.7")) + "</li><li>" + esc(t("info.8", { h: S.mining.sessionHours })) + "</li><li>" + esc(t("info.9", { hours: st.deliveryHours })) + "</li></ul></div>" +
-    '<div class="card"><div class="muted">' + esc(t("info.payTo")) + '</div><div class="addr" style="margin-bottom:10px">' + esc(st.payAddress || "-") + '</div><div class="muted">' + esc(t("info.contract")) + '</div><div class="addr">' + esc(S.token.jetton) + "</div></div>" +
-    (st.support ? '<div class="card"><button class="btn ghost" data-a="support">' + esc(t("info.support")) + "</button></div>" : "") +
-    '<div class="card"><h3>' + esc(t("info.lang")) + '</h3><div class="langs">' + langs.map((l) => '<button data-a="lang" data-v="' + l[0] + '" class="' + (lang === l[0] ? "on" : "") + '">' + l[1] + "</button>").join("") + "</div></div>";
-}
 
 function render() {
   if (!S) return;
   document.documentElement.lang = lang;
-  const body = tab === "mine" ? viewMine() : tab === "buy" ? viewBuy() : tab === "chart" ? viewChart() : tab === "orders" ? viewOrders() : viewInfo();
-  const nav = ["mine", "buy", "chart", "orders", "info"];
+  document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
+  const body = tab === "mine" ? viewMine() : tab === "buy" ? viewBuy() : tab === "chart" ? viewChart() : tab === "wallet" ? viewWallet() : tab === "ref" ? viewRef() : viewTerms();
+  const nav = ["mine", "buy", "chart", "wallet", "ref"];
   const tabChanged = tab !== lastTab;
   lastTab = tab;
   document.documentElement.style.setProperty("--sd", -((Date.now() / 1000) % 7).toFixed(2) + "s"); // keeps the rotating borders in phase between redraws
   $("#app").dataset.anim = tabChanged ? "1" : "0";
   if (tab === "chart" && tabChanged) chartAnim = true;
-  $("#app").innerHTML = '<div class="top">' + DUCK + '<div class="brand">UTYA Miner<small>' + esc(t("brand.sub")) + "</small></div>" + priceChip() + "</div>" + body +
+  $("#app").innerHTML = '<div class="top">' + DUCK + '<div class="brand">UTYA Miner<small>' + esc(t("brand.sub")) + "</small></div>" + priceChip() + '<button class="langpill" data-a="langOpen" aria-label="Language">' + svgi("globe") + "<b>" + ({ en: "EN", ar: "AR", ru: "RU" }[lang] || "EN") + "</b></button></div>" + body +
     '<div class="nav">' + nav.map((n) => '<button data-a="tab" data-v="' + n + '" class="' + (tab === n ? "on" : "") + '">' + svgi(n) + esc(t("nav." + n)) + "</button>").join("") + "</div>";
   const input = $("#amt");
   if (input) input.addEventListener("input", onAmount);
@@ -843,7 +1355,7 @@ async function refreshState() {
     S = r;
     lang = S.user.lang || lang;
     const typing = document.activeElement && document.activeElement.id === "wdAmt";
-    if (tab === "orders" || tab === "info" || (tab === "mine" && !typing)) render(); else { const c = $("#chip"); if (c) c.outerHTML = priceChip(); }
+    if ((tab === "mine" || tab === "wallet" || tab === "ref") && !typing) render(); else { const c = $("#chip"); if (c) c.outerHTML = priceChip(); }
   } catch (e) { /* keep the old state */ }
 }
 
@@ -945,12 +1457,29 @@ document.addEventListener("click", async (ev) => {
     return;
   }
   if (a === "closeov") return closeOverlay();
-  if (a === "toOrders") { closeOverlay(); tab = "orders"; render(); return; }
+  if (a === "toOrders") { closeOverlay(); tab = "wallet"; render(); return; }
+  if (a === "terms") { tab = "terms"; render(); window.scrollTo(0, 0); return; }
+  if (a === "back") { tab = "wallet"; render(); window.scrollTo(0, 0); return; }
+  if (a === "langOpen") {
+    const names = [["en", "English"], ["ar", "العربية"], ["ru", "Русский"]];
+    openOverlay("<h2>" + esc(t("lang.title")) + '</h2><div class="langs" style="margin-top:14px">' + names.map((l) => '<button data-a="lang" data-v="' + l[0] + '" class="' + (lang === l[0] ? "on" : "") + '">' + l[1] + "</button>").join("") + '</div><button class="btn ghost" data-a="closeov">' + esc(t("pay.close")) + "</button>");
+    return;
+  }
+  if (a === "copy") {
+    const ok = await copyText(el.dataset.v || "");
+    toast(t(ok ? el.dataset.msg || "copy.done" : "copy.fail"), ok ? "ok" : "err");
+    if (ok) buzz("ok");
+    return;
+  }
+  if (a === "share") {
+    openLink("https://t.me/share/url?url=" + encodeURIComponent(S.referral.link) + "&text=" + encodeURIComponent(t("ref.shareText")));
+    return;
+  }
   if (a === "support") return openLink(el.dataset.url || (S && S.settings.support));
   if (a === "link") return openLink(el.dataset.url);
   if (a === "reload") return location.reload();
   if (a === "lang") {
-    try { const r = await api("/api/lang", { lang: el.dataset.v }); S = r.state; lang = S.user.lang; render(); } catch (e) { toast(errText(e), "err"); }
+    try { const r = await api("/api/lang", { lang: el.dataset.v }); S = r.state; lang = S.user.lang; closeOverlay(); render(); } catch (e) { toast(errText(e), "err"); }
     return;
   }
   if (a === "refund") {
