@@ -27,6 +27,7 @@ const ADMIN_HELP = [
   "/wreject &lt;id&gt; [reason] — refuse; the UTYA goes back to the user's mined balance",
   "/setminerate &lt;UTYA per hour&gt; — mining speed for new sessions",
   "/setminwithdraw &lt;UTYA&gt; — smallest withdrawal",
+  "/setrefbonus &lt;UTYA&gt; — bonus the inviter gets for every friend who connects a wallet (0 = none, first value 5)",
   "/mineon · /mineoff — open / pause starting new mining sessions",
   "/withdrawon · /withdrawoff — open / pause withdrawal requests",
   "",
@@ -230,6 +231,12 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
       await game.updateSettings(cmd === "/setminerate" ? { mineRate: n } : { minWithdraw: n });
       return reply(cmd === "/setminerate" ? `Mining speed is now <b>${n} ${TOKEN.symbol} per hour</b>. Sessions that already run keep their old speed.` : `The smallest withdrawal is now <b>${n} ${TOKEN.symbol}</b>.`);
     }
+    if (cmd === "/setrefbonus") {
+      const n = Number(arg.replace(",", "."));
+      if (!Number.isFinite(n) || n < 0 || n > 1e6) return reply("Usage: /setrefbonus &lt;UTYA&gt; (for example /setrefbonus 5, or 0 to stop paying)");
+      await game.updateSettings({ refBonus: n });
+      return reply(`The referral bonus is now <b>${n} ${TOKEN.symbol}</b> for every friend who connects a wallet.`);
+    }
     if (cmd === "/mineon" || cmd === "/mineoff") {
       await game.updateSettings({ mineOpen: cmd === "/mineon" });
       return reply(cmd === "/mineon" ? "Mining is OPEN ✅" : "New mining sessions are PAUSED ⏸ (running sessions can still be claimed)");
@@ -289,7 +296,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
           "⚙️ <b>Settings</b>",
           `Buying: <b>${st.buyOpen ? "open" : "paused"}</b> · min ${st.minTon} TON · max ${st.maxTon} TON`,
           `Service fee: <b>${st.feePct}%</b> · delivery promise: <b>${st.deliveryHours} h</b>`,
-          `Mining: <b>${st.mineOpen ? "open" : "paused"}</b> · <b>${st.mineRate} ${TOKEN.symbol}/h</b> · withdrawals: <b>${st.withdrawOpen ? "open" : "paused"}</b> · min ${st.minWithdraw} ${TOKEN.symbol}`,
+          `Mining: <b>${st.mineOpen ? "open" : "paused"}</b> · <b>${st.mineRate} ${TOKEN.symbol}/h</b> · withdrawals: <b>${st.withdrawOpen ? "open" : "paused"}</b> · min ${st.minWithdraw} ${TOKEN.symbol} · referral bonus: <b>${st.refBonus} ${TOKEN.symbol}</b>`,
           `Payment wallet: ${addr ? `<code>${esc(addr)}</code>` : "<b>not set</b> (/setdepositaddress)"}`,
           `Support button: ${st.support ? esc(st.support) : "hidden"}`,
           `Welcome message: ${st.welcome ? "custom" : "default"}`,
@@ -363,7 +370,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
           `Waiting for your UTYA: <b>${s.awaiting.length}</b> · refund requests: <b>${s.refunds.length}</b> · unpaid: <b>${s.unpaid.length}</b>`,
           `TON received: <b>${s.receivedTon.toFixed(2)}</b> · refunded: <b>${s.refundedTon.toFixed(2)}</b>`,
           `${TOKEN.symbol} delivered: <b>${fmt(s.deliveredUtya)}</b>`,
-          `⛏️ Mined (claimed by users): <b>${fmt(s.minedUtya)} ${TOKEN.symbol}</b> · withdrawn: <b>${fmt(s.withdrawnUtya)}</b> · withdrawals waiting: <b>${s.withdrawals.length}</b>`,
+          `⛏️ Mined (claimed by users): <b>${fmt(s.minedUtya)} ${TOKEN.symbol}</b> · withdrawn: <b>${fmt(s.withdrawnUtya)}</b> · referral bonuses paid: <b>${fmt(s.bonusUtya)}</b> · withdrawals waiting: <b>${s.withdrawals.length}</b>`,
         ].join("\n"),
       );
     }
@@ -441,7 +448,9 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
     const cmd = m?.[1]?.toLowerCase();
     const arg = (m?.[2] ?? "").trim();
 
-    const u = await game.ensureUser(msg.from);
+    // t.me/BOT?start=ref_123 : the friend who brought this new user (only counted for a new account, see game.ensureUser)
+    const refMatch = cmd === "/start" ? /^ref_(\d{3,15})$/.exec(arg) : null;
+    const u = await game.ensureUser(msg.from, refMatch ? { ref: Number(refMatch[1]) } : {});
     if (u.banned) return send(msg.chat.id, esc(T(u.lang, "banned")));
 
     if (cmd === "/start") return welcome(msg.chat.id, u);
