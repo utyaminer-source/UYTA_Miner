@@ -1049,6 +1049,8 @@ function addrRow(label, value) {
 function addrCard() {
   return '<div class="card">' + addrRow(t("info.payTo"), S.settings.payAddress) + addrRow(t("info.contract"), S.token.jetton) + "</div>";
 }
+const payCard = () => '<div class="card">' + addrRow(t("info.payTo"), S.settings.payAddress) + "</div>";
+const contractCard = () => '<div class="card">' + addrRow(t("info.contract"), S.token.jetton) + "</div>";
 
 function viewBuy() {
   const st = S.settings;
@@ -1060,7 +1062,7 @@ function viewBuy() {
     '<div id="payWrap">' + payBtn() + "</div>" +
     '<div class="muted" style="margin-top:10px">' + esc(t("buy.note")) + "</div></div>" +
     '<div class="card"><h3>' + esc(t("buy.details")) + "</h3><ol><li>" + esc(t("how.1")) + "</li><li>" + esc(t("how.2", { hours: st.deliveryHours })) + "</li><li>" + esc(t("how.3")) + "</li></ol></div>" +
-    addrCard() + brandNote();
+    payCard() + brandNote();
 }
 
 function orderCard(o) {
@@ -1192,7 +1194,7 @@ function viewChart() {
     '<div class="chead"><div class="cprice" id="cPrice">…</div><div class="cchg" id="cChg"></div></div>' +
     '<div class="ranges">' + CHART_RANGES.map((r) => '<button data-a="range" data-v="' + r[0] + '" class="' + (chartRange === r[0] ? "on" : "") + '">' + r[1] + "</button>").join("") + "</div>" +
     '<div class="cbox" id="cBox"></div><div class="stats3" id="cStats"></div>' +
-    '<div class="muted" style="margin-top:10px" id="cNote">' + esc(t("chart.note")) + "</div></div>";
+    '<div class="muted" style="margin-top:10px" id="cNote">' + esc(t("chart.note")) + "</div></div>" + contractCard();
 }
 
 function drawChart() {
