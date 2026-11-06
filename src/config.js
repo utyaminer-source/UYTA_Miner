@@ -36,6 +36,11 @@ export const MINING = {
   maxOpenWithdrawals: 2, // withdrawal requests one user may have waiting at the same time
 };
 
+/** Referrals: a friend counts when he opens the bot with your link AND connects his own TON wallet. */
+export const REFERRAL = {
+  bonusUtya: 5, // paid to the inviter, once per friend, into his mined balance (admin: /setrefbonus)
+};
+
 /** The price chart: how far back each range goes and how many points the app gets at most. */
 export const CHART = {
   ranges: {
@@ -61,4 +66,4 @@ export const ORDER = {
 
 export const PAYMENT_SWEEP_MS = 30_000; // how often the server looks for payments on the blockchain
 export const MAX_REQUESTS_PER_MINUTE = 90; // per player; far more than the app ever sends
-export const LANGS = ["en", "bn", "ru"];
+export const LANGS = ["en", "ar", "ru"]; // English, Arabic, Russian
