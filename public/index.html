@@ -224,6 +224,30 @@ img{-webkit-user-drag:none;user-drag:none}
 .fav{flex:none;width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;background:var(--rgb);box-shadow:0 6px 18px -6px rgba(139,92,246,.9)}
 .fn{flex:1;min-width:0;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .termsbtn{margin-top:4px}
+.usd{font-size:17px;font-weight:800;color:var(--c1);margin-top:3px;text-shadow:0 1px 10px rgba(0,0,0,.7)}
+.usd.up,.usd.down{color:var(--c1)}
+[data-px]{font-size:12.5px;color:var(--muted);margin-top:2px;text-shadow:0 1px 8px rgba(0,0,0,.75)}
+[data-px] .up{color:var(--green)}[data-px] .down{color:var(--red)}
+/* ---------- channel join popup ---------- */
+.gatewrap{min-height:92vh;justify-content:center}
+.gate{width:100%;max-width:400px;margin:0 auto;padding:26px 16px 18px;text-align:center;background:linear-gradient(160deg,rgba(20,22,54,.9),rgba(8,9,26,.94))}
+.gate.shake{animation:shake .5s}
+@keyframes shake{20%{transform:translateX(-10px)}40%{transform:translateX(9px)}60%{transform:translateX(-6px)}80%{transform:translateX(3px)}}
+.gico{position:relative;width:92px;height:92px;margin:0 auto 14px;display:flex;align-items:center;justify-content:center;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.3),rgba(139,92,246,.6) 46%,rgba(34,211,238,.28));box-shadow:0 0 44px -4px rgba(139,92,246,.95),inset 0 0 0 1.5px rgba(255,255,255,.24)}
+.gico::before,.gico::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid rgba(34,211,238,.6);animation:gping 2.4s ease-out infinite}
+.gico::after{animation-delay:1.2s;border-color:rgba(236,72,153,.55)}
+@keyframes gping{from{transform:scale(1);opacity:.9}to{transform:scale(1.75);opacity:0}}
+.gico svg{width:42px;height:42px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 8px rgba(255,255,255,.6));animation:gwob 2.6s ease-in-out infinite}
+@keyframes gwob{0%,100%{transform:rotate(-8deg)}50%{transform:rotate(8deg) scale(1.07)}}
+.gate h2{margin:4px 0 6px;font-size:23px;font-weight:900;background:var(--rgb);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.gsteps{display:flex;gap:8px;margin:16px 0 8px}
+.gsteps>div{flex:1;font-size:11.5px;line-height:1.3;color:var(--muted);padding:9px 5px;border-radius:14px;background:rgba(2,3,12,.5);border:1px solid var(--line)}
+.gsteps b{display:flex;margin:0 auto 5px;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center;background:var(--rgb);color:#fff;font-size:12.5px;box-shadow:0 4px 14px -4px rgba(139,92,246,.9)}
+.ch{display:flex;align-items:center;gap:12px;padding:11px 12px;margin-top:9px;border-radius:17px;background:rgba(2,3,12,.55);border:1px solid var(--line2);text-align:start;transition:border-color .3s,box-shadow .3s}
+.ch.ok{border-color:rgba(45,255,176,.6);box-shadow:0 0 24px -8px rgba(45,255,176,.85)}
+.ch .btn.small{margin-top:0;padding:9px 16px}
+.spin.mini{display:inline-block;width:18px;height:18px;margin:0 8px 0 0;vertical-align:-4px;-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px))}
+.gate .btn.verify{margin-top:16px}
 </style>
 </head>
 <body>
@@ -358,7 +382,7 @@ const I18N = {
   "nav.info": "Terms",
   "gate.title": "Join our channel first",
   "gate.body": "Join the channel below, then tap the button.",
-  "gate.btn": "I joined",
+  "gate.btn": "I joined, verify",
   "banned.title": "Your account is blocked.",
   "banned.contact": "Contact admin",
   "err.generic": "Something went wrong. Please try again.",
@@ -846,6 +870,10 @@ const I18N = {
  }
 };
 
+Object.assign(I18N.en, { "mine.liveValue": "Live value", "gate.step1": "Join the channel", "gate.step2": "Come back here", "gate.step3": "Tap verify", "gate.join": "Join", "gate.joined": "Joined", "gate.channel": "Official channel", "gate.checking": "Checking…", "gate.notyet": "You have not joined yet. Join, then try again.", "gate.ok": "Welcome in!", "gate.why": "Join our channel to unlock UTYA Miner: news, rewards and updates are posted there." });
+Object.assign(I18N.ar, { "mine.liveValue": "القيمة المباشرة", "gate.step1": "انضم إلى القناة", "gate.step2": "عد إلى هنا", "gate.step3": "اضغط تحقق", "gate.join": "انضمام", "gate.joined": "تم الانضمام", "gate.channel": "القناة الرسمية", "gate.checking": "جارٍ التحقق…", "gate.notyet": "لم تنضم بعد. انضم ثم حاول مرة أخرى.", "gate.ok": "أهلاً بك!", "gate.why": "انضم إلى قناتنا لفتح UTYA Miner: الأخبار والمكافآت والتحديثات تُنشر هناك." });
+Object.assign(I18N.ru, { "mine.liveValue": "Стоимость сейчас", "gate.step1": "Вступите в канал", "gate.step2": "Вернитесь сюда", "gate.step3": "Нажмите «Проверить»", "gate.join": "Вступить", "gate.joined": "Вы в канале", "gate.channel": "Официальный канал", "gate.checking": "Проверяем…", "gate.notyet": "Вы ещё не вступили. Вступите и попробуйте снова.", "gate.ok": "Добро пожаловать!", "gate.why": "Вступите в наш канал, чтобы открыть UTYA Miner: там новости, награды и обновления." });
+
 // ------------------------------------------------------------------ helpers
 const tgw = window.Telegram && window.Telegram.WebApp;
 if (tgw) { try { tgw.ready(); tgw.expand(); tgw.setHeaderColor && tgw.setHeaderColor("#0a0b1f"); tgw.setBackgroundColor && tgw.setBackgroundColor("#0a0b1f"); } catch (e) {} }
@@ -929,6 +957,7 @@ const ICON = {
   share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.600 10.600l6.800-4M8.600 13.400l6.800 4"/>',
   doc: '<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
+  mega: '<path d="M3 11v3a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 8.500a5 5 0 0 1 0 7M18 6a8.500 8.500 0 0 1 0 12"/>',
 };
 const svgi = (k) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICON[k] + "</svg>";
 
@@ -1106,10 +1135,43 @@ function tickMining() {
   const left = $("#mineLeft"); if (left) left.textContent = t("mine.left", { t: clock(ses.end - nowMs()) });
 }
 
+/** The money value of a token amount at the live price. It moves, and flashes green / red, whenever the price changes. */
+let pxDir = "";
+const usdf = (v) => (v >= 1 ? nf(v, 2) : pf(v));
+function updateUsd(instant) {
+  const p = S && S.price && S.price.utyaUsd;
+  const txt = (v) => "≈ $" + (v > 0 ? usdf(v) : "0");
+  document.querySelectorAll("[data-usd]").forEach((el) => {
+    if (!p) { el.textContent = "—"; el._v = undefined; return; }
+    const to = Number(el.dataset.usd) * p, from = el._v;
+    el._v = to;
+    if (instant || from === undefined || from === to) { el.textContent = txt(to); return; }
+    const t0 = performance.now();
+    const step = (now) => { const k = Math.min(1, (now - t0) / 600); el.textContent = txt(from + (to - from) * k); if (k < 1 && el.isConnected && el._v === to) requestAnimationFrame(step); };
+    requestAnimationFrame(step);
+    el.classList.remove("f-up", "f-down"); void el.offsetWidth; el.classList.add(to > from ? "f-up" : "f-down");
+  });
+  document.querySelectorAll("[data-px]").forEach((el) => {
+    el.innerHTML = p ? "<bdi>1 UTYA = $" + esc(pf(p)) + "</bdi>" + (pxDir ? ' <span class="' + pxDir + '">' + (pxDir === "up" ? "▲" : "▼") + "</span>" : "") : esc(t("price.none"));
+  });
+}
+async function pollPrice() {
+  if (!S) return;
+  try {
+    const d = await api("/api/chart?range=1h");
+    if (!d.last) return;
+    const prev = S.price ? S.price.utyaUsd : null;
+    if (prev && d.last !== prev) pxDir = d.last > prev ? "up" : "down";
+    S.price = Object.assign({}, S.price || { tonUsd: 0, perTon: 0 }, { utyaUsd: d.last, at: d.at || nowMs() });
+    if (tab === "mine" || tab === "wallet") updateUsd();
+  } catch (e) { if (e && (e.code === "banned" || e.code === "join_required")) return fail(e); }
+}
+
 function mineCard() {
   const m = S.mining;
   return '<div class="card hero mine"><div class="muted">' + esc(t("mine.balance")) + "</div>" +
     '<div class="bal"><span data-n="' + m.balance + '">' + esc(nf(m.balance, 4)) + "</span> <small>UTYA</small></div>" +
+    '<div class="usd" dir="ltr" data-usd="' + m.balance + '" title="' + esc(t("mine.liveValue")) + '"></div><div dir="ltr" data-px></div>' +
     '<div id="mineBox">' + mineBox() + "</div>" +
     '<div class="stats3"><div>' + esc(t("mine.speed")) + "<b>" + esc(t("mine.speedVal", { n: nf(m.rate, 4) })) + "</b></div><div>" + esc(t("mine.session")) + "<b>" + esc(t("mine.sessionVal", { h: m.sessionHours })) + "</b></div><div>" + esc(t("mine.total")) + "<b>" + esc(nf(m.total, 4)) + "</b></div></div>" +
     '<div class="muted" style="margin-top:12px">' + esc(t("mine.hint")) + "</div></div>";
@@ -1126,7 +1188,7 @@ function withdrawCard() {
       '<button class="btn" data-a="wdSubmit">' + esc(t("wd.btn")) + "</button>" +
       '<div class="muted" style="margin-top:10px">' + esc(t("wd.note", { hours: S.settings.deliveryHours })) + "</div>";
   }
-  return '<div class="card hero"><h3>' + esc(t("wd.title")) + '</h3><div class="row"><span>' + esc(t("wallet.balance")) + '</span><b><span data-n="' + m.balance + '">' + esc(nf(m.balance, 4)) + "</span> UTYA</b></div>" + body + "</div>";
+  return '<div class="card hero"><h3>' + esc(t("wd.title")) + '</h3><div class="row"><span>' + esc(t("wallet.balance")) + '</span><b><span data-n="' + m.balance + '">' + esc(nf(m.balance, 4)) + '</span> UTYA</b></div><div class="row"><span>' + esc(t("mine.liveValue")) + '</span><span class="usd" dir="ltr" data-usd="' + m.balance + '"></span></div>' + body + "</div>";
 }
 
 function wdRow(w) {
@@ -1274,6 +1336,7 @@ function render() {
   const wd = $("#wdAmt");
   if (wd) wd.addEventListener("input", (e) => { wdAmount = e.target.value.replace(",", "."); });
   if (tab === "chart") { bindChart(); drawChart(); loadChart(); }
+  if (tab === "mine" || tab === "wallet") updateUsd(true);
   if (tabChanged) document.querySelectorAll("[data-n]").forEach((el) => countUp(el, Number(el.dataset.n), 4, 900));
 }
 
@@ -1364,9 +1427,49 @@ function showBanned(data) {
   const support = data && data.support;
   $("#app").innerHTML = '<div class="full"><div style="font-size:54px">🚫</div><h2>' + esc(t("banned.title")) + "</h2>" + (support ? '<button class="btn" data-a="support" data-url="' + esc(support) + '">' + esc(t("banned.contact")) + "</button>" : "") + "</div>";
 }
-function showGate(channels) {
-  $("#app").innerHTML = '<div class="full"><div style="font-size:54px">📣</div><h2>' + esc(t("gate.title")) + '</h2><p class="muted">' + esc(t("gate.body")) + "</p>" +
-    (channels || []).map((c) => '<button class="btn ghost" data-a="link" data-url="' + esc(c.url) + '">' + esc(c.name) + "</button>").join("") + '<button class="btn" data-a="reload">' + esc(t("gate.btn")) + "</button></div>";
+let gateAll = []; // every channel the player has to join (so the ones he already joined can show a check)
+function guessLang() {
+  try {
+    const c = String((tgw && tgw.initDataUnsafe && tgw.initDataUnsafe.user && tgw.initDataUnsafe.user.language_code) || navigator.language || "en").slice(0, 2).toLowerCase();
+    return c === "fa" ? "ar" : ["en", "ar", "ru"].includes(c) ? c : "en";
+  } catch (e) { return "en"; }
+}
+/** The "join our channel" popup. `opts.shake` = he pressed verify but is still missing a channel. */
+function showGate(channels, opts) {
+  opts = opts || {};
+  if (!S) { lang = guessLang(); document.documentElement.lang = lang; document.documentElement.dir = lang === "ar" ? "rtl" : "ltr"; }
+  const missing = (channels || []).map((c) => c.name);
+  (channels || []).forEach((c) => { if (!gateAll.some((x) => x.name === c.name)) gateAll.push(c); });
+  const rows = gateAll.map((c) => {
+    const joined = !missing.includes(c.name);
+    const nm = String(c.name).replace(/^@/, "");
+    return '<div class="ch' + (joined ? " ok" : "") + '"><div class="fav">' + esc(Array.from(nm)[0] || "?").toUpperCase() + '</div><div class="fn" dir="ltr" style="text-align:start">' + esc(c.name) + '<div class="muted" dir="auto">' + esc(t("gate.channel")) + "</div></div>" +
+      (joined ? '<span class="status st-sent">✓ ' + esc(t("gate.joined")) + "</span>" : '<button class="btn small" data-a="link" data-url="' + esc(c.url) + '">' + esc(t("gate.join")) + "</button>") + "</div>";
+  }).join("");
+  $("#app").dataset.anim = opts.shake ? "0" : "1";
+  $("#app").innerHTML = '<div class="full gatewrap"><div class="card hero gate' + (opts.shake ? " shake" : "") + '" id="gate"><div class="gico">' + svgi("mega") + "</div><h2>" + esc(t("gate.title")) + '</h2><div class="muted">' + esc(t("gate.why")) + "</div>" +
+    '<div class="gsteps"><div><b>1</b>' + esc(t("gate.step1")) + "</div><div><b>2</b>" + esc(t("gate.step2")) + "</div><div><b>3</b>" + esc(t("gate.step3")) + "</div></div>" + rows +
+    '<button class="btn verify" data-a="reload">' + esc(t("gate.btn")) + "</button></div></div>";
+}
+
+/** "I joined": ask the server again. Still missing a channel -> the popup shakes; all joined -> welcome, then the app opens. */
+async function verifyGate(btn) {
+  if (busy) return;
+  busy = true;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin mini"></span>' + esc(t("gate.checking"));
+  try {
+    await api("/api/state");
+    const g = $("#gate");
+    if (g) g.innerHTML = '<div class="okmark">✓</div><h2>' + esc(t("gate.ok")) + "</h2>";
+    buzz("ok");
+    setTimeout(() => location.reload(), 1000);
+  } catch (e) {
+    busy = false;
+    if (e && e.code === "join_required") { showGate(e.data.channels, { shake: true }); toast(t("gate.notyet"), "err"); buzz("err"); return; }
+    btn.disabled = false; btn.textContent = t("gate.btn");
+    toast(errText(e), "err");
+  }
 }
 function openLink(url) { try { if (tgw && /^https:\/\/t\.me\//.test(url) && tgw.openTelegramLink) return tgw.openTelegramLink(url); if (tgw && tgw.openLink) return tgw.openLink(url); } catch (e) {} window.open(url, "_blank"); }
 
@@ -1435,7 +1538,7 @@ document.addEventListener("click", async (ev) => {
   }
   if (a === "support") return openLink(el.dataset.url || (S && S.settings.support));
   if (a === "link") return openLink(el.dataset.url);
-  if (a === "reload") return location.reload();
+  if (a === "reload") return verifyGate(el);
   if (a === "lang") {
     try { const r = await api("/api/lang", { lang: el.dataset.v }); S = r.state; lang = S.user.lang; closeOverlay(); render(); } catch (e) { toast(errText(e), "err"); }
     return;
@@ -1471,6 +1574,8 @@ async function boot() {
   refreshQuote();
   setInterval(() => { if (!document.hidden) { refreshState(); if (tab === "buy" && !busy) refreshQuote(); } }, 15000);
   setInterval(() => { const c = $("#chip"); if (c && S) c.outerHTML = priceChip(); }, 1000);
+  setInterval(() => { if (!document.hidden && (tab === "mine" || tab === "wallet")) pollPrice(); }, 5000); // the value of the balance follows the live price
+  pollPrice();
   setInterval(tickMining, 1000); // the mining counter runs live
   setInterval(() => { if (!document.hidden && tab === "chart") loadChart(); }, 5000); // the chart follows the live price
 }
