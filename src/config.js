@@ -36,6 +36,28 @@ export const MINING = {
   maxOpenWithdrawals: 2, // withdrawal requests one user may have waiting at the same time
 };
 
+/**
+ * NFT ducks. A player buys a MYSTERY NFT with TON (the price below) and gets ONE random duck, inside the app.
+ * Every duck gives a MINING BOOST: the speed of every new mining session goes up by boostPct percent. Boosts of all owned ducks add up.
+ * A session that already runs keeps its old speed.
+ * The TON goes to your payment wallet (same as the UTYA purchases). The NFT is given automatically when the payment is found on the blockchain.
+ *
+ * weight = how often the duck is drawn (a duck with weight 55 of a total 100 comes 55% of the time). The app shows these chances.
+ * Change price / weights / boostPct freely. Do NOT change an id once players own it. `art` picks the picture drawn in the app (public/index.html).
+ */
+export const NFT = {
+  priceTon: 5, // first value; an admin changes it later with /setnftprice
+  supply: 1000, // how many mystery NFTs can be sold in total (then the shop shows "sold out")
+  maxPerUser: 20, // most NFTs one player can own
+  items: [
+    { id: "copper", art: "copper", name: "Copper Rookie", rarity: "common", boostPct: 10, weight: 55 },
+    { id: "steel", art: "steel", name: "Steel Mallard", rarity: "rare", boostPct: 25, weight: 28 },
+    { id: "pharaoh", art: "pharaoh", name: "Pharaoh Duck", rarity: "epic", boostPct: 50, weight: 12 },
+    { id: "crystal", art: "crystal", name: "Crystal Duck", rarity: "legendary", boostPct: 100, weight: 4 },
+    { id: "nebula", art: "nebula", name: "Nebula Duck", rarity: "mythic", boostPct: 200, weight: 1 },
+  ],
+};
+
 /** Referrals: a friend counts when he opens the bot with your link AND connects his own TON wallet. */
 export const REFERRAL = {
   bonusUtya: 5, // paid to the inviter, once per friend, into his mined balance (admin: /setrefbonus)
