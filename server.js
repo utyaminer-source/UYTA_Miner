@@ -199,6 +199,9 @@ async function handleApi(req, res, pathname, query) {
       const claimed = await game.claimMining(id);
       return json(res, 200, { claimed, state: await game.stateFor(id) });
     }
+    // ---- NFT shop (pay with TON, get a random NFT; the payment is checked with /api/pay/check like every order)
+    case "/api/nft/prepare":
+      return json(res, 200, { payment: await pay.prepareNft(id) });
     case "/api/withdraw":
       await game.requestWithdraw(id, body.amount);
       return json(res, 200, { state: await game.stateFor(id) });
