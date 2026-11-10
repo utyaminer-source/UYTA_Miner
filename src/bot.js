@@ -1,4 +1,4 @@
-import { BRAND, TOKEN } from "./config.js";
+import { BRAND, NFT, TOKEN } from "./config.js";
 import * as game from "./game.js";
 import { T } from "./messages.js";
 
@@ -30,6 +30,12 @@ const ADMIN_HELP = [
   "/setrefbonus &lt;UTYA&gt; — bonus the inviter gets for every friend who connects a wallet (0 = none, first value 5)",
   "/mineon · /mineoff — open / pause starting new mining sessions",
   "/withdrawon · /withdrawoff — open / pause withdrawal requests",
+  "",
+  "<b>NFT ducks (mining boost)</b>",
+  "/nfts — the NFT list with ids, boosts and drop chances (change them in src/config.js)",
+  "/setnftprice &lt;TON&gt; — price of one mystery NFT (first value 5)",
+  "/givenft &lt;telegramId&gt; &lt;nftId&gt; [number] — give an NFT for free (a negative number takes it away)",
+  "/nfton · /nftoff — open / close the NFT shop",
   "",
   "<b>Selling settings</b>",
   "/price — the live price and a sample quote",
@@ -237,6 +243,32 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
       await game.updateSettings({ refBonus: n });
       return reply(`The referral bonus is now <b>${n} ${TOKEN.symbol}</b> for every friend who connects a wallet.`);
     }
+    // ---------- NFT
+    if (cmd === "/nfts") {
+      const st = await game.getSettings();
+      const total = NFT.items.reduce((x, n) => x + n.weight, 0);
+      return reply(["🦆 <b>NFT ducks</b>", `Price: <b>${st.nftPrice} TON</b> · supply ${NFT.supply} · max ${NFT.maxPerUser} per player`, ...NFT.items.map((n) => `<code>${esc(n.id)}</code> · ${esc(n.name)} · ${n.rarity} · +${n.boostPct}% · chance ${Math.round((n.weight / total) * 1000) / 10}%`)].join("\n"));
+    }
+    if (cmd === "/setnftprice") {
+      const n = Number(arg);
+      if (!Number.isFinite(n) || n < 0.1 || n > 100000) return reply("Usage: /setnftprice &lt;TON&gt; (for example /setnftprice 5)");
+      await game.updateSettings({ nftPrice: n });
+      return reply(`One mystery NFT now costs <b>${n} TON</b>. Orders that are already open keep their old price.`);
+    }
+    if (cmd === "/givenft") {
+      const [idText, nftId, num] = arg.split(/\s+/);
+      if (!Number(idText) || !nftId) return reply(`Usage: /givenft &lt;telegramId&gt; &lt;nftId&gt; [number]\nNFT ids: ${esc(NFT.items.map((n) => n.id).join(", "))}`);
+      try {
+        const r = await game.adminGiveNft(Number(idText), nftId, num === undefined ? 1 : Number(num));
+        return reply(`✅ ${esc(r.item.name)}: the player now has <b>${r.count}</b>. His NFT boost: <b>+${r.boostPct}%</b>.`);
+      } catch (err) {
+        return fail(err);
+      }
+    }
+    if (cmd === "/nfton" || cmd === "/nftoff") {
+      await game.updateSettings({ nftOpen: cmd === "/nfton" });
+      return reply(cmd === "/nfton" ? "NFT shop is OPEN ✅" : "NFT shop is CLOSED ⏸ (what players own keeps boosting)");
+    }
     if (cmd === "/mineon" || cmd === "/mineoff") {
       await game.updateSettings({ mineOpen: cmd === "/mineon" });
       return reply(cmd === "/mineon" ? "Mining is OPEN ✅" : "New mining sessions are PAUSED ⏸ (running sessions can still be claimed)");
@@ -297,6 +329,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
           `Buying: <b>${st.buyOpen ? "open" : "paused"}</b> · min ${st.minTon} TON · max ${st.maxTon} TON`,
           `Service fee: <b>${st.feePct}%</b> · delivery promise: <b>${st.deliveryHours} h</b>`,
           `Mining: <b>${st.mineOpen ? "open" : "paused"}</b> · <b>${st.mineRate} ${TOKEN.symbol}/h</b> · withdrawals: <b>${st.withdrawOpen ? "open" : "paused"}</b> · min ${st.minWithdraw} ${TOKEN.symbol} · referral bonus: <b>${st.refBonus} ${TOKEN.symbol}</b>`,
+          `NFT shop: <b>${st.nftOpen ? "open" : "closed"}</b> · <b>${st.nftPrice} TON</b> each · ${NFT.items.length} NFT types (/nfts)`,
           `Payment wallet: ${addr ? `<code>${esc(addr)}</code>` : "<b>not set</b> (/setdepositaddress)"}`,
           `Support button: ${st.support ? esc(st.support) : "hidden"}`,
           `Welcome message: ${st.welcome ? "custom" : "default"}`,
@@ -370,6 +403,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
           `Waiting for your UTYA: <b>${s.awaiting.length}</b> · refund requests: <b>${s.refunds.length}</b> · unpaid: <b>${s.unpaid.length}</b>`,
           `TON received: <b>${s.receivedTon.toFixed(2)}</b> · refunded: <b>${s.refundedTon.toFixed(2)}</b>`,
           `${TOKEN.symbol} delivered: <b>${fmt(s.deliveredUtya)}</b>`,
+          `🦆 NFTs sold: <b>${fmt(s.nftSold)}</b> / ${NFT.supply}`,
           `⛏️ Mined (claimed by users): <b>${fmt(s.minedUtya)} ${TOKEN.symbol}</b> · withdrawn: <b>${fmt(s.withdrawnUtya)}</b> · referral bonuses paid: <b>${fmt(s.bonusUtya)}</b> · withdrawals waiting: <b>${s.withdrawals.length}</b>`,
         ].join("\n"),
       );
@@ -388,6 +422,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
             `Language: ${u.lang} · Banned: ${u.banned ? "yes — " + esc(u.banReason || "no reason saved") : "no"}`,
             `Joined: ${new Date(u.createdAt).toISOString().slice(0, 10)}`,
             `⛏️ Mined balance: <b>${fmt(u.mining.balance)} ${TOKEN.symbol}</b> · mined in total ${fmt(u.mining.total)} · withdrawn ${fmt(u.mining.withdrawn)}`,
+            `🦆 NFTs: ${Object.keys(u.nfts).length ? esc(Object.entries(u.nfts).map(([k, n]) => `${k} x${n}`).join(", ")) + ` · boost <b>+${u.nftBoostPct}%</b>` : "none"}`,
             ...(u.withdrawals.length ? ["<b>Last withdrawals</b>", ...u.withdrawals.map((w) => `<code>${esc(w.id)}</code> · ${fmt(w.amount)} ${TOKEN.symbol} · ${w.status}`)] : []),
             ...(u.orders.length ? ["", "<b>Last orders</b>", ...u.orders.map((o) => `<code>${esc(o.id)}</code> · ${o.ton} TON → ${fmt(o.utya)} ${TOKEN.symbol} · ${o.status}`)] : ["No orders."]),
           ].join("\n"),
