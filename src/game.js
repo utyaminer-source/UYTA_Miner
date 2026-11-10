@@ -9,7 +9,7 @@
 //         mined balance. Everything is calculated on the server, the app only shows it.
 // Withdrawal status: pending (balance is held) -> sent (admin sent the UTYA) | rejected (balance goes back) | cancelled (user took it back)
 import crypto from "node:crypto";
-import { BRAND, DEFAULTS, LANGS, MINING, ORDER, REFERRAL, TOKEN } from "./config.js";
+import { BRAND, DEFAULTS, LANGS, MINING, NFT, ORDER, REFERRAL, TOKEN } from "./config.js";
 import { T } from "./messages.js";
 import { normalizeWallet, toNano } from "./ton.js";
 
@@ -80,6 +80,8 @@ export async function getSettings() {
     channels: Array.isArray(s.channels) ? s.channels.filter((c) => typeof c === "string") : [], // channels players must join
     joinEnabled: s.joinEnabled !== false,
     mineOpen: s.mineOpen !== false, // /mineon /mineoff
+    nftOpen: s.nftOpen !== false, // /nfton /nftoff
+    nftPrice: pos(s.nftPrice, NFT.priceTon), // TON, /setnftprice
     withdrawOpen: s.withdrawOpen !== false, // /withdrawon /withdrawoff
     mineRate: pos(s.mineRate, MINING.ratePerHour), // UTYA per hour
     minWithdraw: pos(s.minWithdraw, MINING.minWithdraw), // UTYA
@@ -272,6 +274,9 @@ export function orderView(o) {
     refundedAt: o.refundedAt ?? 0,
     wallet: o.wallet,
     requoted: Boolean(o.requoted),
+    kind: o.kind ?? "buy",
+    nftId: o.nftId ?? "",
+    nftSerial: o.nftSerial ?? 0,
     deliveryTx: o.deliveryTx ?? "",
     refundTx: o.refundTx ?? "",
   };
@@ -284,7 +289,7 @@ export async function createOrder(userId, rawTon) {
   const now = Date.now();
   const open = await db.listOrders({ statuses: ["pending"], userId, since: now - ORDER.pendingMs, limit: 20 });
   // Pressing "Pay" twice must not create two orders: reuse a fresh one for the same amount.
-  const same = open.find((o) => o.ton === q.ton && now - o.createdAt < 60_000 && o.wallet === u.wallet);
+  const same = open.find((o) => o.kind !== "nft" && o.ton === q.ton && now - o.createdAt < 60_000 && o.wallet === u.wallet);
   if (same) return same;
   if (open.length >= ORDER.maxOpenPerUser) throw new GameError("You have too many unpaid orders. Finish or wait for them first.", "too_many_orders");
   const o = {
@@ -343,6 +348,7 @@ export async function completePayment(o, paid) {
   const now = Date.now();
   const done = await db.transitionOrder(o.id, ["pending", "expired"], { status: "paid", txHash: paid.txHash, paidNano: String(paid.nano), paidAt: now });
   if (!done) return false;
+  if (done.kind === "nft") return completeNftOrder(done); // an NFT order: the NFT is given at once, nothing to send by hand
   let order = done;
   let requoted = false;
   let unquoted = false;
@@ -448,7 +454,7 @@ export async function startMining(userId) {
     if (m.sessionStart && now < m.sessionStart + MINING.sessionMs) throw new GameError("You are already mining.", "already_mining");
     if (m.sessionStart) throw new GameError("Claim your finished session first.", "claim_first");
     m.sessionStart = now;
-    m.sessionRate = s.mineRate;
+    m.sessionRate = effectiveRate(s.mineRate, u); // base speed + the boost of the NFTs the player owns right now
     return sessionView(u, now);
   });
 }
@@ -568,6 +574,137 @@ export async function rejectWithdraw(id, adminId, reason = "") {
 
 export const getWithdrawal = (id) => db.getWithdrawal(String(id).toUpperCase());
 
+// ----------------------------------- NFT -------------------------------------
+// A player owns NFTs as { nftId: count } in user.nfts (and user.nftLog keeps the serial numbers).
+// Each one adds boostPct % to the speed of every NEW mining session.
+// Buying: the player pays NFT price in TON (an order with kind "nft"); when the payment is found, one random NFT is given at once.
+
+export const nftDef = (id) => NFT.items.find((n) => n.id === String(id)) ?? null;
+
+/** The NFTs of a user, cleaned: only known ids and whole numbers. */
+export function nftsOf(u) {
+  const out = {};
+  for (const it of NFT.items) {
+    const n = Math.floor(Number(u?.nfts?.[it.id]));
+    if (n > 0) out[it.id] = n;
+  }
+  return out;
+}
+const nftCount = (u) => Object.values(nftsOf(u)).reduce((a, b) => a + b, 0);
+/** Total boost in percent of everything the user owns. */
+export function nftBoostPct(u) {
+  const owned = nftsOf(u);
+  return NFT.items.reduce((sum, it) => sum + (owned[it.id] ?? 0) * it.boostPct, 0);
+}
+export const effectiveRate = (baseRate, u) => round4(baseRate * (1 + nftBoostPct(u) / 100));
+
+/** Draw one NFT by its weight. */
+export function rollNft(rand = Math.random) {
+  const total = NFT.items.reduce((a, it) => a + it.weight, 0);
+  let x = rand() * total;
+  for (const it of NFT.items) {
+    x -= it.weight;
+    if (x < 0) return it;
+  }
+  return NFT.items[NFT.items.length - 1];
+}
+
+export async function nftView(u, s) {
+  const owned = nftsOf(u);
+  const total = NFT.items.reduce((a, it) => a + it.weight, 0);
+  const sold = Math.min(NFT.supply, (await db.getMeta()).nftSold ?? 0);
+  const log = Array.isArray(u.nftLog) ? u.nftLog : [];
+  return {
+    open: s.nftOpen,
+    priceTon: s.nftPrice,
+    supply: NFT.supply,
+    sold,
+    maxPerUser: NFT.maxPerUser,
+    boostPct: nftBoostPct(u),
+    count: Object.values(owned).reduce((a, b) => a + b, 0),
+    items: NFT.items.map((it) => ({
+      id: it.id,
+      art: it.art,
+      name: it.name,
+      rarity: it.rarity,
+      boostPct: it.boostPct,
+      chance: Math.round((it.weight / total) * 1000) / 10,
+      owned: owned[it.id] ?? 0,
+      serials: log.filter((l) => l.id === it.id && l.serial > 0).map((l) => l.serial).slice(-12),
+    })),
+  };
+}
+
+/** The player pressed "Buy": makes the order he has to pay in TON. */
+export async function createNftOrder(userId) {
+  const s = await getSettings();
+  if (!s.nftOpen) throw new GameError("The NFT shop is closed right now.", "nft_closed");
+  const u = await mustUser(userId);
+  if (nftCount(u) >= NFT.maxPerUser) throw new GameError(`You can own at most ${NFT.maxPerUser} NFTs.`, "nft_limit", { max: NFT.maxPerUser });
+  const sold = (await db.getMeta()).nftSold ?? 0;
+  if (sold >= NFT.supply) throw new GameError("All NFTs are sold out.", "nft_soldout");
+  const now = Date.now();
+  const open = await db.listOrders({ statuses: ["pending"], userId, since: now - ORDER.pendingMs, limit: 20 });
+  const same = open.find((o) => o.kind === "nft" && now - o.createdAt < 60_000 && o.ton === s.nftPrice); // pressing twice must not make two orders
+  if (same) return same;
+  if (open.length >= ORDER.maxOpenPerUser) throw new GameError("You have too many unpaid orders. Finish or wait for them first.", "too_many_orders");
+  const o = { id: newOrderId(), userId, kind: "nft", ton: s.nftPrice, utya: 0, status: "pending", createdAt: now, expiresAt: now + ORDER.pendingMs, wallet: u.wallet ?? "" };
+  await db.addOrder(o);
+  return o;
+}
+
+/** The TON of an NFT order was found: give one random NFT at once. Called by completePayment. */
+async function completeNftOrder(order) {
+  const now = Date.now();
+  await db.incMeta("receivedMilliTon", Math.round(order.ton * 1000));
+  const user = await db.getUser(order.userId);
+  const serial = await db.incMeta("nftSold", 1);
+  const stuck = (why) =>
+    hooks.notifyAdmins(`⚠️ <b>NFT order ${escapeHtml(order.id)}</b> was paid (${order.ton} TON) but ${escapeHtml(why)}.\n${escapeHtml(user?.name ?? order.userId)} (<code>${order.userId}</code>)\nSend the TON back: /refunded ${order.id} [tx hash]`);
+  if (serial > NFT.supply) {
+    await db.incMeta("nftSold", -1);
+    void stuck("all NFTs were already sold out");
+    void hooks.notify(order.userId, T(langOf(user), "nft.soldout", { id: order.id, ton: order.ton }));
+    return true;
+  }
+  const it = rollNft(() => crypto.randomInt(0, 1e9) / 1e9);
+  try {
+    await patchUser(order.userId, (u) => {
+      const owned = nftsOf(u);
+      u.nfts = { ...owned, [it.id]: (owned[it.id] ?? 0) + 1 };
+      u.nftLog = [...(Array.isArray(u.nftLog) ? u.nftLog : []), { id: it.id, serial, at: now, order: order.id }].slice(-300);
+    });
+  } catch (err) {
+    await db.incMeta("nftSold", -1);
+    console.error("[game] could not give the NFT:", err.message);
+    void stuck("the NFT could not be given");
+    return true;
+  }
+  const done = await db.transitionOrder(order.id, ["paid"], { status: "delivered", deliveredAt: now, deliveredBy: 0, nftId: it.id, nftSerial: serial });
+  const after = await db.getUser(order.userId);
+  void hooks.notify(order.userId, T(langOf(after), "nft.won", { name: it.name, serial, boost: it.boostPct, total: nftBoostPct(after ?? {}) }));
+  void hooks.notifyAdmins(`🦆 NFT #${serial} sold (${order.ton} TON): ${escapeHtml(it.name)} → ${escapeHtml(user?.name ?? order.userId)} (<code>${order.userId}</code>)`);
+  return Boolean(done);
+}
+
+/** Admin: give (n > 0) or take away (n < 0) NFTs of one kind. Gifts do not count as sold. */
+export async function adminGiveNft(userId, nftId, n = 1) {
+  const it = nftDef(nftId);
+  if (!it) throw new GameError(`Unknown NFT "${nftId}". Known: ${NFT.items.map((x) => x.id).join(", ")}`);
+  const amount = Math.trunc(Number(n));
+  if (!Number.isFinite(amount) || amount === 0) throw new GameError("The number must be a whole number, for example 1 or -1.");
+  const res = await patchUser(userId, (u) => {
+    const owned = nftsOf(u);
+    const next = (owned[it.id] ?? 0) + amount;
+    if (next < 0) throw new GameError(`He only has ${owned[it.id] ?? 0} of ${it.name}.`);
+    u.nfts = { ...owned, [it.id]: next };
+    if (next === 0) delete u.nfts[it.id];
+    return { lang: langOf(u), count: next, boostPct: nftBoostPct(u) };
+  });
+  if (amount > 0) void hooks.notify(userId, T(res.lang, "nft.gifted", { name: it.name, boost: it.boostPct, total: res.boostPct }));
+  return { item: it, ...res };
+}
+
 // ---------------------------------- app state ---------------------------------
 
 export async function stateFor(id) {
@@ -594,11 +731,14 @@ export async function stateFor(id) {
       balance: m.balance,
       total: m.total,
       withdrawn: m.withdrawn,
-      rate: s.mineRate,
+      rate: effectiveRate(s.mineRate, u), // the speed the next session will have (base + NFT boost)
+      baseRate: s.mineRate,
+      boostPct: nftBoostPct(u),
       sessionHours: MINING.sessionHours,
       minWithdraw: s.minWithdraw,
       session: sessionView(u),
     },
+    nft: await nftView(u, s),
     withdrawals: withdrawals.map(withdrawView),
     user: { id: u.id, name: u.name, wallet: u.wallet, lang: langOf(u) },
     settings: { buyOpen: s.buyOpen, minTon: s.minTon, maxTon: s.maxTon, feePct: s.feePct, deliveryHours: s.deliveryHours, support: s.support, payAddress: await getDepositAddress() },
@@ -628,6 +768,7 @@ export async function adminStats() {
     minedUtya: (meta.minedUtya4 ?? 0) / 1e4,
     withdrawnUtya: (meta.withdrawnUtya4 ?? 0) / 1e4,
     bonusUtya: (meta.bonusUtya4 ?? 0) / 1e4,
+    nftSold: meta.nftSold ?? 0,
     receivedTon: (meta.receivedMilliTon ?? 0) / 1000,
     refundedTon: (meta.refundedMilliTon ?? 0) / 1000,
     deliveredUtya: (meta.deliveredUtyaCents ?? 0) / 100,
@@ -642,7 +783,7 @@ export async function userInfo(id) {
   const u = await mustUser(id);
   const orders = await db.listOrders({ userId: id, limit: 5 });
   const withdrawals = await db.listWithdrawals({ userId: id, limit: 5 });
-  return { ...u, mining: mineOf(u), orders, withdrawals };
+  return { ...u, mining: mineOf(u), nfts: nftsOf(u), nftBoostPct: nftBoostPct(u), orders, withdrawals };
 }
 export const getUser = (id) => db.getUser(id);
 export const allUserIds = () => db.allUserIds();
