@@ -22,6 +22,9 @@ const M = {
     "wd.requested": "⛏️ Withdrawal {id} requested: {amount} {symbol}.\nAn admin will send it to your wallet within about {hours} hours. Until then the amount is held.",
     "wd.sent": "✅ Withdrawal {id}: {amount} {symbol} were sent to your wallet.{tx}",
     "wd.rejected": "❌ Withdrawal {id} was rejected. {amount} {symbol} are back in your mined balance.{reason}",
+    "nft.won": "🦆🎉 Your mystery NFT opened!\nYou got #{serial} {name}: mining boost +{boost}%. Your total NFT boost is now +{total}% (it counts from your next mining session).",
+    "nft.soldout": "⚠️ Your payment for NFT order {id} ({ton} TON) arrived, but all NFTs were already sold out. The team will send your TON back.",
+    "nft.gifted": "🎁 You received the NFT {name}!\nIt boosts your mining by +{boost}%. Your total NFT boost is now +{total}% (from your next mining session).",
     "balance": "⛏️ Mined balance: {balance} {symbol}\nMined in total: {total} {symbol}\nWithdrawn: {withdrawn} {symbol}\nWithdrawals waiting: {waiting}",
   },
   ar: {
@@ -45,6 +48,9 @@ const M = {
     "wd.requested": "⛏️ تم طلب السحب {id}: {amount} {symbol}.\nسيرسله المشرف إلى محفظتك خلال حوالي {hours} ساعة. يبقى المبلغ محجوزاً حتى ذلك الحين.",
     "wd.sent": "✅ السحب {id}: تم إرسال {amount} {symbol} إلى محفظتك.{tx}",
     "wd.rejected": "❌ تم رفض السحب {id}. عاد {amount} {symbol} إلى رصيد التعدين الخاص بك.{reason}",
+    "nft.won": "🦆🎉 فُتح الـ NFT الغامض الخاص بك!\nحصلت على #{serial} «{name}»: تعزيز تعدين +{boost}%. إجمالي تعزيز الـ NFT الآن +{total}% (يُحتسب من جلسة التعدين القادمة).",
+    "nft.soldout": "⚠️ وصل دفعك لطلب الـ NFT {id} ({ton} TON) لكن جميع الـ NFT نفدت. سيعيد الفريق TON إليك.",
+    "nft.gifted": "🎁 حصلت على الـ NFT «{name}»!\nيزيد تعدينك بنسبة +{boost}%. إجمالي تعزيز الـ NFT لديك الآن +{total}% (من جلسة التعدين القادمة).",
     "balance": "⛏️ رصيد التعدين: {balance} {symbol}\nإجمالي ما عدّنته: {total} {symbol}\nتم سحب: {withdrawn} {symbol}\nطلبات السحب المعلّقة: {waiting}",
   },
   ru: {
@@ -68,6 +74,9 @@ const M = {
     "wd.requested": "⛏️ Запрошен вывод {id}: {amount} {symbol}.\nАдминистратор отправит их на ваш кошелёк примерно в течение {hours} ч. До этого сумма удерживается.",
     "wd.sent": "✅ Вывод {id}: {amount} {symbol} отправлены на ваш кошелёк.{tx}",
     "wd.rejected": "❌ Вывод {id} отклонён. {amount} {symbol} вернулись на ваш баланс майнинга.{reason}",
+    "nft.won": "🦆🎉 Ваш загадочный NFT открыт!\nВам выпала #{serial} «{name}»: бонус к майнингу +{boost}%. Общий бонус NFT теперь +{total}% (действует со следующей сессии).",
+    "nft.soldout": "⚠️ Оплата заказа NFT {id} ({ton} TON) пришла, но все NFT уже распроданы. Команда вернёт вам TON.",
+    "nft.gifted": "🎁 Вы получили NFT «{name}»!\nОн ускоряет майнинг на +{boost}%. Общий бонус NFT теперь +{total}% (со следующей сессии).",
     "balance": "⛏️ Баланс майнинга: {balance} {symbol}\nВсего намайнено: {total} {symbol}\nВыведено: {withdrawn} {symbol}\nЗаявок на вывод в ожидании: {waiting}",
   },
 };
