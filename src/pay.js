@@ -41,6 +41,26 @@ export function createPay({ tonApi }) {
     };
   }
 
+  /** Same, for a mystery NFT: one order at the NFT price. The wallet opens by itself and shows the amount. */
+  async function prepareNft(userId) {
+    const admin = await adminAddress();
+    if (!admin) throw new game.GameError("Payments are not open yet.", "pay_closed");
+    const o = await game.createNftOrder(userId);
+    return {
+      id: o.id,
+      ton: o.ton,
+      kind: "nft",
+      validUntil: Math.floor(Date.now() / 1000) + 600,
+      messages: [
+        {
+          address: friendlyAddress(admin.addr, { bounceable: false, testnet: game.runtime.testnet }),
+          amount: toNano(o.ton).toString(),
+          payload: commentPayloadBase64(game.paymentComment(o)),
+        },
+      ],
+    };
+  }
+
   /** The app asks "did my payment arrive?" */
   async function checkOne(userId, id) {
     const o = await game.orderOf(userId, id);
@@ -77,5 +97,5 @@ export function createPay({ tonApi }) {
     return o;
   }
 
-  return { prepare, checkOne, sweep, confirmManually, adminAddress };
+  return { prepare, prepareNft, checkOne, sweep, confirmManually, adminAddress };
 }
