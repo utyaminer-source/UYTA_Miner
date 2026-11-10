@@ -248,6 +248,42 @@ img{-webkit-user-drag:none;user-drag:none}
 .ch .btn.small{margin-top:0;padding:9px 16px}
 .spin.mini{display:inline-block;width:18px;height:18px;margin:0 8px 0 0;vertical-align:-4px;-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 2px))}
 .gate .btn.verify{margin-top:16px}
+
+/* ---------- NFT ducks ---------- */
+.nav button{min-width:0;font-size:9.5px;white-space:nowrap;overflow:hidden}
+.sheet{max-height:92vh;overflow-y:auto}
+.r-common{--rc:#e0955a}.r-rare{--rc:#c3cfe3}.r-epic{--rc:#ffd24d}.r-legendary{--rc:#5fe3ff}.r-mythic{--rc:#c98bff}
+.nfthero{text-align:center}
+.nfthero h3{font-size:19px;margin:12px 0 6px;background:var(--rgb);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.nftcard{display:block;width:min(56vw,215px);margin:2px auto 0;padding:0;border:0;background:none;border-radius:18px;position:relative;overflow:hidden;filter:drop-shadow(0 12px 26px rgba(139,92,246,.55));animation:bob 4.5s ease-in-out infinite}
+.nftcard svg{display:block;width:100%;height:auto}
+.nftcard::after{content:"";position:absolute;top:0;left:-60%;width:38%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.34),transparent);transform:skewX(-20deg);animation:shine 3.8s ease-in-out infinite;pointer-events:none}
+.nftrow{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;color:var(--muted);margin:14px 0 7px}
+.nftrow b{color:var(--text)}
+.nftbar{height:9px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden}
+.nftbar i{display:block;height:100%;border-radius:99px;background:var(--rgb)}
+.nfthead .row b{font-size:15px}
+.nftgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.nftgrid>.nftc:last-child:nth-child(odd){grid-column:1/-1;justify-self:center;width:calc(50% - 6px)}
+.nftc{position:relative;background:linear-gradient(160deg,rgba(30,32,70,.45),rgba(10,12,30,.55));border:1px solid var(--line);border-radius:20px;padding:9px 9px 11px;text-align:center;box-shadow:0 14px 40px -18px rgba(0,0,0,.85)}
+.nftc.own{border-color:var(--rc);box-shadow:0 0 26px -12px var(--rc),0 14px 40px -18px rgba(0,0,0,.85)}
+.nftart{position:relative;border-radius:15px;overflow:hidden;aspect-ratio:1;border:1.5px solid var(--rc);box-shadow:0 0 22px -9px var(--rc)}
+.nftart svg{display:block;width:100%;height:100%}
+.nftart.sweep::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.28),transparent);transform:skewX(-20deg);animation:shine 4.2s ease-in-out infinite;pointer-events:none}
+.rar{position:absolute;top:6px;inset-inline-start:6px;font-size:10px;font-weight:900;padding:2px 8px;border-radius:99px;background:rgba(0,0,0,.6);color:var(--rc);border:1px solid var(--rc)}
+.ownb{position:absolute;bottom:6px;inset-inline-end:6px;font-size:11px;font-weight:900;padding:2px 9px;border-radius:99px;background:var(--rc);color:#10112a}
+.nftn{margin-top:9px;font-weight:900;font-size:14.5px}
+.nftb{display:inline-block;margin:6px 0 2px;padding:3px 12px;border-radius:99px;font-weight:900;font-size:13px;color:#06231a;background:linear-gradient(110deg,#2dffb0,#22d3ee)}
+.nftd{font-size:11.5px;min-height:32px;margin-top:4px}
+.nftm{font-size:11.5px;color:var(--muted);margin-top:4px}
+.nftart.pop{width:170px;margin:4px auto 6px}
+.nftwon{animation:nftreveal .9s cubic-bezier(.2,1.3,.3,1) both}
+@keyframes nftreveal{from{transform:scale(.2) rotate(-12deg);opacity:0;filter:brightness(3)}}
+.chrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13.5px;text-align:start}
+.chrow:last-child{border-bottom:0}
+.chrow i{flex:none;width:10px;height:10px;border-radius:50%;background:var(--rc);box-shadow:0 0 10px var(--rc)}
+.chrow span{flex:1}.chrow b{white-space:nowrap}
+.boostchip{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:99px;font-size:12.5px;font-weight:900;color:#06231a;background:linear-gradient(110deg,#2dffb0,#22d3ee)}
 </style>
 </head>
 <body>
@@ -465,6 +501,52 @@ const I18N = {
   "err.withdraw_missing": "Withdrawal not found.",
   "err.cannot_cancel": "This withdrawal can not be cancelled any more.",
   "nav.wallet": "Wallet",
+  "nav.nft": "NFT",
+  "nft.title": "Mystery Duck NFT",
+  "nft.sub": "Collectible NFT ducks that make your mining faster, forever. They live inside this app.",
+  "nft.sub2": "Every duck has its own mining boost. Open a mystery NFT and see which one you get!",
+  "nft.priceEach": "{n} TON each",
+  "nft.sold": "{a} / {b} sold",
+  "nft.buyNow": "BUY NOW · {n} TON",
+  "nft.payBtn": "Pay {n} TON",
+  "nft.soldout": "Sold out",
+  "nft.closed": "The NFT shop is closed right now.",
+  "nft.popupBody": "Pay {n} TON and get ONE random duck at once. Your wallet opens by itself: just confirm the payment.",
+  "nft.yourBoost": "Your NFT boost",
+  "nft.totalBoost": "Mining boost",
+  "nft.speed": "Mining speed",
+  "nft.count": "NFTs you own",
+  "nft.note": "A new boost counts from your next mining session. A session that is already running keeps its speed.",
+  "nft.collection": "Collection",
+  "nft.collectionHint": "The ducks you can win, their boost and their chance.",
+  "nft.boostLabel": "+{n}% mining",
+  "nft.chance": "{n}% chance",
+  "nft.owned": "Owned {n}",
+  "nft.won": "You got {name}!",
+  "nft.wonBody": "{rarity} · mining boost +{boost}%. Your total NFT boost: +{total}%. It counts from your next mining session.",
+  "nft.great": "Great!",
+  "nft.stuck": "Your payment arrived, but the NFT could not be given right now. The team was told and will fix it or send your TON back.",
+  "nft.orderName": "Mystery NFT",
+  "nft.orderGot": "Got {name}",
+  "nft.rarity.common": "Common",
+  "nft.rarity.rare": "Rare",
+  "nft.rarity.epic": "Epic",
+  "nft.rarity.legendary": "Legendary",
+  "nft.rarity.mythic": "Mythic",
+  "nft.n.copper": "Copper Rookie",
+  "nft.d.copper": "A cheerful duckling in a copper miner's helmet.",
+  "nft.n.steel": "Steel Mallard",
+  "nft.d.steel": "A mallard in steel armor with a pickaxe on its back.",
+  "nft.n.pharaoh": "Pharaoh Duck",
+  "nft.d.pharaoh": "A golden duck of the desert kings.",
+  "nft.n.crystal": "Crystal Duck",
+  "nft.d.crystal": "A faceted duck carved from living ice crystal.",
+  "nft.n.nebula": "Nebula Duck",
+  "nft.d.nebula": "A cosmic duck born inside a star nebula.",
+  "mine.boost": "NFT boost +{n}%",
+  "err.nft_closed": "The NFT shop is closed right now.",
+  "err.nft_limit": "You can own at most {max} NFTs.",
+  "err.nft_soldout": "All NFTs are sold out.",
   "nav.ref": "Referral",
   "terms.btn": "Terms & conditions",
   "terms.back": "Back",
@@ -651,6 +733,52 @@ const I18N = {
   "err.withdraw_missing": "طلب السحب غير موجود.",
   "err.cannot_cancel": "لا يمكن إلغاء هذا السحب بعد الآن.",
   "nav.wallet": "المحفظة",
+  "nav.nft": "NFT",
+  "nft.title": "NFT البطة الغامضة",
+  "nft.sub": "بطات NFT للجمع تجعل تعدينك أسرع إلى الأبد. وهي موجودة داخل هذا التطبيق.",
+  "nft.sub2": "لكل بطة تعزيز تعدين خاص بها. افتح NFT غامضاً واكتشف أي بطة ستحصل عليها!",
+  "nft.priceEach": "{n} TON للواحدة",
+  "nft.sold": "بيع {a} / {b}",
+  "nft.buyNow": "اشترِ الآن · {n} TON",
+  "nft.payBtn": "ادفع {n} TON",
+  "nft.soldout": "نفدت الكمية",
+  "nft.closed": "متجر NFT مغلق حالياً.",
+  "nft.popupBody": "ادفع {n} TON واحصل فوراً على بطة واحدة عشوائية. ستفتح محفظتك تلقائياً: فقط أكّد الدفع.",
+  "nft.yourBoost": "تعزيز الـ NFT لديك",
+  "nft.totalBoost": "تعزيز التعدين",
+  "nft.speed": "سرعة التعدين",
+  "nft.count": "عدد الـ NFT لديك",
+  "nft.note": "التعزيز الجديد يُحتسب من جلسة التعدين القادمة. الجلسة الجارية تحتفظ بسرعتها.",
+  "nft.collection": "المجموعة",
+  "nft.collectionHint": "البطات التي يمكنك الفوز بها وتعزيزها واحتمالها.",
+  "nft.boostLabel": "+{n}% تعدين",
+  "nft.chance": "احتمال {n}%",
+  "nft.owned": "تملك {n}",
+  "nft.won": "حصلت على {name}!",
+  "nft.wonBody": "{rarity} · تعزيز تعدين +{boost}%. إجمالي تعزيز الـ NFT: +{total}%. يُحتسب من جلسة التعدين القادمة.",
+  "nft.great": "رائع!",
+  "nft.stuck": "وصل دفعك لكن تعذّر منح الـ NFT الآن. تم إبلاغ الفريق وسيصلح الأمر أو يعيد إليك TON.",
+  "nft.orderName": "NFT غامض",
+  "nft.orderGot": "حصلت على {name}",
+  "nft.rarity.common": "شائعة",
+  "nft.rarity.rare": "نادرة",
+  "nft.rarity.epic": "ملحمية",
+  "nft.rarity.legendary": "أسطورية",
+  "nft.rarity.mythic": "خرافية",
+  "nft.n.copper": "المبتدئ النحاسي",
+  "nft.d.copper": "بطّ صغير مرح بخوذة عامل منجم نحاسية.",
+  "nft.n.steel": "البط الفولاذي",
+  "nft.d.steel": "بطة خضراء الرأس بدرع فولاذي ومعول على ظهرها.",
+  "nft.n.pharaoh": "البطة الفرعونية",
+  "nft.d.pharaoh": "بطة ذهبية من ملوك الصحراء.",
+  "nft.n.crystal": "البطة الكريستالية",
+  "nft.d.crystal": "بطة مصقولة منحوتة من بلور جليدي حي.",
+  "nft.n.nebula": "بطة السديم",
+  "nft.d.nebula": "بطة كونية وُلدت داخل سديم نجمي.",
+  "mine.boost": "تعزيز NFT +{n}%",
+  "err.nft_closed": "متجر NFT مغلق حالياً.",
+  "err.nft_limit": "يمكنك امتلاك {max} من الـ NFT كحد أقصى.",
+  "err.nft_soldout": "نفدت جميع الـ NFT.",
   "nav.ref": "الإحالة",
   "terms.btn": "الشروط والأحكام",
   "terms.back": "رجوع",
@@ -837,6 +965,52 @@ const I18N = {
   "err.withdraw_missing": "Вывод не найден.",
   "err.cannot_cancel": "Этот вывод больше нельзя отменить.",
   "nav.wallet": "Кошелёк",
+  "nav.nft": "NFT",
+  "nft.title": "Загадочная NFT-утка",
+  "nft.sub": "Коллекционные NFT-утки, которые навсегда ускоряют ваш майнинг. Они живут внутри этого приложения.",
+  "nft.sub2": "У каждой утки свой бонус к майнингу. Откройте загадочный NFT и узнайте, какая вам выпадет!",
+  "nft.priceEach": "{n} TON за штуку",
+  "nft.sold": "Продано {a} / {b}",
+  "nft.buyNow": "КУПИТЬ · {n} TON",
+  "nft.payBtn": "Оплатить {n} TON",
+  "nft.soldout": "Распродано",
+  "nft.closed": "Магазин NFT сейчас закрыт.",
+  "nft.popupBody": "Оплатите {n} TON и сразу получите ОДНУ случайную утку. Кошелёк откроется сам: просто подтвердите платёж.",
+  "nft.yourBoost": "Ваш бонус NFT",
+  "nft.totalBoost": "Бонус к майнингу",
+  "nft.speed": "Скорость майнинга",
+  "nft.count": "Ваших NFT",
+  "nft.note": "Новый бонус действует со следующей сессии. Уже запущенная сессия идёт с прежней скоростью.",
+  "nft.collection": "Коллекция",
+  "nft.collectionHint": "Утки, которые можно выиграть, их бонус и шанс.",
+  "nft.boostLabel": "+{n}% к майнингу",
+  "nft.chance": "шанс {n}%",
+  "nft.owned": "Есть {n}",
+  "nft.won": "Вам выпала {name}!",
+  "nft.wonBody": "{rarity} · бонус к майнингу +{boost}%. Общий бонус NFT: +{total}%. Действует со следующей сессии.",
+  "nft.great": "Отлично!",
+  "nft.stuck": "Платёж пришёл, но выдать NFT сейчас не удалось. Команда уведомлена и исправит это или вернёт TON.",
+  "nft.orderName": "Загадочный NFT",
+  "nft.orderGot": "Получена: {name}",
+  "nft.rarity.common": "Обычная",
+  "nft.rarity.rare": "Редкая",
+  "nft.rarity.epic": "Эпическая",
+  "nft.rarity.legendary": "Легендарная",
+  "nft.rarity.mythic": "Мифическая",
+  "nft.n.copper": "Медный новичок",
+  "nft.d.copper": "Весёлый утёнок в медной шахтёрской каске.",
+  "nft.n.steel": "Стальная кряква",
+  "nft.d.steel": "Кряква в стальной броне с киркой за спиной.",
+  "nft.n.pharaoh": "Утка-фараон",
+  "nft.d.pharaoh": "Золотая утка королей пустыни.",
+  "nft.n.crystal": "Хрустальная утка",
+  "nft.d.crystal": "Гранёная утка из живого ледяного кристалла.",
+  "nft.n.nebula": "Утка из туманности",
+  "nft.d.nebula": "Космическая утка, рождённая в звёздной туманности.",
+  "mine.boost": "Бонус NFT +{n}%",
+  "err.nft_closed": "Магазин NFT сейчас закрыт.",
+  "err.nft_limit": "Можно иметь не более {max} NFT.",
+  "err.nft_soldout": "Все NFT распроданы.",
   "nav.ref": "Рефералы",
   "terms.btn": "Условия использования",
   "terms.back": "Назад",
@@ -957,6 +1131,7 @@ const ICON = {
   share: '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.600 10.600l6.800-4M8.600 13.400l6.800 4"/>',
   doc: '<path d="M7 3h8l4 4v14H7z"/><path d="M15 3v4h4M10 12h6M10 16h6"/>',
   back: '<path d="M15 5l-7 7 7 7"/>',
+  nft: '<path d="M12 2.500l8.500 4.800v9.400L12 21.500l-8.500-4.800V7.300z"/><path d="M3.500 7.300L12 12l8.500-4.700M12 12v9.500"/>',
   mega: '<path d="M3 11v3a1 1 0 0 0 1 1h2l5 4V6L6 10H4a1 1 0 0 0-1 1z"/><path d="M15 8.500a5 5 0 0 1 0 7M18 6a8.500 8.500 0 0 1 0 12"/>',
 };
 const svgi = (k) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICON[k] + "</svg>";
@@ -1051,6 +1226,13 @@ function viewBuy() {
 }
 
 function orderCard(o) {
+  if (o.kind === "nft") {
+    const it = S.nft && S.nft.items.find((x) => x.id === o.nftId);
+    const label = o.status === "delivered" && it ? t("nft.orderGot", { name: nftText("n", it) }) : t("status." + o.status);
+    return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>#' + esc(o.id) + '</b><span class="status st-' + esc(o.status) + '">' + esc(label) + "</span></div>" +
+      '<div style="margin:8px 0 2px;font-weight:700"><bdi>' + esc(nf(o.ton, 4)) + " TON → " + esc(t("nft.orderName")) + (o.nftSerial ? " #" + esc(o.nftSerial) : "") + '</bdi></div><div class="muted">' + esc(dateText(o.deliveredAt || o.paidAt || o.createdAt)) + "</div>" +
+      (o.status === "paid" ? '<button class="btn ghost small" style="margin-top:10px" data-a="refund" data-id="' + esc(o.id) + '">' + esc(t("orders.refund")) + "</button>" : "") + "</div>";
+  }
   const tonTxt = nf(o.ton, 4) + " TON → " + nf(o.utya, 2) + " UTYA";
   const when = o.deliveredAt || o.refundedAt || o.paidAt || o.createdAt;
   return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>#' + esc(o.id) + '</b><span class="status st-' + esc(o.status) + '">' + esc(t("status." + o.status)) + "</span></div>" +
@@ -1174,6 +1356,7 @@ function mineCard() {
     '<div class="usd" dir="ltr" data-usd="' + m.balance + '" title="' + esc(t("mine.liveValue")) + '"></div><div dir="ltr" data-px></div>' +
     '<div id="mineBox">' + mineBox() + "</div>" +
     '<div class="stats3"><div>' + esc(t("mine.speed")) + "<b>" + esc(t("mine.speedVal", { n: nf(m.rate, 4) })) + "</b></div><div>" + esc(t("mine.session")) + "<b>" + esc(t("mine.sessionVal", { h: m.sessionHours })) + "</b></div><div>" + esc(t("mine.total")) + "<b>" + esc(nf(m.total, 4)) + "</b></div></div>" +
+    (m.boostPct > 0 ? '<div><span class="boostchip">🦆 ' + esc(t("mine.boost", { n: nf(m.boostPct, 0) })) + "</span></div>" : "") +
     '<div class="muted" style="margin-top:12px">' + esc(t("mine.hint")) + "</div></div>";
 }
 
@@ -1200,6 +1383,236 @@ function wdRow(w) {
 
 function viewMine() {
   return mineCard();
+}
+
+// ------------------------------------------------------------------ NFT ducks (the pictures are drawn here, no image files needed)
+const NFT_ART = {
+  // 1. Copper Rookie: a little duckling in a miner's helmet
+  copper: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs>
+<radialGradient id="cuBg" cx=".5" cy=".4" r=".8"><stop offset="0" stop-color="#5f3b22"/><stop offset="1" stop-color="#1b100a"/></radialGradient>
+<linearGradient id="cuBody" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffc58a"/><stop offset="1" stop-color="#b5611f"/></linearGradient>
+<linearGradient id="cuHat" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffdcae"/><stop offset="1" stop-color="#9a4d14"/></linearGradient>
+<radialGradient id="cuLamp"><stop offset="0" stop-color="#fff"/><stop offset=".45" stop-color="#ffe66b"/><stop offset="1" stop-color="#ffb300" stop-opacity="0"/></radialGradient></defs>
+<rect width="200" height="200" fill="url(#cuBg)"/>
+<path d="M0 172 L30 142 L55 166 L90 136 L130 170 L165 140 L200 166 V200 H0Z" fill="#2b1a10"/>
+<path d="M0 186 L40 160 L80 184 L120 158 L160 182 L200 162 V200 H0Z" fill="#3a2314"/>
+<circle cx="100" cy="56" r="34" fill="url(#cuLamp)" opacity=".75"/>
+<ellipse cx="80" cy="178" rx="14" ry="6" fill="#e2641b"/><ellipse cx="120" cy="178" rx="14" ry="6" fill="#e2641b"/>
+<ellipse cx="100" cy="134" rx="46" ry="42" fill="url(#cuBody)"/>
+<ellipse cx="100" cy="146" rx="28" ry="25" fill="#ffe6c4" opacity=".55"/>
+<ellipse cx="56" cy="136" rx="12" ry="22" fill="#d07b32" transform="rotate(14 56 136)"/>
+<line x1="146" y1="156" x2="172" y2="106" stroke="#7a4a22" stroke-width="5" stroke-linecap="round"/>
+<path d="M156 102 Q178 94 194 112 L185 115 Q172 106 160 109Z" fill="#cfd6e2"/>
+<ellipse cx="144" cy="136" rx="12" ry="22" fill="#d07b32" transform="rotate(-14 144 136)"/>
+<circle cx="100" cy="84" r="34" fill="url(#cuBody)"/>
+<path d="M64 80 Q64 40 100 38 Q136 40 136 80Z" fill="url(#cuHat)"/>
+<rect x="58" y="76" width="84" height="9" rx="4.500" fill="#8d4510"/>
+<rect x="92" y="37" width="16" height="12" rx="3" fill="#8d4510"/>
+<circle cx="100" cy="58" r="8" fill="#ffe66b" stroke="#8d4510" stroke-width="2"/>
+<circle cx="86" cy="95" r="5.500" fill="#1b100a"/><circle cx="114" cy="95" r="5.500" fill="#1b100a"/>
+<circle cx="88" cy="93" r="1.800" fill="#fff"/><circle cx="116" cy="93" r="1.800" fill="#fff"/>
+<path d="M88 103 Q100 97 112 103 Q108 115 100 115 Q92 115 88 103Z" fill="#e2641b"/></svg>`,
+
+  // 2. Steel Mallard: green-headed knight with a pickaxe
+  steel: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs>
+<linearGradient id="stBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22324a"/><stop offset="1" stop-color="#0a101c"/></linearGradient>
+<linearGradient id="stHead" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#46d994"/><stop offset="1" stop-color="#0d6544"/></linearGradient>
+<linearGradient id="stMetal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#f4f7fc"/><stop offset=".5" stop-color="#a9b5c8"/><stop offset="1" stop-color="#5f6e85"/></linearGradient></defs>
+<rect width="200" height="200" fill="url(#stBg)"/>
+<g fill="none" stroke="#6f86a8" stroke-opacity=".18" stroke-width="2"><path d="M20 30l20-12 20 12v24L40 66 20 54z"/><path d="M150 140l20-12 20 12v24l-20 12-20-12z"/><path d="M158 20l14-8 14 8v16l-14 8-14-8z"/><path d="M8 130l14-8 14 8v16l-14 8-14-8z"/></g>
+<line x1="34" y1="178" x2="164" y2="56" stroke="#8a5a2b" stroke-width="6" stroke-linecap="round"/>
+<path d="M148 40 Q178 36 190 70 L179 65 Q166 50 148 51Z" fill="#d3dae6"/>
+<line x1="166" y1="178" x2="36" y2="56" stroke="#8a5a2b" stroke-width="6" stroke-linecap="round"/>
+<path d="M52 40 Q22 36 10 70 L21 65 Q34 50 52 51Z" fill="#d3dae6"/>
+<ellipse cx="80" cy="180" rx="14" ry="6" fill="#f0a020"/><ellipse cx="120" cy="180" rx="14" ry="6" fill="#f0a020"/>
+<ellipse cx="100" cy="140" rx="48" ry="40" fill="url(#stMetal)"/>
+<path d="M62 126 Q100 140 138 126M60 146 Q100 162 140 146" stroke="#5d6b82" stroke-width="3" fill="none"/>
+<circle cx="58" cy="122" r="15" fill="url(#stMetal)" stroke="#5d6b82" stroke-width="2"/><circle cx="142" cy="122" r="15" fill="url(#stMetal)" stroke="#5d6b82" stroke-width="2"/>
+<path d="M100 130 l9 11 -9 13 -9 -13z" fill="#38e1ff" stroke="#e8fbff" stroke-width="1.500"/>
+<ellipse cx="100" cy="108" rx="24" ry="7" fill="#fff"/>
+<circle cx="100" cy="80" r="33" fill="url(#stHead)"/>
+<path d="M68 68 Q100 38 132 68 Q100 56 68 68Z" fill="url(#stMetal)" stroke="#5d6b82" stroke-width="1.500"/>
+<circle cx="88" cy="82" r="5.500" fill="#0a2a1e"/><circle cx="112" cy="82" r="5.500" fill="#0a2a1e"/>
+<circle cx="90" cy="80" r="1.800" fill="#fff"/><circle cx="114" cy="80" r="1.800" fill="#fff"/>
+<path d="M77 72 L93 77M123 72 L107 77" stroke="#06261a" stroke-width="3" stroke-linecap="round"/>
+<path d="M84 92 Q100 84 116 92 Q112 106 100 106 Q88 106 84 92Z" fill="#ffd23c"/><path d="M88 96 Q100 100 112 96" stroke="#c08a00" stroke-width="1.500" fill="none"/></svg>`,
+
+  // 3. Pharaoh Duck: gold, striped royal headdress, ankh
+  pharaoh: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs>
+<radialGradient id="phBg" cx=".5" cy=".35" r=".9"><stop offset="0" stop-color="#40306f"/><stop offset="1" stop-color="#120c2c"/></radialGradient>
+<linearGradient id="phGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3ae"/><stop offset=".5" stop-color="#ffc933"/><stop offset="1" stop-color="#b57806"/></linearGradient>
+<linearGradient id="phBlue" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#4fb0ff"/><stop offset="1" stop-color="#1b3a96"/></linearGradient></defs>
+<rect width="200" height="200" fill="url(#phBg)"/>
+<circle cx="100" cy="96" r="82" fill="#ffc933" opacity=".09"/>
+<path d="M10 176 L66 104 L122 176Z" fill="#251b52"/><path d="M96 176 L146 118 L198 176Z" fill="#2d2160"/>
+<circle cx="168" cy="40" r="13" fill="#ffd966" opacity=".9"/>
+<ellipse cx="80" cy="180" rx="14" ry="6" fill="#ff8a1f"/><ellipse cx="120" cy="180" rx="14" ry="6" fill="#ff8a1f"/>
+<ellipse cx="100" cy="142" rx="48" ry="40" fill="url(#phGold)"/>
+<ellipse cx="54" cy="146" rx="11" ry="22" fill="#e0a21c" transform="rotate(12 54 146)"/><ellipse cx="146" cy="146" rx="11" ry="22" fill="#e0a21c" transform="rotate(-12 146 146)"/>
+<g stroke="#fff3ae" stroke-width="4" fill="none" stroke-linecap="round"><ellipse cx="100" cy="146" rx="5.500" ry="7.500"/><path d="M100 153.500 V176 M91 161 H109"/></g>
+<path d="M62 72 Q56 112 48 128 L78 122 L80 82Z" fill="url(#phBlue)" stroke="#ffc933" stroke-width="2.500"/>
+<path d="M138 72 Q144 112 152 128 L122 122 L120 82Z" fill="url(#phBlue)" stroke="#ffc933" stroke-width="2.500"/>
+<path d="M58 118 Q100 154 142 118 L136 107 Q100 130 64 107Z" fill="url(#phBlue)" stroke="#ffc933" stroke-width="3"/>
+<circle cx="100" cy="82" r="30" fill="url(#phGold)"/>
+<path d="M66 78 Q66 42 100 40 Q134 42 134 78 Q124 62 100 62 Q76 62 66 78Z" fill="url(#phBlue)"/>
+<path d="M71 68 Q100 48 129 68M69 75 Q100 55 131 75" stroke="#ffc933" stroke-width="3" fill="none"/>
+<path d="M100 56 q-6 -9 0 -17 q6 8 0 17z" fill="#ffc933" stroke="#a36a00" stroke-width="1.500"/>
+<circle cx="88" cy="86" r="5" fill="#1a1230"/><circle cx="112" cy="86" r="5" fill="#1a1230"/>
+<circle cx="89.500" cy="84.500" r="1.600" fill="#fff"/><circle cx="113.500" cy="84.500" r="1.600" fill="#fff"/>
+<path d="M81 86 L70 82M119 86 L130 82" stroke="#1a1230" stroke-width="3" stroke-linecap="round"/>
+<path d="M86 96 Q100 89 114 96 Q110 108 100 108 Q90 108 86 96Z" fill="#ff8a1f"/></svg>`,
+
+  // 4. Crystal Duck: low-poly ice crystal with a crown
+  crystal: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs>
+<linearGradient id="crBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0f2f5c"/><stop offset=".6" stop-color="#0a1a3a"/><stop offset="1" stop-color="#1a1650"/></linearGradient>
+<radialGradient id="crGlow"><stop offset="0" stop-color="#7ee8ff" stop-opacity=".5"/><stop offset="1" stop-color="#7ee8ff" stop-opacity="0"/></radialGradient></defs>
+<rect width="200" height="200" fill="url(#crBg)"/><circle cx="100" cy="110" r="90" fill="url(#crGlow)"/>
+<path d="M0 200 L22 150 L44 200Z M160 200 L184 138 L200 200Z M120 200 L140 164 L160 200Z" fill="#14305e" opacity=".9"/>
+<polygon points="70,176 86,178 84,186 68,184" fill="#8fe3ff"/><polygon points="116,178 132,176 134,184 118,186" fill="#8fe3ff"/>
+<polygon points="54,132 100,102 146,132 136,174 64,174" fill="#8fe3ff"/>
+<polygon points="100,102 146,132 100,152" fill="#dcf8ff"/><polygon points="54,132 100,102 100,152" fill="#5ec9f3"/>
+<polygon points="54,132 100,152 64,174" fill="#37a6df"/><polygon points="100,152 146,132 136,174" fill="#76d8ff"/><polygon points="64,174 100,152 136,174" fill="#2a8ccf"/>
+<polygon points="70,84 82,52 118,52 130,84 116,110 84,110" fill="#b9efff"/>
+<polygon points="100,80 70,84 82,52" fill="#9fe8ff"/><polygon points="100,80 82,52 118,52" fill="#ecfdff"/><polygon points="100,80 118,52 130,84" fill="#b6f0ff"/>
+<polygon points="100,80 130,84 116,110" fill="#7cd8f8"/><polygon points="100,80 116,110 84,110" fill="#5cc6ee"/><polygon points="100,80 84,110 70,84" fill="#8be1fb"/>
+<polygon points="82,52 87,28 96,46 100,20 104,46 113,28 118,52" fill="#fff" stroke="#8fe3ff" stroke-width="2"/>
+<polygon points="100,26 104,38 100,44 96,38" fill="#ff7ad9"/>
+<circle cx="88" cy="82" r="5.500" fill="#0a1d46"/><circle cx="112" cy="82" r="5.500" fill="#0a1d46"/>
+<circle cx="90" cy="80" r="1.800" fill="#fff"/><circle cx="114" cy="80" r="1.800" fill="#fff"/>
+<polygon points="86,93 114,93 108,106 100,110 92,106" fill="#f4feff"/><polygon points="86,93 114,93 100,100" fill="#bdeeff"/>
+<g fill="#fff"><path d="M30 40 l3 8 8 3 -8 3 -3 8 -3 -8 -8 -3 8 -3z"/><path d="M168 64 l2.500 6 6 2.500 -6 2.500 -2.500 6 -2.500 -6 -6 -2.500 6 -2.500z"/><path d="M164 150 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" opacity=".8"/><path d="M40 118 l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" opacity=".8"/></g></svg>`,
+
+  // 5. Nebula Duck: cosmic duck with a halo, stars and a planet
+  nebula: `<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><defs>
+<radialGradient id="nbBg" cx=".5" cy=".42" r=".9"><stop offset="0" stop-color="#52209c"/><stop offset=".6" stop-color="#1a0b45"/><stop offset="1" stop-color="#06021a"/></radialGradient>
+<linearGradient id="nbBody" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff6ad5"/><stop offset=".5" stop-color="#8a4dff"/><stop offset="1" stop-color="#2a6bff"/></linearGradient>
+<linearGradient id="nbHalo" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#22d3ee"/><stop offset=".5" stop-color="#fff"/><stop offset="1" stop-color="#ec4899"/></linearGradient>
+<radialGradient id="nbPlanet" cx=".35" cy=".3" r=".8"><stop offset="0" stop-color="#ffe9a8"/><stop offset="1" stop-color="#e0662a"/></radialGradient>
+<radialGradient id="nbNeb"><stop offset="0" stop-color="#ff5fd0" stop-opacity=".45"/><stop offset="1" stop-color="#ff5fd0" stop-opacity="0"/></radialGradient></defs>
+<rect width="200" height="200" fill="url(#nbBg)"/>
+<ellipse cx="46" cy="48" rx="60" ry="40" fill="url(#nbNeb)"/><ellipse cx="170" cy="150" rx="56" ry="40" fill="url(#nbNeb)" opacity=".8"/>
+<g fill="#fff"><circle cx="24" cy="24" r="1.600"/><circle cx="170" cy="22" r="1.300"/><circle cx="182" cy="86" r="1.800"/><circle cx="14" cy="104" r="1.300"/><circle cx="40" cy="170" r="1.600"/><circle cx="150" cy="186" r="1.300"/><circle cx="76" cy="14" r="1.200"/><circle cx="130" cy="30" r="1.500"/><circle cx="196" cy="130" r="1.200"/><circle cx="8" cy="64" r="1.200"/></g>
+<ellipse cx="100" cy="146" rx="88" ry="22" fill="none" stroke="#fff" stroke-opacity=".32" stroke-width="2" transform="rotate(-12 100 146)"/>
+<ellipse cx="80" cy="180" rx="14" ry="6" fill="#ffa63d"/><ellipse cx="120" cy="180" rx="14" ry="6" fill="#ffa63d"/>
+<ellipse cx="100" cy="142" rx="46" ry="40" fill="url(#nbBody)"/>
+<g fill="#fff" opacity=".85"><circle cx="78" cy="132" r="1.500"/><circle cx="118" cy="128" r="1.200"/><circle cx="130" cy="150" r="1.600"/><circle cx="72" cy="156" r="1.200"/><circle cx="104" cy="166" r="1.400"/></g>
+<ellipse cx="54" cy="146" rx="11" ry="21" fill="#b46bff" opacity=".8" transform="rotate(12 54 146)"/><ellipse cx="146" cy="146" rx="11" ry="21" fill="#b46bff" opacity=".8" transform="rotate(-12 146 146)"/>
+<path d="M100 134 l4 9 10 1 -8 6 3 10 -9 -6 -9 6 3 -10 -8 -6 10 -1z" fill="#fff" opacity=".92"/>
+<circle cx="100" cy="86" r="32" fill="url(#nbBody)"/>
+<ellipse cx="100" cy="48" rx="28" ry="8.500" fill="none" stroke="#ff9bf0" stroke-opacity=".35" stroke-width="9"/>
+<ellipse cx="100" cy="48" rx="28" ry="8.500" fill="none" stroke="url(#nbHalo)" stroke-width="4"/>
+<ellipse cx="88" cy="86" rx="6.500" ry="7.500" fill="#7df3ff"/><ellipse cx="112" cy="86" rx="6.500" ry="7.500" fill="#7df3ff"/>
+<ellipse cx="88" cy="87" rx="3" ry="4" fill="#0a1a3a"/><ellipse cx="112" cy="87" rx="3" ry="4" fill="#0a1a3a"/>
+<circle cx="90" cy="83" r="1.800" fill="#fff"/><circle cx="114" cy="83" r="1.800" fill="#fff"/>
+<path d="M86 97 Q100 90 114 97 Q110 110 100 110 Q90 110 86 97Z" fill="#ffb347"/>
+<circle cx="172" cy="124" r="10" fill="url(#nbPlanet)"/><path d="M158 126 Q172 134 186 122" stroke="#fff" stroke-opacity=".55" stroke-width="2" fill="none"/></svg>`,
+};
+
+// the mystery card (the "logo" the player taps)
+const NFT_MYSTERY = `<svg viewBox="0 0 200 250" xmlns="http://www.w3.org/2000/svg"><defs>
+<linearGradient id="myBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2a1d5c"/><stop offset="1" stop-color="#0a0720"/></linearGradient>
+<linearGradient id="myGold" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff3ae"/><stop offset=".5" stop-color="#ffc933"/><stop offset="1" stop-color="#b57806"/></linearGradient>
+<radialGradient id="myGlow"><stop offset="0" stop-color="#a78bfa" stop-opacity=".55"/><stop offset="1" stop-color="#a78bfa" stop-opacity="0"/></radialGradient></defs>
+<rect x="3" y="3" width="194" height="244" rx="22" fill="url(#myBg)" stroke="url(#myGold)" stroke-width="4"/>
+<rect x="12" y="12" width="176" height="226" rx="16" fill="none" stroke="#ffc933" stroke-opacity=".45" stroke-width="1.500"/>
+<g stroke="#ffc933" stroke-opacity=".22" stroke-width="2"><path d="M100 118 L100 20M100 118 L176 52M100 118 L24 52M100 118 L190 130M100 118 L10 130"/></g>
+<circle cx="100" cy="116" r="78" fill="url(#myGlow)"/>
+<circle cx="100" cy="116" r="62" fill="#120c34" stroke="url(#myGold)" stroke-width="5"/>
+<circle cx="100" cy="116" r="55" fill="none" stroke="#ffc933" stroke-opacity=".5" stroke-width="1.500" stroke-dasharray="2 5"/>
+<ellipse cx="100" cy="138" rx="30" ry="25" fill="url(#myGold)"/><circle cx="100" cy="100" r="22" fill="url(#myGold)"/>
+<path d="M89 106 Q100 100 111 106 Q108 116 100 116 Q92 116 89 106Z" fill="#ff8a1f"/>
+<circle cx="92" cy="96" r="3.200" fill="#120c34"/><circle cx="108" cy="96" r="3.200" fill="#120c34"/>
+<path d="M92 126 q0 -9 8 -9 q8 0 8 8 q0 6 -8 9 v5" fill="none" stroke="#120c34" stroke-width="5" stroke-linecap="round"/><circle cx="100" cy="150" r="3" fill="#120c34"/>
+<text x="100" y="36" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="13" letter-spacing="5" fill="#ffd966">UTYA</text>
+<rect x="38" y="204" width="124" height="26" rx="13" fill="#0a0720" stroke="url(#myGold)" stroke-width="2.500"/>
+<circle cx="58" cy="217" r="4.500" fill="#e0955a"/><circle cx="73" cy="217" r="4.500" fill="#c3cfe3"/><circle cx="88" cy="217" r="4.500" fill="#ffd24d"/><circle cx="103" cy="217" r="4.500" fill="#5fe3ff"/><circle cx="118" cy="217" r="4.500" fill="#c98bff"/>
+<text x="146" y="222" text-anchor="middle" font-family="Arial,sans-serif" font-weight="900" font-size="13" fill="#ffd966">#?</text></svg>`;
+
+/** Text of an NFT in the player's language: kind = "n" (name) or "d" (description). Unknown NFTs added in config.js fall back to the English name. */
+function nftText(kind, it) {
+  const key = "nft." + kind + "." + it.id;
+  return (I18N[lang] && I18N[lang][key]) || I18N.en[key] || (kind === "n" ? it.name : "");
+}
+const nftArt = (it, extra) => '<div class="nftart ' + (it.rarity === "legendary" || it.rarity === "mythic" ? "sweep " : "") + (extra || "") + '">' + (NFT_ART[it.art] || NFT_ART.copper) + "</div>";
+const nftSoldOut = () => S.nft.sold >= S.nft.supply;
+
+function nftCard(it) {
+  return '<div class="nftc r-' + esc(it.rarity) + (it.owned ? " own" : "") + '">' +
+    '<div class="nftart ' + (it.rarity === "legendary" || it.rarity === "mythic" ? "sweep" : "") + '">' + (NFT_ART[it.art] || NFT_ART.copper) +
+    '<span class="rar">' + esc(t("nft.rarity." + it.rarity)) + "</span>" + (it.owned ? '<span class="ownb">×' + it.owned + "</span>" : "") + "</div>" +
+    '<div class="nftn">' + esc(nftText("n", it)) + "</div>" +
+    '<div class="nftb">' + esc(t("nft.boostLabel", { n: nf(it.boostPct, 0) })) + "</div>" +
+    '<div class="muted nftd">' + esc(nftText("d", it)) + "</div>" +
+    '<div class="nftm">' + esc(t("nft.chance", { n: nf(it.chance, 1) })) + " · " + esc(t("nft.owned", { n: it.owned })) + "</div>" +
+    (it.serials.length ? '<div class="nftm" dir="ltr">' + it.serials.map((x) => "#" + x).join(" ") + "</div>" : "") + "</div>";
+}
+
+function viewNft() {
+  const n = S.nft, m = S.mining, out = nftSoldOut();
+  const pct = Math.min(100, (n.sold / n.supply) * 100);
+  const buyBtn = out ? '<button class="btn" disabled>' + esc(t("nft.soldout")) + "</button>"
+    : !n.open ? '<button class="btn" disabled>' + esc(t("nft.closed")) + "</button>"
+    : '<button class="btn" data-a="nftPay">' + esc(t("nft.buyNow", { n: nf(n.priceTon, 2) })) + "</button>";
+  const hero = '<div class="card hero nfthero"><button class="nftcard" data-a="nftAsk" aria-label="NFT">' + NFT_MYSTERY + "</button>" +
+    "<h3>" + esc(t("nft.title")) + '</h3><div class="muted">' + esc(t("nft.sub")) + '</div><div class="muted" style="margin-top:6px;color:#ffe08a">' + esc(t("nft.sub2")) + "</div>" +
+    '<div class="nftrow"><b>' + esc(t("nft.priceEach", { n: nf(n.priceTon, 2) })) + "</b><span>" + esc(t("nft.sold", { a: nf(n.sold, 0), b: nf(n.supply, 0) })) + '</span></div><div class="nftbar"><i style="width:' + pct.toFixed(1) + '%"></i></div>' + buyBtn + "</div>";
+  const mine = '<div class="card nfthead"><h3>' + esc(t("nft.yourBoost")) + "</h3>" +
+    '<div class="row"><span>' + esc(t("nft.totalBoost")) + "</span><b>+" + esc(nf(n.boostPct, 0)) + "%</b></div>" +
+    '<div class="row"><span>' + esc(t("nft.speed")) + "</span><b>" + esc(t("mine.speedVal", { n: nf(m.rate, 4) })) + "</b></div>" +
+    '<div class="row"><span>' + esc(t("nft.count")) + "</span><b>" + esc(n.count) + "</b></div>" +
+    '<div class="muted" style="margin-top:8px">' + esc(t("nft.note")) + "</div></div>";
+  return hero + mine + '<div class="card" style="margin-bottom:10px"><h3 style="margin:0">' + esc(t("nft.collection")) + '</h3><div class="muted">' + esc(t("nft.collectionHint")) + '</div></div><div class="nftgrid">' + n.items.map(nftCard).join("") + "</div>";
+}
+
+/** The popup that opens when the player taps the card: what he can win and the pay button. No other page. */
+function nftPopup() {
+  const n = S.nft;
+  const rows = n.items.map((it) => '<div class="chrow r-' + esc(it.rarity) + '"><i></i><span>' + esc(nftText("n", it)) + " · " + esc(t("nft.rarity." + it.rarity)) + "</span><b>+" + esc(nf(it.boostPct, 0)) + "% · " + esc(nf(it.chance, 1)) + "%</b></div>").join("");
+  const btn = nftSoldOut() ? '<button class="btn" disabled>' + esc(t("nft.soldout")) + "</button>" : !n.open ? '<button class="btn" disabled>' + esc(t("nft.closed")) + "</button>" : '<button class="btn" data-a="nftPay">' + esc(t("nft.payBtn", { n: nf(n.priceTon, 2) })) + "</button>";
+  openOverlay('<div style="width:150px;margin:0 auto">' + NFT_MYSTERY + "</div><h2>" + esc(t("nft.title")) + '</h2><p class="muted">' + esc(t("nft.popupBody", { n: nf(n.priceTon, 2) })) + '</p><div style="margin:10px 0 4px">' + rows + "</div>" + btn + '<button class="btn ghost" data-a="closeov">' + esc(t("pay.close")) + "</button>");
+}
+
+/** After the payment: the random NFT the player got. */
+function showNftWon(o) {
+  const it = S.nft.items.find((x) => x.id === o.nftId);
+  if (!it) return showPay("done", o);
+  openOverlay('<div class="r-' + esc(it.rarity) + '">' + nftArt(it, "pop nftwon") + "</div><h2>" + esc(t("nft.won", { name: nftText("n", it) })) + '</h2><p class="muted">' + esc(t("nft.wonBody", { rarity: t("nft.rarity." + it.rarity), boost: nf(it.boostPct, 0), total: nf(S.nft.boostPct, 0) })) + "</p>" + (o.nftSerial ? '<p dir="ltr" style="font-weight:900">#' + esc(o.nftSerial) + "</p>" : "") + '<button class="btn" data-a="closeov">' + esc(t("nft.great")) + "</button>");
+}
+
+async function startNftPay() {
+  if (busy) return;
+  const ui = ton();
+  if (!ui) return toast(t("err.generic"), "err");
+  const acc = ui.account;
+  if (!acc) { closeOverlay(); return ui.openModal(); }
+  busy = true;
+  let prepared;
+  try {
+    await syncWallet(acc.address);
+    prepared = (await api("/api/nft/prepare", {})).payment;
+  } catch (e) {
+    busy = false; closeOverlay();
+    if (e && e.code === "join_required") return showGate(e.data.channels);
+    if (e && e.code === "banned") return showBanned(e.data);
+    return toast(errText(e), "err");
+  }
+  showPay("confirm"); // the wallet opens by itself with the amount filled in; the player only confirms
+  try {
+    await ui.sendTransaction({ validUntil: prepared.validUntil, from: acc.address, messages: prepared.messages });
+  } catch (e) { busy = false; closeOverlay(); return toast(t("pay.cancelled"), "err"); }
+  showPay("wait");
+  const started = Date.now();
+  while (Date.now() - started < 180000) {
+    let r = null;
+    try { r = await api("/api/pay/check", { id: prepared.id }); } catch (e) { /* keep trying */ }
+    if (r && r.order) {
+      const st = r.order.status;
+      if (st === "delivered") { busy = false; S = r.state; tab = "nft"; buzz("ok"); showNftWon(r.order); render(); return; }
+      if (st === "paid" || st === "refund_requested" || st === "refunded") { busy = false; S = r.state; openOverlay("<h2>⚠️</h2><p class=\"muted\">" + esc(t("nft.stuck")) + '</p><button class="btn" data-a="closeov">' + esc(t("pay.close")) + "</button>"); render(); return; }
+    }
+    await new Promise((res) => setTimeout(res, 3000));
+  }
+  busy = false; showPay("slow");
 }
 
 // ------------------------------------------------------------------ price chart (live)
@@ -1322,8 +1735,8 @@ function render() {
   if (!S) return;
   document.documentElement.lang = lang;
   document.documentElement.dir = lang === "ar" ? "rtl" : "ltr";
-  const body = tab === "mine" ? viewMine() : tab === "buy" ? viewBuy() : tab === "chart" ? viewChart() : tab === "wallet" ? viewWallet() : tab === "ref" ? viewRef() : viewTerms();
-  const nav = ["mine", "buy", "chart", "wallet", "ref"];
+  const body = tab === "mine" ? viewMine() : tab === "nft" ? viewNft() : tab === "buy" ? viewBuy() : tab === "chart" ? viewChart() : tab === "wallet" ? viewWallet() : tab === "ref" ? viewRef() : viewTerms();
+  const nav = ["mine", "nft", "buy", "chart", "wallet", "ref"];
   const tabChanged = tab !== lastTab;
   lastTab = tab;
   document.documentElement.style.setProperty("--sd", -((Date.now() / 1000) % 7).toFixed(2) + "s"); // keeps the rotating borders in phase between redraws
@@ -1517,6 +1930,8 @@ document.addEventListener("click", async (ev) => {
     try { const r = await api("/api/withdraw/cancel", { id: el.dataset.id }); S = r.state; toast(t("wd.cancelled"), "ok"); render(); } catch (e) { await fail(e); await refreshState(); }
     return;
   }
+  if (a === "nftAsk") return nftPopup();
+  if (a === "nftPay") return startNftPay();
   if (a === "closeov") return closeOverlay();
   if (a === "toOrders") { closeOverlay(); tab = "wallet"; render(); return; }
   if (a === "terms") { tab = "terms"; render(); window.scrollTo(0, 0); return; }
