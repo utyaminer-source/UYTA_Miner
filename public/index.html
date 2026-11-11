@@ -379,6 +379,7 @@ const I18N = {
   "how.2": "An admin sends the UTYA to your wallet by hand, within about {hours} hours.",
   "how.3": "Until it is sent, you can request a refund here.",
   "pay.confirm": "Confirm the payment in your wallet…",
+  "pay.processing": "Processing…",
   "pay.wait": "Waiting for the blockchain…",
   "pay.done": "Payment received!",
   "pay.doneBody": "{utya} UTYA will be sent to your wallet within about {hours} hours. You will get a message in Telegram.",
@@ -612,6 +613,7 @@ const I18N = {
   "how.2": "يرسل المشرف UTYA إلى محفظتك يدوياً خلال حوالي {hours} ساعة.",
   "how.3": "حتى لحظة الإرسال يمكنك طلب استرداد المبلغ من هنا.",
   "pay.confirm": "أكّد الدفع في محفظتك…",
+  "pay.processing": "جارٍ المعالجة…",
   "pay.wait": "في انتظار البلوكتشين…",
   "pay.done": "تم استلام الدفع!",
   "pay.doneBody": "سيتم إرسال {utya} UTYA إلى محفظتك خلال حوالي {hours} ساعة. ستصلك رسالة في تيليجرام.",
@@ -845,6 +847,7 @@ const I18N = {
   "how.2": "Администратор вручную отправляет UTYA на ваш кошелёк примерно в течение {hours} ч.",
   "how.3": "До отправки здесь можно запросить возврат.",
   "pay.confirm": "Подтвердите платёж в кошельке…",
+  "pay.processing": "Обработка…",
   "pay.wait": "Ждём блокчейн…",
   "pay.done": "Платёж получен!",
   "pay.doneBody": "{utya} UTYA будут отправлены на ваш кошелёк примерно в течение {hours} ч. Вы получите сообщение в Telegram.",
@@ -1148,7 +1151,8 @@ function ton() {
     if (!window.TON_CONNECT_UI) return null;
     tonUI = new window.TON_CONNECT_UI.TonConnectUI({
       manifestUrl: window.location.origin + "/tonconnect-manifest.json",
-      actionsConfiguration: { twaReturnUrl: "https://t.me/" + BOT_USERNAME },
+      // no extra TonConnect windows ("Confirm the transaction in Keeper"): the wallet opens straight away and the player only confirms there
+      actionsConfiguration: { twaReturnUrl: "https://t.me/" + BOT_USERNAME, modals: [], notifications: [], skipRedirectToWallet: "never" },
     });
     tonUI.onStatusChange((w) => {
       if (w && w.account && S) syncWallet(w.account.address).then(() => render()).catch(() => render());
@@ -1158,9 +1162,23 @@ function ton() {
   } catch (e) { return null; }
 }
 const connectedAccount = () => { const ui = ton(); return ui && ui.account ? ui.account : null; };
+let walletSyncedFor = "";
 async function syncWallet(rawAddress) {
   const r = await api("/api/wallet", { address: rawAddress });
   S = r.state;
+  walletSyncedFor = rawAddress;
+}
+/** The server already knows this wallet (it was sent when the player connected): then there is nothing to wait for. */
+async function ensureWallet(acc) {
+  if (walletSyncedFor === acc.address && S && S.user.wallet) return;
+  await syncWallet(acc.address);
+}
+/** Opens the wallet with the amount filled in. The player only confirms there. If the wallet did not come up after 7 seconds, a small hint is shown. */
+async function sendToWallet(ui, acc, prepared) {
+  const hint = setTimeout(() => showPay("confirm"), 7000);
+  try {
+    await ui.sendTransaction({ validUntil: prepared.validUntil, from: acc.address, messages: prepared.messages }, { modals: [], notifications: [], skipRedirectToWallet: "never", twaReturnUrl: "https://t.me/" + BOT_USERNAME });
+  } finally { clearTimeout(hint); }
 }
 
 // ------------------------------------------------------------------ rendering
@@ -1204,6 +1222,7 @@ function payBtn() {
   const acc = connectedAccount();
   const ok = S.settings.buyOpen && quote && !quoteErr;
   if (!acc) return '<button class="btn" data-a="connect" id="payBtn">' + esc(t("buy.btnConnect")) + "</button>";
+  if (payProcessing) return '<button class="btn loading" data-a="pay" id="payBtn"><span class="bspin"></span>' + esc(t("pay.processing")) + "</button>";
   return '<button class="btn" data-a="pay" id="payBtn"' + (ok ? "" : " disabled") + ">" + esc(ok ? t("buy.btn", { ton: nf(quote.ton, 4) }) : t("buy.btn", { ton: nf(Number(String(amount).replace(",", ".")) || 0, 4) })) + "</button>";
 }
 
@@ -1611,17 +1630,17 @@ async function runNftPay() {
   busy = true;
   let prepared;
   try {
-    await syncWallet(acc.address);
-    prepared = (await api("/api/nft/prepare", {})).payment;
+    // the order and the wallet check run together, so the wallet opens as fast as possible
+    const [pr] = await Promise.all([api("/api/nft/prepare", {}), ensureWallet(acc)]);
+    prepared = pr.payment;
   } catch (e) {
     busy = false; closeOverlay();
     if (e && e.code === "join_required") return showGate(e.data.channels);
     if (e && e.code === "banned") return showBanned(e.data);
     return toast(errText(e), "err");
   }
-  showPay("confirm"); // the wallet opens by itself with the amount filled in; the player only confirms
   try {
-    await ui.sendTransaction({ validUntil: prepared.validUntil, from: acc.address, messages: prepared.messages });
+    await sendToWallet(ui, acc, prepared); // the wallet opens by itself with the amount filled in; the player only confirms
   } catch (e) { busy = false; closeOverlay(); return toast(t("pay.cancelled"), "err"); }
   showPay("wait");
   const started = Date.now();
@@ -1824,7 +1843,18 @@ function showPay(stage, extra) {
   else if (stage === "done") openOverlay('<div class="okmark">✓</div><h2>' + esc(t("pay.done")) + '</h2><p class="muted">' + esc(t("pay.doneBody", { utya: nf(extra.utya, 2), hours: S.settings.deliveryHours })) + '</p><button class="btn" data-a="toOrders">' + esc(t("pay.toOrders")) + "</button>");
 }
 
+let payProcessing = false;
+function setPayBusy(on) {
+  payProcessing = on;
+  const pw = document.getElementById("payWrap");
+  if (pw) pw.innerHTML = payBtn();
+}
 async function startPay() {
+  if (busy || payProcessing) return;
+  setPayBusy(true);
+  try { await runPay(); } finally { setPayBusy(false); }
+}
+async function runPay() {
   if (busy) return;
   const ui = ton();
   if (!ui) return toast(t("err.generic"), "err");
@@ -1833,7 +1863,7 @@ async function startPay() {
   busy = true;
   let prepared;
   try {
-    await syncWallet(acc.address);
+    await ensureWallet(acc);
     prepared = (await api("/api/pay/prepare", { ton: Number(amount) })).payment;
   } catch (e) {
     busy = false;
@@ -1841,9 +1871,8 @@ async function startPay() {
     if (e && e.code === "banned") return showBanned(e.data);
     return toast(errText(e), "err");
   }
-  showPay("confirm");
   try {
-    await ui.sendTransaction({ validUntil: prepared.validUntil, from: acc.address, messages: prepared.messages });
+    await sendToWallet(ui, acc, prepared); // the wallet opens by itself with the amount filled in; the player only confirms
   } catch (e) { busy = false; closeOverlay(); return toast(t("pay.cancelled"), "err"); }
   showPay("wait");
   const started = Date.now();
