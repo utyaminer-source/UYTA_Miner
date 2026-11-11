@@ -13,6 +13,9 @@ const ADMIN_HELP = [
   "🛠 <b>Admin commands</b>",
   "",
   "<b>Orders (every buyer pays TON, you send the UTYA by hand)</b>",
+  "/clearorders — shows what would be deleted: ALL old orders (customers of still-open orders get a \"your order was cancelled\" message)",
+  "/clearorders yes — really deletes them (orders that still wait for UTYA or a refund are kept)",
+  "/clearorders yes all — deletes those too (only when you already handled them!)",
   "/orders (or /pending) — paid orders waiting for your UTYA, each with a ✅ button",
   "/delivered &lt;id&gt; [tx hash] — you sent the UTYA (same as the button)",
   "/refunds — refund requests of buyers",
@@ -172,6 +175,28 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
     if (OWNER_ONLY.has(cmd) && !isOwner(msg.from.id)) return reply("⛔ Only the owner (the IDs in ADMIN_IDS) can use this command.");
 
     // ---------- orders
+    if (cmd === "/clearorders") {
+      const [sure, which] = arg.toLowerCase().split(/\s+/);
+      const all = which === "all";
+      const prev = await game.clearOrders({ all, dryRun: true });
+      if (sure !== "yes") {
+        return reply(
+          [
+            `🗑 <b>Delete old orders</b>`,
+            `Orders in total: <b>${prev.total}</b>`,
+            `Would be deleted: <b>${prev.deleted}</b>`,
+            `Customers who get a "your order was cancelled" message: <b>${prev.told}</b>`,
+            prev.kept.length ? `Kept (they still wait for UTYA or a refund): <b>${prev.kept.length}</b> — ${prev.kept.slice(0, 15).map((o) => `<code>${esc(o.id)}</code>`).join(" ")}` : "Nothing is kept.",
+            "",
+            "To do it send: <code>/clearorders yes</code>",
+            prev.kept.length ? "To delete the kept ones too: <code>/clearorders yes all</code> (a customer who paid and did not get the UTYA yet would lose his order!)" : "",
+          ].filter(Boolean).join("\n"),
+        );
+      }
+      await reply(`Deleting ${prev.deleted} orders and telling ${prev.told} customers... one moment.`);
+      const r = await game.clearOrders({ all });
+      return reply(`✅ Deleted <b>${r.deleted}</b> orders. Messages sent: <b>${r.told}</b>. Kept: <b>${r.kept.length}</b>.`);
+    }
     if (cmd === "/orders") {
       const s = await game.adminStats();
       if (!s.awaiting.length) return reply("No paid order is waiting. 🎉");
