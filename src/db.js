@@ -106,6 +106,16 @@ class MemoryDB {
     this.dirty();
     return structuredClone(o);
   }
+  /** Deletes orders, but only those whose status is still one of `statuses` (an order that was paid a moment ago is never deleted by mistake). Returns how many were deleted. */
+  async deleteOrders(ids, statuses) {
+    let n = 0;
+    for (const id of ids) {
+      const o = this.orders.get(id);
+      if (o && statuses.includes(o.status)) { this.orders.delete(id); n++; }
+    }
+    if (n) this.dirty();
+    return n;
+  }
   async listOrders({ statuses, userId, since, limit = 50, oldestFirst = false } = {}) {
     const rows = [...this.orders.values()]
       .filter((o) => (statuses ? statuses.includes(o.status) : true) && (userId ? o.userId === userId : true) && (since ? o.createdAt >= since : true))
@@ -204,6 +214,11 @@ class MongoDB {
   async transitionOrder(id, from, patch) {
     const res = await this.ordersCol.findOneAndUpdate({ _id: id, status: { $in: from } }, { $set: patch }, { returnDocument: "after" });
     return strip(res?.value !== undefined ? res.value : res);
+  }
+  async deleteOrders(ids, statuses) {
+    if (!ids.length) return 0;
+    const res = await this.ordersCol.deleteMany({ _id: { $in: ids }, status: { $in: statuses } });
+    return res.deletedCount ?? 0;
   }
   async listOrders({ statuses, userId, since, limit = 50, oldestFirst = false } = {}) {
     const q = {};
