@@ -188,6 +188,8 @@ async function handleApi(req, res, pathname, query) {
       const order = await pay.checkOne(id, String(body.id ?? ""));
       return json(res, 200, { order, state: await game.stateFor(id) });
     }
+    case "/api/pay/cancel": // the player cancelled in his wallet: quiet, no message to anybody
+      return json(res, 200, { ok: await game.cancelOrder(id, String(body.id ?? "")) });
     case "/api/refund":
       await game.requestRefund(id, String(body.id ?? ""));
       return json(res, 200, { state: await game.stateFor(id) });
