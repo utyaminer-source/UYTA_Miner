@@ -306,8 +306,41 @@ export async function createOrder(userId, rawTon) {
     wallet: u.wallet, // the UTYA goes to this wallet, even if the player connects another one later
   };
   await db.addOrder(o);
-  void hooks.notify(userId, T(langOf(u), "order.created", { id: o.id, ton: o.ton, utya: fmt(o.utya), symbol: TOKEN.symbol, minutes: Math.round(ORDER.pendingMs / 60_000) }));
+  // no message here: the player and the admin are told only when the payment really arrived
   return o;
+}
+
+/** The player cancelled the payment in his wallet. Quiet: no message to anybody, and the order disappears from his list.
+ *  It is not thrown away, only marked, so that TON which still arrives afterwards is found and delivered as usual. */
+export async function cancelOrder(userId, id) {
+  const o = await db.getOrder(String(id).toUpperCase());
+  if (!o || o.userId !== userId) throw new GameError("Order not found.", "order_missing");
+  const moved = await db.transitionOrder(o.id, ["pending"], { status: "expired", cancelled: true, expiresAt: Date.now() });
+  return Boolean(moved);
+}
+
+/**
+ * Admin: delete the old orders. Orders whose customer still waits for UTYA or for a refund (paid, refund_requested) are KEPT, unless all = true.
+ * Everybody whose order was still open (pending / expired) gets one message: "your order was cancelled".
+ * dryRun only counts.
+ */
+export async function clearOrders({ all = false, dryRun = false } = {}) {
+  const owing = ["paid", "refund_requested"];
+  const deletable = ["pending", "expired", "failed", "delivered", "refunded", ...(all ? owing : [])];
+  const rows = await db.listOrders({ limit: 1_000_000 });
+  const gone = rows.filter((o) => deletable.includes(o.status));
+  const kept = rows.filter((o) => !deletable.includes(o.status));
+  const toTell = gone.filter((o) => (o.status === "pending" || o.status === "expired") && !o.cancelled);
+  if (dryRun) return { total: rows.length, deleted: gone.length, kept, told: toTell.length };
+  let told = 0;
+  for (const o of toTell) {
+    const user = await db.getUser(o.userId);
+    void hooks.notify(o.userId, T(langOf(user), "order.cancelled", { id: o.id, ton: o.ton }));
+    told++;
+    await new Promise((r) => setTimeout(r, 60)); // slowly, Telegram does not like a flood of messages
+  }
+  const deleted = await db.deleteOrders(gone.map((o) => o.id), deletable);
+  return { total: rows.length, deleted, kept, told };
 }
 
 export const getOrder = (id) => db.getOrder(String(id).toUpperCase());
@@ -325,11 +358,7 @@ export async function openOrders() {
   for (const o of rows) {
     if (o.status === "pending" && now > o.expiresAt) {
       const moved = await db.transitionOrder(o.id, ["pending"], { status: "expired" });
-      if (moved) {
-        o.status = "expired";
-        const user = await db.getUser(o.userId);
-        void hooks.notify(o.userId, T(langOf(user), "order.expired", { id: o.id, ton: o.ton }));
-      }
+      if (moved) o.status = "expired"; // quiet: an unpaid order that runs out is not worth a message
     }
   }
   const dead = await db.listOrders({ statuses: ["pending", "expired"], limit: 500 });
@@ -346,7 +375,7 @@ const adminButtons = (o) => [[{ text: "✅ I sent the UTYA", callback_data: `od:
  */
 export async function completePayment(o, paid) {
   const now = Date.now();
-  const done = await db.transitionOrder(o.id, ["pending", "expired"], { status: "paid", txHash: paid.txHash, paidNano: String(paid.nano), paidAt: now });
+  const done = await db.transitionOrder(o.id, ["pending", "expired"], { status: "paid", txHash: paid.txHash, paidNano: String(paid.nano), paidAt: now, cancelled: false });
   if (!done) return false;
   if (done.kind === "nft") return completeNftOrder(done); // an NFT order: the NFT is given at once, nothing to send by hand
   let order = done;
@@ -711,7 +740,7 @@ export async function stateFor(id) {
   const u = await mustUser(id);
   const s = await getSettings();
   const price = (await runtime.price?.get().catch(() => null)) ?? null;
-  const orders = await db.listOrders({ userId: id, limit: 20 });
+  const orders = (await db.listOrders({ userId: id, limit: 40 })).filter((o) => !o.cancelled).slice(0, 20);
   const withdrawals = await db.listWithdrawals({ userId: id, limit: 20 });
   const m = mineOf(u);
   const friends = await db.listReferrals(id, 100);
@@ -763,7 +792,7 @@ export async function adminStats() {
     users: await db.countUsers(),
     awaiting,
     refunds,
-    unpaid,
+    unpaid: unpaid.filter((o) => !o.cancelled),
     withdrawals,
     minedUtya: (meta.minedUtya4 ?? 0) / 1e4,
     withdrawnUtya: (meta.withdrawnUtya4 ?? 0) / 1e4,
