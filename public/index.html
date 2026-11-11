@@ -380,6 +380,7 @@ const I18N = {
   "how.3": "Until it is sent, you can request a refund here.",
   "pay.confirm": "Confirm the payment in your wallet…",
   "pay.processing": "Processing…",
+  "pay.openWallet": "Open wallet",
   "pay.wait": "Waiting for the blockchain…",
   "pay.done": "Payment received!",
   "pay.doneBody": "{utya} UTYA will be sent to your wallet within about {hours} hours. You will get a message in Telegram.",
@@ -614,6 +615,7 @@ const I18N = {
   "how.3": "حتى لحظة الإرسال يمكنك طلب استرداد المبلغ من هنا.",
   "pay.confirm": "أكّد الدفع في محفظتك…",
   "pay.processing": "جارٍ المعالجة…",
+  "pay.openWallet": "فتح المحفظة",
   "pay.wait": "في انتظار البلوكتشين…",
   "pay.done": "تم استلام الدفع!",
   "pay.doneBody": "سيتم إرسال {utya} UTYA إلى محفظتك خلال حوالي {hours} ساعة. ستصلك رسالة في تيليجرام.",
@@ -848,6 +850,7 @@ const I18N = {
   "how.3": "До отправки здесь можно запросить возврат.",
   "pay.confirm": "Подтвердите платёж в кошельке…",
   "pay.processing": "Обработка…",
+  "pay.openWallet": "Открыть кошелёк",
   "pay.wait": "Ждём блокчейн…",
   "pay.done": "Платёж получен!",
   "pay.doneBody": "{utya} UTYA будут отправлены на ваш кошелёк примерно в течение {hours} ч. Вы получите сообщение в Telegram.",
@@ -1152,7 +1155,7 @@ function ton() {
     tonUI = new window.TON_CONNECT_UI.TonConnectUI({
       manifestUrl: window.location.origin + "/tonconnect-manifest.json",
       // no extra TonConnect windows ("Confirm the transaction in Keeper"): the wallet opens straight away and the player only confirms there
-      actionsConfiguration: { twaReturnUrl: "https://t.me/" + BOT_USERNAME, modals: [], notifications: [], skipRedirectToWallet: "never" },
+      actionsConfiguration: { twaReturnUrl: "https://t.me/" + BOT_USERNAME, modals: [], notifications: [], skipRedirectToWallet: "always" }, // the app opens the wallet itself (openWalletApp), TonConnect must not do it a second time
     });
     tonUI.onStatusChange((w) => {
       if (w && w.account && S) syncWallet(w.account.address).then(() => render()).catch(() => render());
@@ -1173,12 +1176,28 @@ async function ensureWallet(acc) {
   if (walletSyncedFor === acc.address && S && S.user.wallet) return;
   await syncWallet(acc.address);
 }
-/** Opens the wallet with the amount filled in. The player only confirms there. If the wallet did not come up after 7 seconds, a small hint is shown. */
+/** The link that opens the wallet app the player connected (Tonkeeper, a DeFi wallet, any TonConnect wallet). Wallets that run inside the page itself have none. */
+function walletLink(ui) {
+  const w = (ui && (ui.walletInfo || ui.wallet)) || {};
+  return w.universalLink || w.deepLink || "";
+}
+/** Opens the connected wallet app by itself. The wallet then shows the payment with the amount filled in. */
+function openWalletApp(ui) {
+  const link = walletLink(ui);
+  if (!link) return false;
+  openLink(link);
+  return true;
+}
+/** Sends the payment to the wallet: the wallet app opens at once and shows the amount, the player only confirms there.
+ *  If the player comes back and nothing happened, a small "Open wallet" button is shown. */
 async function sendToWallet(ui, acc, prepared) {
-  const hint = setTimeout(() => showPay("confirm"), 7000);
-  try {
-    await ui.sendTransaction({ validUntil: prepared.validUntil, from: acc.address, messages: prepared.messages }, { modals: [], notifications: [], skipRedirectToWallet: "never", twaReturnUrl: "https://t.me/" + BOT_USERNAME });
-  } finally { clearTimeout(hint); }
+  const hint = setTimeout(() => showWalletHint(), 6000);
+  const send = ui.sendTransaction({ validUntil: prepared.validUntil, from: acc.address, messages: prepared.messages }, { modals: [], notifications: [], skipRedirectToWallet: "always", twaReturnUrl: "https://t.me/" + BOT_USERNAME });
+  const opener = setTimeout(() => openWalletApp(ui), 250); // a moment, so the request has reached the wallet's bridge before the wallet opens
+  try { await send; } finally { clearTimeout(opener); clearTimeout(hint); }
+}
+function showWalletHint() {
+  openOverlay('<div class="spin"></div><h2>' + esc(t("pay.confirm")) + "</h2>" + (walletLink(ton()) ? '<button class="btn" data-a="openWallet">' + esc(t("pay.openWallet")) + "</button>" : ""));
 }
 
 // ------------------------------------------------------------------ rendering
@@ -1641,7 +1660,7 @@ async function runNftPay() {
   }
   try {
     await sendToWallet(ui, acc, prepared); // the wallet opens by itself with the amount filled in; the player only confirms
-  } catch (e) { busy = false; closeOverlay(); return toast(t("pay.cancelled"), "err"); }
+  } catch (e) { busy = false; closeOverlay(); api("/api/pay/cancel", { id: prepared.id }).catch(() => {}); /* the order is dropped quietly: no message to anybody */ return toast(t("pay.cancelled"), "err"); }
   showPay("wait");
   const started = Date.now();
   while (Date.now() - started < 180000) {
@@ -1873,7 +1892,7 @@ async function runPay() {
   }
   try {
     await sendToWallet(ui, acc, prepared); // the wallet opens by itself with the amount filled in; the player only confirms
-  } catch (e) { busy = false; closeOverlay(); return toast(t("pay.cancelled"), "err"); }
+  } catch (e) { busy = false; closeOverlay(); api("/api/pay/cancel", { id: prepared.id }).catch(() => {}); /* the order is dropped quietly: no message to anybody */ return toast(t("pay.cancelled"), "err"); }
   showPay("wait");
   const started = Date.now();
   while (Date.now() - started < 180000) {
@@ -1984,6 +2003,7 @@ document.addEventListener("click", async (ev) => {
   }
   if (a === "nftAsk") return nftPopup();
   if (a === "nftPay") return startNftPay();
+  if (a === "openWallet") { openWalletApp(ton()); return; }
   if (a === "closeov") return closeOverlay();
   if (a === "toOrders") { closeOverlay(); tab = "wallet"; render(); return; }
   if (a === "terms") { tab = "terms"; render(); window.scrollTo(0, 0); return; }
