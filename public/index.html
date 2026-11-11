@@ -279,6 +279,8 @@ img{-webkit-user-drag:none;user-drag:none}
 .nftart.pop{width:170px;margin:4px auto 6px}
 .nftwon{animation:nftreveal .9s cubic-bezier(.2,1.3,.3,1) both}
 @keyframes nftreveal{from{transform:scale(.2) rotate(-12deg);opacity:0;filter:brightness(3)}}
+.btn .bspin{display:inline-block;width:17px;height:17px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:r .75s linear infinite;vertical-align:-3px;margin-inline-end:9px}
+.btn.loading{pointer-events:none;cursor:default;filter:saturate(.9) brightness(.95)}
 .chrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line);font-size:13.5px;text-align:start}
 .chrow:last-child{border-bottom:0}
 .chrow i{flex:none;width:10px;height:10px;border-radius:50%;background:var(--rc);box-shadow:0 0 10px var(--rc)}
@@ -510,6 +512,7 @@ const I18N = {
   "nft.buyNow": "BUY NOW · {n} TON",
   "nft.payBtn": "Pay {n} TON",
   "nft.soldout": "Sold out",
+  "nft.processing": "Processing…",
   "nft.closed": "The NFT shop is closed right now.",
   "nft.popupBody": "Pay {n} TON and get ONE random duck at once. Your wallet opens by itself: just confirm the payment.",
   "nft.yourBoost": "Your NFT boost",
@@ -742,6 +745,7 @@ const I18N = {
   "nft.buyNow": "اشترِ الآن · {n} TON",
   "nft.payBtn": "ادفع {n} TON",
   "nft.soldout": "نفدت الكمية",
+  "nft.processing": "جارٍ المعالجة…",
   "nft.closed": "متجر NFT مغلق حالياً.",
   "nft.popupBody": "ادفع {n} TON واحصل فوراً على بطة واحدة عشوائية. ستفتح محفظتك تلقائياً: فقط أكّد الدفع.",
   "nft.yourBoost": "تعزيز الـ NFT لديك",
@@ -974,6 +978,7 @@ const I18N = {
   "nft.buyNow": "КУПИТЬ · {n} TON",
   "nft.payBtn": "Оплатить {n} TON",
   "nft.soldout": "Распродано",
+  "nft.processing": "Обработка…",
   "nft.closed": "Магазин NFT сейчас закрыт.",
   "nft.popupBody": "Оплатите {n} TON и сразу получите ОДНУ случайную утку. Кошелёк откроется сам: просто подтвердите платёж.",
   "nft.yourBoost": "Ваш бонус NFT",
@@ -1536,6 +1541,19 @@ function nftText(kind, it) {
 const nftArt = (it, extra) => '<div class="nftart ' + (it.rarity === "legendary" || it.rarity === "mythic" ? "sweep " : "") + (extra || "") + '">' + (NFT_ART[it.art] || NFT_ART.copper) + "</div>";
 const nftSoldOut = () => S.nft.sold >= S.nft.supply;
 
+// the buy buttons show a turning circle and "Processing…" from the tap until the wallet confirm screen (or the end)
+let nftProcessing = false;
+const nftPayBtn = (label) => nftProcessing
+  ? '<button class="btn loading" data-a="nftPay"><span class="bspin"></span>' + esc(t("nft.processing")) + "</button>"
+  : '<button class="btn" data-a="nftPay">' + esc(label) + "</button>";
+function setNftBusy(on) {
+  nftProcessing = on;
+  document.querySelectorAll('[data-a="nftPay"]').forEach((b) => {
+    if (on) { b.classList.add("loading"); b.innerHTML = '<span class="bspin"></span>' + esc(t("nft.processing")); }
+    else if (S && S.nft) { b.classList.remove("loading"); b.textContent = b.closest(".sheet") ? t("nft.payBtn", { n: nf(S.nft.priceTon, 2) }) : t("nft.buyNow", { n: nf(S.nft.priceTon, 2) }); }
+  });
+}
+
 function nftCard(it) {
   return '<div class="nftc r-' + esc(it.rarity) + (it.owned ? " own" : "") + '">' +
     '<div class="nftart ' + (it.rarity === "legendary" || it.rarity === "mythic" ? "sweep" : "") + '">' + (NFT_ART[it.art] || NFT_ART.copper) +
@@ -1552,7 +1570,7 @@ function viewNft() {
   const pct = Math.min(100, (n.sold / n.supply) * 100);
   const buyBtn = out ? '<button class="btn" disabled>' + esc(t("nft.soldout")) + "</button>"
     : !n.open ? '<button class="btn" disabled>' + esc(t("nft.closed")) + "</button>"
-    : '<button class="btn" data-a="nftPay">' + esc(t("nft.buyNow", { n: nf(n.priceTon, 2) })) + "</button>";
+    : nftPayBtn(t("nft.buyNow", { n: nf(n.priceTon, 2) }));
   const hero = '<div class="card hero nfthero"><button class="nftcard" data-a="nftAsk" aria-label="NFT">' + NFT_MYSTERY + "</button>" +
     "<h3>" + esc(t("nft.title")) + '</h3><div class="muted">' + esc(t("nft.sub")) + '</div><div class="muted" style="margin-top:6px;color:#ffe08a">' + esc(t("nft.sub2")) + "</div>" +
     '<div class="nftrow"><b>' + esc(t("nft.priceEach", { n: nf(n.priceTon, 2) })) + "</b><span>" + esc(t("nft.sold", { a: nf(n.sold, 0), b: nf(n.supply, 0) })) + '</span></div><div class="nftbar"><i style="width:' + pct.toFixed(1) + '%"></i></div>' + buyBtn + "</div>";
@@ -1568,7 +1586,7 @@ function viewNft() {
 function nftPopup() {
   const n = S.nft;
   const rows = n.items.map((it) => '<div class="chrow r-' + esc(it.rarity) + '"><i></i><span>' + esc(nftText("n", it)) + " · " + esc(t("nft.rarity." + it.rarity)) + "</span><b>+" + esc(nf(it.boostPct, 0)) + "% · " + esc(nf(it.chance, 1)) + "%</b></div>").join("");
-  const btn = nftSoldOut() ? '<button class="btn" disabled>' + esc(t("nft.soldout")) + "</button>" : !n.open ? '<button class="btn" disabled>' + esc(t("nft.closed")) + "</button>" : '<button class="btn" data-a="nftPay">' + esc(t("nft.payBtn", { n: nf(n.priceTon, 2) })) + "</button>";
+  const btn = nftSoldOut() ? '<button class="btn" disabled>' + esc(t("nft.soldout")) + "</button>" : !n.open ? '<button class="btn" disabled>' + esc(t("nft.closed")) + "</button>" : nftPayBtn(t("nft.payBtn", { n: nf(n.priceTon, 2) }));
   openOverlay('<div style="width:150px;margin:0 auto">' + NFT_MYSTERY + "</div><h2>" + esc(t("nft.title")) + '</h2><p class="muted">' + esc(t("nft.popupBody", { n: nf(n.priceTon, 2) })) + '</p><div style="margin:10px 0 4px">' + rows + "</div>" + btn + '<button class="btn ghost" data-a="closeov">' + esc(t("pay.close")) + "</button>");
 }
 
@@ -1580,6 +1598,11 @@ function showNftWon(o) {
 }
 
 async function startNftPay() {
+  if (busy || nftProcessing) return;
+  setNftBusy(true);
+  try { await runNftPay(); } finally { setNftBusy(false); }
+}
+async function runNftPay() {
   if (busy) return;
   const ui = ton();
   if (!ui) return toast(t("err.generic"), "err");
