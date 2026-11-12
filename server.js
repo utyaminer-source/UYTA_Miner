@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
+import zlib from "node:zlib";
 import { fileURLToPath } from "node:url";
 import { verifyInitData } from "./src/auth.js";
 import { createBot } from "./src/bot.js";
@@ -93,6 +94,33 @@ function readBody(req, limit = 20_000) {
   });
 }
 
+// The app page is 160 KB. It is compressed once (brotli / gzip, about 5x smaller) and kept in memory, and the phone only
+// asks "did it change?" (ETag) when it opens the app again. That is what makes the app open fast on a slow mobile network.
+const staticCache = new Map(); // file -> { mtimeMs, raw, gz, br, etag }
+const COMPRESSIBLE = new Set([".html", ".js", ".css", ".json", ".svg"]);
+
+function loadStatic(file, cb) {
+  fs.stat(file, (err, st) => {
+    if (err || !st.isFile()) return cb(null);
+    const hit = staticCache.get(file);
+    if (hit && hit.mtimeMs === st.mtimeMs) return cb(hit);
+    fs.readFile(file, (err2, raw) => {
+      if (err2) return cb(null);
+      const ext = path.extname(file);
+      const packed = COMPRESSIBLE.has(ext) && raw.length > 1024;
+      const entry = {
+        mtimeMs: st.mtimeMs,
+        raw,
+        gz: packed ? zlib.gzipSync(raw, { level: 9 }) : null,
+        br: packed ? zlib.brotliCompressSync(raw, { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 9 } }) : null,
+        etag: '"' + crypto.createHash("sha1").update(raw).digest("hex").slice(0, 20) + '"',
+      };
+      staticCache.set(file, entry);
+      cb(entry);
+    });
+  });
+}
+
 function serveStatic(req, res, pathname) {
   const rel = pathname === "/" ? "/index.html" : pathname;
   const file = path.normalize(path.join(PUBLIC_DIR, rel));
@@ -100,18 +128,30 @@ function serveStatic(req, res, pathname) {
     res.writeHead(403);
     return res.end();
   }
-  fs.readFile(file, (err, data) => {
-    if (err) {
+  loadStatic(file, (c) => {
+    if (!c) {
       res.writeHead(404, { "content-type": "text/plain" });
       return res.end("Not found");
     }
     const ext = path.extname(file);
-    res.writeHead(200, {
+    const head = {
       "content-type": MIME[ext] ?? "application/octet-stream",
       "cache-control": ext === ".html" ? "no-cache" : "public, max-age=3600",
       "x-content-type-options": "nosniff",
-    });
-    res.end(data);
+      etag: c.etag,
+      vary: "accept-encoding",
+    };
+    if (req.headers["if-none-match"] === c.etag) {
+      res.writeHead(304, head);
+      return res.end();
+    }
+    const accept = String(req.headers["accept-encoding"] ?? "");
+    let body = c.raw;
+    if (c.br && /\bbr\b/.test(accept)) { body = c.br; head["content-encoding"] = "br"; }
+    else if (c.gz && /\bgzip\b/.test(accept)) { body = c.gz; head["content-encoding"] = "gzip"; }
+    head["content-length"] = body.length;
+    res.writeHead(200, head);
+    res.end(body);
   });
 }
 
@@ -130,11 +170,17 @@ async function missingChannels(userId) {
   const cached = joinedUntil.get(userId);
   if (cached && cached.key === key && cached.until > Date.now()) return [];
   const missing = [];
-  for (const chan of channels) {
-    const joined = await game.hooks.checkMember(chan, userId);
+  // all channels at the same time, and never more than 3 seconds of waiting for Telegram (then it counts as "cannot check", like before)
+  const answers = await Promise.all(
+    channels.map((chan) =>
+      Promise.race([game.hooks.checkMember(chan, userId), new Promise((r) => setTimeout(() => r(null), 3000))]).catch(() => null),
+    ),
+  );
+  channels.forEach((chan, i) => {
+    const joined = answers[i];
     if (joined === false) missing.push(chan);
     if (joined === null) console.warn(`[gate] cannot check ${chan}. Is the bot an admin of that channel?`); // fail open
-  }
+  });
   if (!missing.length) joinedUntil.set(userId, { until: Date.now() + 5 * 60_000, key });
   return missing;
 }
