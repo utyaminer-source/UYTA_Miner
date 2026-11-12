@@ -6,8 +6,11 @@
 <meta name="theme-color" content="#0a0b1f" />
 <title>UTYA Miner</title>
 <link rel="icon" href="/icon.png" />
+<link rel="preconnect" href="https://telegram.org" />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2/dist/tonconnect-ui.min.js"></script>
+<!-- the wallet script is big: it loads on the side (async), the app does not wait for it -->
+<script async src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2/dist/tonconnect-ui.min.js" onload="window.dispatchEvent(new Event('tonready'))"></script>
 <style>
 @property --a{syntax:'<angle>';initial-value:0deg;inherits:false}
 :root{
@@ -324,7 +327,7 @@ img{-webkit-user-drag:none;user-drag:none}
 <path d="M200 94 l5 12 13 1 -10 8 3 13 -11 -7 -11 7 3 -13 -10 -8 13 -1z" fill="#fff" opacity=".85"/>
 </g>
 </svg></div>
-<div id="app"></div>
+<div id="app"><div class="full"><div class="spin"></div></div></div>
 <div id="ov"></div>
 <div id="toast"></div>
 <script>
@@ -1148,6 +1151,21 @@ const ICON = {
 const svgi = (k) => '<svg viewBox="0 0 24 24" aria-hidden="true">' + ICON[k] + "</svg>";
 
 // ------------------------------------------------------------------ wallet (TonConnect)
+/** Resolves when the wallet script has arrived (it loads in the background). */
+function tonLoaded() {
+  if (window.TON_CONNECT_UI) return Promise.resolve();
+  return new Promise((resolve, reject) => {
+    const done = () => { clearTimeout(timer); resolve(); };
+    const timer = setTimeout(() => { window.removeEventListener("tonready", done); reject(new Error("wallet script")); }, 20000);
+    window.addEventListener("tonready", done, { once: true });
+  });
+}
+/** The wallet connector; if the script is not there yet it waits for it (the button shows "Processing" meanwhile). */
+async function getTon() {
+  let ui = ton();
+  if (!ui) { try { await tonLoaded(); } catch (e) { /* no script */ } ui = ton(); }
+  return ui;
+}
 function ton() {
   if (tonUI) return tonUI;
   try {
@@ -1642,7 +1660,7 @@ async function startNftPay() {
 }
 async function runNftPay() {
   if (busy) return;
-  const ui = ton();
+  const ui = await getTon();
   if (!ui) return toast(t("err.generic"), "err");
   const acc = ui.account;
   if (!acc) { closeOverlay(); return ui.openModal(); }
@@ -1875,7 +1893,7 @@ async function startPay() {
 }
 async function runPay() {
   if (busy) return;
-  const ui = ton();
+  const ui = await getTon();
   if (!ui) return toast(t("err.generic"), "err");
   const acc = ui.account;
   if (!acc) return ui.openModal();
@@ -1965,7 +1983,7 @@ document.addEventListener("click", async (ev) => {
   buzz();
   if (a === "tab") { tab = el.dataset.v; render(); if (tab === "buy") { quote = null; refreshQuote(); } return; }
   if (a === "preset") { amount = el.dataset.v; const i = $("#amt"); if (i) i.value = amount; document.querySelectorAll(".chips button").forEach((b) => b.classList.toggle("on", b.dataset.v === amount)); quote = null; quoteErr = null; refreshQuoteUI(); refreshQuote(); return; }
-  if (a === "connect") { const ui = ton(); if (ui) ui.openModal(); else toast(t("err.generic"), "err"); return; }
+  if (a === "connect") { const ui = await getTon(); if (ui) ui.openModal(); else toast(t("err.generic"), "err"); return; }
   if (a === "disconnect") { const ui = ton(); if (ui) { try { await ui.disconnect(); } catch (e) {} } render(); return; }
   if (a === "pay") return startPay();
   if (a === "range") { chartRange = el.dataset.v; chartData = null; chartErr = false; chartAnim = true; render(); return; }
@@ -1980,7 +1998,7 @@ document.addEventListener("click", async (ev) => {
   if (a === "wdAll") { wdAmount = String(floor4(S.mining.balance)); const i = $("#wdAmt"); if (i) i.value = wdAmount; return; }
   if (a === "wdSubmit") {
     const acc = connectedAccount();
-    if (!acc) { const ui = ton(); if (ui) ui.openModal(); return; }
+    if (!acc) { const ui = await getTon(); if (ui) ui.openModal(); return; }
     if (busy) return;
     busy = true;
     try {
@@ -2054,10 +2072,9 @@ async function boot() {
     return;
   }
   lang = S.user.lang || "en";
-  ton(); // create the wallet connector early so a restored wallet shows up
-  render();
-  const acc = connectedAccount();
-  if (acc) syncWallet(acc.address).then(render).catch(() => {});
+  render(); // the app is shown at once
+  // the wallet connector is created as soon as its script is there (a restored wallet shows up), without holding the app back
+  tonLoaded().then(() => { ton(); const acc = connectedAccount(); if (acc) syncWallet(acc.address).then(render).catch(() => {}); }).catch(() => {});
   refreshQuote();
   setInterval(() => { if (!document.hidden) { refreshState(); if (tab === "buy" && !busy) refreshQuote(); } }, 15000);
   setInterval(() => { const c = $("#chip"); if (c && S) c.outerHTML = priceChip(); }, 1000);
