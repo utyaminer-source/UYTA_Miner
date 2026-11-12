@@ -247,11 +247,19 @@ function checkAmount(raw, s) {
 }
 
 /** The live offer for `rawTon` TON. Throws when buying is paused or no fresh price exists. */
+/** The live price, as fast as possible. The server reads the market in the background every few seconds, so the price in memory is
+ *  normally fresh: it is used at once if it is younger than a minute. Only when there is none the request waits for the market. */
+async function livePrice() {
+  const cached = runtime.price?.peek?.();
+  if (cached && Date.now() - cached.at < 60_000) return cached;
+  return runtime.price?.get();
+}
+
 export async function quote(rawTon) {
   const s = await getSettings();
   if (!s.buyOpen) throw new GameError("Buying is paused right now.", "buy_closed");
   const ton = checkAmount(rawTon, s);
-  const price = await runtime.price?.get();
+  const price = await livePrice();
   if (!price) throw new GameError("The live price is not available right now. Please try again in a minute.", "price_unavailable");
   return computeQuote(ton, price, s.feePct);
 }
@@ -739,7 +747,11 @@ export async function adminGiveNft(userId, nftId, n = 1) {
 export async function stateFor(id) {
   const u = await mustUser(id);
   const s = await getSettings();
-  const price = (await runtime.price?.get().catch(() => null)) ?? null;
+  // opening the app must never wait for the market: take the price from memory (at most 1.5 s of waiting when there is none yet)
+  const price =
+    runtime.price?.peek?.() ??
+    (await Promise.race([runtime.price?.get().catch(() => null) ?? null, new Promise((r) => setTimeout(() => r(null), 1500))])) ??
+    null;
   const orders = (await db.listOrders({ userId: id, limit: 40 })).filter((o) => !o.cancelled).slice(0, 20);
   const withdrawals = await db.listWithdrawals({ userId: id, limit: 20 });
   const m = mineOf(u);
