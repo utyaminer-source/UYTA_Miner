@@ -26,6 +26,9 @@ const M = {
     "nft.won": "🦆🎉 Your mystery NFT opened!\nYou got #{serial} {name}: mining boost +{boost}%. Your total NFT boost is now +{total}% (it counts from your next mining session).",
     "nft.soldout": "⚠️ Your payment for NFT order {id} ({ton} TON) arrived, but all NFTs were already sold out. The team will send your TON back.",
     "nft.gifted": "🎁 You received the NFT {name}!\nIt boosts your mining by +{boost}%. Your total NFT boost is now +{total}% (from your next mining session).",
+    "verify.done": "✅ Your account is verified! Payment received: {ton} TON.\nWithdrawals are now unlocked.",
+    "verify.gifted": "✅ Your account was verified by the team. Withdrawals are now unlocked.",
+    "verify.duplicate": "⚠️ Your payment for verification order {id} ({ton} TON) arrived, but your account was already verified. The team will send your TON back.",
     "balance": "⛏️ Mined balance: {balance} {symbol}\nMined in total: {total} {symbol}\nWithdrawn: {withdrawn} {symbol}\nWithdrawals waiting: {waiting}",
   },
   ar: {
@@ -53,6 +56,9 @@ const M = {
     "nft.won": "🦆🎉 فُتح الـ NFT الغامض الخاص بك!\nحصلت على #{serial} «{name}»: تعزيز تعدين +{boost}%. إجمالي تعزيز الـ NFT الآن +{total}% (يُحتسب من جلسة التعدين القادمة).",
     "nft.soldout": "⚠️ وصل دفعك لطلب الـ NFT {id} ({ton} TON) لكن جميع الـ NFT نفدت. سيعيد الفريق TON إليك.",
     "nft.gifted": "🎁 حصلت على الـ NFT «{name}»!\nيزيد تعدينك بنسبة +{boost}%. إجمالي تعزيز الـ NFT لديك الآن +{total}% (من جلسة التعدين القادمة).",
+    "verify.done": "✅ تم توثيق حسابك! تم استلام الدفع: {ton} TON.\nأصبح السحب متاحاً الآن.",
+    "verify.gifted": "✅ قام الفريق بتوثيق حسابك. أصبح السحب متاحاً الآن.",
+    "verify.duplicate": "⚠️ وصل دفعك لطلب التوثيق {id} ({ton} TON) لكن حسابك كان موثّقاً بالفعل. سيعيد الفريق TON إليك.",
     "balance": "⛏️ رصيد التعدين: {balance} {symbol}\nإجمالي ما عدّنته: {total} {symbol}\nتم سحب: {withdrawn} {symbol}\nطلبات السحب المعلّقة: {waiting}",
   },
   ru: {
@@ -80,6 +86,9 @@ const M = {
     "nft.won": "🦆🎉 Ваш загадочный NFT открыт!\nВам выпала #{serial} «{name}»: бонус к майнингу +{boost}%. Общий бонус NFT теперь +{total}% (действует со следующей сессии).",
     "nft.soldout": "⚠️ Оплата заказа NFT {id} ({ton} TON) пришла, но все NFT уже распроданы. Команда вернёт вам TON.",
     "nft.gifted": "🎁 Вы получили NFT «{name}»!\nОн ускоряет майнинг на +{boost}%. Общий бонус NFT теперь +{total}% (со следующей сессии).",
+    "verify.done": "✅ Ваш аккаунт верифицирован! Платёж получен: {ton} TON.\nВывод теперь доступен.",
+    "verify.gifted": "✅ Команда верифицировала ваш аккаунт. Вывод теперь доступен.",
+    "verify.duplicate": "⚠️ Платёж за заказ верификации {id} ({ton} TON) пришёл, но ваш аккаунт уже был верифицирован. Команда вернёт вам TON.",
     "balance": "⛏️ Баланс майнинга: {balance} {symbol}\nВсего намайнено: {total} {symbol}\nВыведено: {withdrawn} {symbol}\nЗаявок на вывод в ожидании: {waiting}",
   },
 };
