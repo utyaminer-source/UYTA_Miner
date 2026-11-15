@@ -25,10 +25,10 @@ const ADMIN_HELP = [
   "/confirmpay &lt;id&gt; (or /confirmdeposit) — confirm one by hand when you saw the transfer in your wallet",
   "",
   "<b>Mining and withdrawals (the mined UTYA is paid by you, from your wallet, by hand)</b>",
-  "/withdrawals (or /wd) — withdrawal requests waiting for you, each with ✅ / ❌ buttons",
+  "/withdrawals [page] (or /wd) — withdrawal requests waiting for you, 50 per page, each with ✅ / ❌ buttons. The first line shows the TOTAL waiting (also in /stats)",
   "/wsent &lt;id&gt; [tx hash] — you sent the UTYA (same as the ✅ button)",
   "/wreject &lt;id&gt; [reason] — refuse; the UTYA goes back to the user's mined balance",
-  "/rejectallwithdrow [reason] — reject ALL pending withdrawals at once; every user gets the rejected message and his UTYA goes back to his mined balance",
+  "/rejectallwithdrow [reason] — reject ALL pending withdrawals (even 10000+); every user gets the rejected message and his UTYA goes back to his mined balance. One message shows LIVE how many are rejected and how many are left",
   "/setminerate &lt;UTYA per hour&gt; — mining speed for new sessions",
   "/setminwithdraw &lt;UTYA&gt; — smallest withdrawal",
   "/setrefbonus &lt;UTYA&gt; — bonus the inviter gets for every friend who connects a wallet (0 = none, first value 5)",
@@ -207,6 +207,25 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
     return m ? `@${m[1]}` : null;
   };
 
+  /** The live text of /rejectallwithdrow. `pendingNow` is the real count of pending withdrawals right now. */
+  const rejectText = (st, pendingNow, final) => {
+    const pct = st.total ? Math.floor(((st.done + st.failed) / st.total) * 100) : 100;
+    const bar = "▓".repeat(Math.round(pct / 10)) + "░".repeat(10 - Math.round(pct / 10));
+    const secs = Math.max(1, (Date.now() - st.startedAt) / 1000);
+    const speed = (st.done + st.failed) / secs;
+    const eta = speed > 0 ? Math.ceil(st.remaining / speed) : 0;
+    const left = eta >= 3600 ? `${Math.floor(eta / 3600)} h ${Math.floor((eta % 3600) / 60)} min` : eta >= 60 ? `${Math.floor(eta / 60)} min ${eta % 60} s` : `${eta} s`;
+    return [
+      final ? "✅ <b>Reject all finished</b>" : "⏳ <b>Rejecting pending withdrawals…</b>",
+      `${bar} <b>${pct}%</b>`,
+      `Rejected: <b>${fmt(st.done)}</b>`,
+      `Remaining: <b>${fmt(st.remaining)}</b> of ${fmt(st.total)}`,
+      ...(st.failed ? [`⚠️ Could not reject: <b>${fmt(st.failed)}</b> (the user took it back, or an error)`] : []),
+      `Pending withdrawals right now: <b>${fmt(pendingNow)}</b>`,
+      ...(final ? ["Every user got the rejected message and the UTYA is back in his mined balance."] : [`Speed: ${speed.toFixed(1)}/s · about ${left} left`]),
+    ].join("\n");
+  };
+
   const orderCard = async (o) => {
     const u = await game.getUser(o.userId);
     return [
@@ -304,9 +323,21 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
 
     // ---------- mining and withdrawals
     if (cmd === "/withdrawals") {
-      const s = await game.adminStats();
-      if (!s.withdrawals.length) return reply("No withdrawal is waiting. 🎉");
-      for (const w of s.withdrawals) await send(chatId, `${await withdrawCard(w)}\n\nSend <b>${fmt(w.amount)} ${TOKEN.symbol}</b> to the wallet above, then tap ✅.`, { reply_markup: { inline_keyboard: [[{ text: "✅ I sent the UTYA", callback_data: `wd:ok:${w.id}` }, { text: "❌ Reject", callback_data: `wd:no:${w.id}` }]] } });
+      const total = await game.countPendingWithdrawals();
+      if (!total) return reply("No withdrawal is waiting. 🎉");
+      const SIZE = 50;
+      const pages = Math.ceil(total / SIZE);
+      const page = Math.min(pages, Math.max(1, Math.floor(Number(arg)) || 1));
+      const rows = await game.pendingWithdrawals((page - 1) * SIZE, SIZE);
+      await reply(
+        [
+          `⛏️ <b>${fmt(total)}</b> withdrawals waiting (oldest first)`,
+          `Page <b>${page}/${pages}</b> · showing ${fmt((page - 1) * SIZE + 1)}–${fmt((page - 1) * SIZE + rows.length)}`,
+          page < pages ? `Next page: <code>/withdrawals ${page + 1}</code>` : "This is the last page.",
+          "Reject all of them at once: <code>/rejectallwithdrow</code>",
+        ].join("\n"),
+      );
+      for (const w of rows) await send(chatId, `${await withdrawCard(w)}\n\nSend <b>${fmt(w.amount)} ${TOKEN.symbol}</b> to the wallet above, then tap ✅.`, { reply_markup: { inline_keyboard: [[{ text: "✅ I sent the UTYA", callback_data: `wd:ok:${w.id}` }, { text: "❌ Reject", callback_data: `wd:no:${w.id}` }]] } });
       return;
     }
     if (cmd === "/wsent" || cmd === "/wreject") {
@@ -320,11 +351,26 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
       }
     }
     if (cmd === "/rejectallwithdrow") {
-      const waiting = (await game.adminStats()).withdrawals.length;
+      if (game.rejectAllState()) return reply(`⏳ A reject-all is already running. Its live message is above ⬆️\n${rejectText(game.rejectAllState(), await game.countPendingWithdrawals(), false)}`);
+      const waiting = await game.countPendingWithdrawals();
       if (!waiting) return reply("No withdrawal is waiting. 🎉");
-      await reply(`Rejecting ${waiting} pending withdrawals and telling the users... one moment.`);
-      const r = await game.rejectAllWithdrawals(msg.from.id, arg);
-      return reply(`✅ Rejected <b>${r.done}</b> withdrawals. Every user got the rejected message and the UTYA is back in his mined balance.${r.failed ? `\n⚠️ Could not reject: <b>${r.failed}</b> (see /withdrawals).` : ""}`);
+      const first = await send(chatId, rejectText({ total: waiting, done: 0, failed: 0, remaining: waiting, startedAt: Date.now() }, waiting, false));
+      const messageId = first?.message_id;
+      let lastEdit = 0;
+      let lastText = "";
+      // The numbers are written into ONE message, changed about every 2 seconds (Telegram would block more).
+      const show = async (st, final) => {
+        const text = rejectText(st, await game.countPendingWithdrawals(), final);
+        if (text === lastText) return;
+        lastText = text;
+        lastEdit = Date.now();
+        if (messageId) await tg("editMessageText", { chat_id: chatId, message_id: messageId, text, parse_mode: "HTML" }, { tries: 2 });
+        else if (final) await reply(text);
+      };
+      const r = await game.rejectAllWithdrawals(msg.from.id, arg, async (st) => {
+        if (Date.now() - lastEdit >= 2000) await show(st, false);
+      });
+      return show(r, true);
     }
     if (cmd === "/setminerate" || cmd === "/setminwithdraw") {
       const n = Number(arg.replace(",", "."));
@@ -523,7 +569,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
           `${TOKEN.symbol} delivered: <b>${fmt(s.deliveredUtya)}</b>`,
           `🦆 NFTs sold: <b>${fmt(s.nftSold)}</b> / ${NFT.supply}`,
           `✅ Accounts verified by payment: <b>${fmt(s.verifiedByPayment)}</b>`,
-          `⛏️ Mined (claimed by users): <b>${fmt(s.minedUtya)} ${TOKEN.symbol}</b> · withdrawn: <b>${fmt(s.withdrawnUtya)}</b> · referral bonuses paid: <b>${fmt(s.bonusUtya)}</b> · withdrawals waiting: <b>${s.withdrawals.length}</b>`,
+          `⛏️ Mined (claimed by users): <b>${fmt(s.minedUtya)} ${TOKEN.symbol}</b> · withdrawn: <b>${fmt(s.withdrawnUtya)}</b> · referral bonuses paid: <b>${fmt(s.bonusUtya)}</b> · withdrawals waiting: <b>${fmt(s.withdrawalsPending)}</b>`,
         ].join("\n"),
       );
     }
