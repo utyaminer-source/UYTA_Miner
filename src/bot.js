@@ -42,6 +42,10 @@ const ADMIN_HELP = [
   "/nfton · /nftoff — open / close the NFT shop",
   "",
   "<b>Account verification (a player pays TON once; only verified players can withdraw)</b>",
+  "<b>Maintenance screen</b>",
+  "/maintainpopupon — the mini app shows a maintenance screen and nobody can use it until /maintainpopupoff (use it for an announcement, a reject-all, an unverify-all...)",
+  "/maintainpopupoff — open the mini app again (open screens close by themselves within seconds)",
+  "",
   "/setverifyprice &lt;TON&gt; — set the verification price any time, no code change needed (/setverifyprice alone shows the current price)",
   "/unverifyall — take the verification away from ALL accounts (they must verify again); live progress",
   "/verifyon · /verifyoff — verification is required for withdrawals / not required",
@@ -95,6 +99,8 @@ const ALIASES = {
   "/wd": "/withdrawals",
   "/rejectallwithdraw": "/rejectallwithdrow",
   "/rejectallwithdrawals": "/rejectallwithdrow",
+  "/maintenanceon": "/maintainpopupon",
+  "/maintenanceoff": "/maintainpopupoff",
 };
 const OWNER_ONLY = new Set(["/setdepositaddress", "/addadmin", "/removeadmin"]);
 
@@ -492,6 +498,15 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
       return reply(cmd === "/withdrawon" ? "Withdrawal requests are OPEN ✅" : "Withdrawal requests are PAUSED ⏸ (requests already made are still handled)");
     }
 
+    // ---------- maintenance screen
+    if (cmd === "/maintainpopupon" || cmd === "/maintainpopupoff") {
+      const on = cmd === "/maintainpopupon";
+      const was = (await game.getSettings()).maintenance;
+      await game.updateSettings({ maintenance: on });
+      if (on) return reply(`🛠 <b>Maintenance screen is ON</b>${was ? " (it was already on)" : ""}\nEverybody who opens the mini app sees the maintenance screen, and nobody can use the app. Screens that are open show it within about 15 seconds.\nSwitch it off with /maintainpopupoff`);
+      return reply(`✅ <b>Maintenance screen is OFF</b>${was ? "" : " (it was already off)"}\nThe mini app is open again. Screens that show the maintenance screen close it by themselves within seconds.`);
+    }
+
     // ---------- account verification
     if (cmd === "/setverifyprice") {
       if (!arg) return reply(`Account verification costs <b>${(await game.getSettings()).verifyPrice} TON</b> now.\nChange it with /setverifyprice &lt;TON&gt; (for example /setverifyprice 0.5)`);
@@ -575,6 +590,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
           `Buying: <b>${st.buyOpen ? "open" : "paused"}</b> · min ${st.minTon} TON · max ${st.maxTon} TON`,
           `Service fee: <b>${st.feePct}%</b> · delivery promise: <b>${st.deliveryHours} h</b>`,
           `Mining: <b>${st.mineOpen ? "open" : "paused"}</b> · <b>${st.mineRate} ${TOKEN.symbol}/h</b> · withdrawals: <b>${st.withdrawOpen ? "open" : "paused"}</b> · min ${st.minWithdraw} ${TOKEN.symbol} · referral bonus: <b>${st.refBonus} ${TOKEN.symbol}</b>`,
+          `Maintenance screen: <b>${st.maintenance ? "ON 🛠 (the app is closed for the players)" : "off"}</b>`,
           `Account verification: <b>${st.verifyRequired ? "required for withdrawals" : "not required"}</b> · <b>${st.verifyPrice} TON</b>`,
           `NFT shop: <b>${st.nftOpen ? "open" : "closed"}</b> · <b>${st.nftPrice} TON</b> each · ${NFT.items.length} NFT types (/nfts)`,
           `Payment wallet: ${addr ? `<code>${esc(addr)}</code>` : "<b>not set</b> (/setdepositaddress)"}`,
