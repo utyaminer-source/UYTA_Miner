@@ -40,6 +40,12 @@ const ADMIN_HELP = [
   "/givenft &lt;telegramId&gt; &lt;nftId&gt; [number] — give an NFT for free (a negative number takes it away)",
   "/nfton · /nftoff — open / close the NFT shop",
   "",
+  "<b>Account verification (a player pays TON once; only verified players can withdraw)</b>",
+  "/setverifyprice &lt;TON&gt; — price of the verification (first value 0.5)",
+  "/verifyon · /verifyoff — verification is required for withdrawals / not required",
+  "/verify &lt;telegramId&gt; — verify a player by hand (no payment)",
+  "/unverify &lt;telegramId&gt; — take the verification away",
+  "",
   "<b>Selling settings</b>",
   "/price — the live price and a sample quote",
   "/buyon · /buyoff — open / pause buying",
@@ -303,6 +309,28 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
       return reply(cmd === "/withdrawon" ? "Withdrawal requests are OPEN ✅" : "Withdrawal requests are PAUSED ⏸ (requests already made are still handled)");
     }
 
+    // ---------- account verification
+    if (cmd === "/setverifyprice") {
+      const n = Number(arg.replace(",", "."));
+      if (!Number.isFinite(n) || n < 0.1 || n > 100000) return reply("Usage: /setverifyprice &lt;TON&gt; (for example /setverifyprice 0.5)");
+      await game.updateSettings({ verifyPrice: n });
+      return reply(`Account verification now costs <b>${n} TON</b>. Orders that are already open keep their old price.`);
+    }
+    if (cmd === "/verifyon" || cmd === "/verifyoff") {
+      await game.updateSettings({ verifyRequired: cmd === "/verifyon" });
+      return reply(cmd === "/verifyon" ? "Verification is REQUIRED ✅ Only verified players can request a withdrawal." : "Verification is NOT required ⏸ Everybody can request a withdrawal (players can still verify).");
+    }
+    if (cmd === "/verify" || cmd === "/unverify") {
+      const id = Number(arg);
+      if (!Number.isInteger(id) || id <= 0) return reply(`Usage: ${cmd} &lt;telegramId&gt;`);
+      try {
+        const u = await game.setVerified(id, cmd === "/verify", msg.from.id);
+        return reply(`${esc(u.name)} (<code>${u.id}</code>) is now ${u.verified ? "verified ✅" : "not verified"}.`);
+      } catch (err) {
+        return fail(err);
+      }
+    }
+
     // ---------- selling settings
     if (cmd === "/price") {
       const price = await game.runtime.price?.get().catch(() => null);
@@ -354,6 +382,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
           `Buying: <b>${st.buyOpen ? "open" : "paused"}</b> · min ${st.minTon} TON · max ${st.maxTon} TON`,
           `Service fee: <b>${st.feePct}%</b> · delivery promise: <b>${st.deliveryHours} h</b>`,
           `Mining: <b>${st.mineOpen ? "open" : "paused"}</b> · <b>${st.mineRate} ${TOKEN.symbol}/h</b> · withdrawals: <b>${st.withdrawOpen ? "open" : "paused"}</b> · min ${st.minWithdraw} ${TOKEN.symbol} · referral bonus: <b>${st.refBonus} ${TOKEN.symbol}</b>`,
+          `Account verification: <b>${st.verifyRequired ? "required for withdrawals" : "not required"}</b> · <b>${st.verifyPrice} TON</b>`,
           `NFT shop: <b>${st.nftOpen ? "open" : "closed"}</b> · <b>${st.nftPrice} TON</b> each · ${NFT.items.length} NFT types (/nfts)`,
           `Payment wallet: ${addr ? `<code>${esc(addr)}</code>` : "<b>not set</b> (/setdepositaddress)"}`,
           `Support button: ${st.support ? esc(st.support) : "hidden"}`,
@@ -429,6 +458,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
           `TON received: <b>${s.receivedTon.toFixed(2)}</b> · refunded: <b>${s.refundedTon.toFixed(2)}</b>`,
           `${TOKEN.symbol} delivered: <b>${fmt(s.deliveredUtya)}</b>`,
           `🦆 NFTs sold: <b>${fmt(s.nftSold)}</b> / ${NFT.supply}`,
+          `✅ Accounts verified by payment: <b>${fmt(s.verifiedByPayment)}</b>`,
           `⛏️ Mined (claimed by users): <b>${fmt(s.minedUtya)} ${TOKEN.symbol}</b> · withdrawn: <b>${fmt(s.withdrawnUtya)}</b> · referral bonuses paid: <b>${fmt(s.bonusUtya)}</b> · withdrawals waiting: <b>${s.withdrawals.length}</b>`,
         ].join("\n"),
       );
@@ -444,6 +474,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
           [
             `👤 <b>${esc(u.name)}</b> (<code>${u.id}</code>)${u.username ? " @" + esc(u.username) : ""}`,
             `Wallet: <code>${esc(u.wallet || "-")}</code>`,
+            `Verified: ${u.verified ? "yes ✅" + (u.verifiedBy ? " (by admin " + u.verifiedBy + ")" : " (paid)") : "no"}`,
             `Language: ${u.lang} · Banned: ${u.banned ? "yes — " + esc(u.banReason || "no reason saved") : "no"}`,
             `Joined: ${new Date(u.createdAt).toISOString().slice(0, 10)}`,
             `⛏️ Mined balance: <b>${fmt(u.mining.balance)} ${TOKEN.symbol}</b> · mined in total ${fmt(u.mining.total)} · withdrawn ${fmt(u.mining.withdrawn)}`,
