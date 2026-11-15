@@ -139,11 +139,15 @@ class MemoryDB {
     this.dirty();
     return structuredClone(w);
   }
-  async listWithdrawals({ statuses, userId, limit = 50, oldestFirst = false } = {}) {
+  async listWithdrawals({ statuses, userId, limit = 50, skip = 0, oldestFirst = false } = {}) {
     const rows = [...this.withdrawals.values()]
       .filter((w) => (statuses ? statuses.includes(w.status) : true) && (userId ? w.userId === userId : true))
       .sort((a, b) => (oldestFirst ? a.createdAt - b.createdAt : b.createdAt - a.createdAt));
-    return rows.slice(0, limit).map((w) => structuredClone(w));
+    return rows.slice(skip, skip + limit).map((w) => structuredClone(w));
+  }
+  /** How many withdrawals there are (a real count, not limited like a list). */
+  async countWithdrawals({ statuses } = {}) {
+    return [...this.withdrawals.values()].filter((w) => (statuses ? statuses.includes(w.status) : true)).length;
   }
 }
 
@@ -237,11 +241,17 @@ class MongoDB {
     const res = await this.withdrawCol.findOneAndUpdate({ _id: id, status: { $in: from } }, { $set: patch }, { returnDocument: "after" });
     return strip(res?.value !== undefined ? res.value : res);
   }
-  async listWithdrawals({ statuses, userId, limit = 50, oldestFirst = false } = {}) {
+  async listWithdrawals({ statuses, userId, limit = 50, skip = 0, oldestFirst = false } = {}) {
     const q = {};
     if (statuses) q.status = { $in: statuses };
     if (userId) q.userId = userId;
-    return (await this.withdrawCol.find(q).sort({ createdAt: oldestFirst ? 1 : -1 }).limit(limit).toArray()).map(strip);
+    return (await this.withdrawCol.find(q).sort({ createdAt: oldestFirst ? 1 : -1 }).skip(skip).limit(limit).toArray()).map(strip);
+  }
+  /** How many withdrawals there are (a real count, not limited like a list). */
+  async countWithdrawals({ statuses } = {}) {
+    const q = {};
+    if (statuses) q.status = { $in: statuses };
+    return this.withdrawCol.countDocuments(q);
   }
 }
 
