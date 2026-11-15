@@ -316,6 +316,11 @@ server.listen(PORT, () => {
   console.log(`[server] ${BRAND.name} running on port ${PORT} (db: ${db.kind})`);
   void bot?.setup();
   void game.runtime.price.get(); // warm up the live price
+  // Free hosting (for example Render) puts a server to sleep after about 15 minutes without visitors, and the next Telegram message then
+  // waits for a slow start. A small visit to our own public address every 10 minutes keeps it awake. Turn it off with KEEP_ALIVE=0.
+  if (/^https:\/\//.test(PUBLIC_URL) && env.KEEP_ALIVE !== "0") {
+    setInterval(() => void fetch(`${PUBLIC_URL}/health`, { signal: AbortSignal.timeout(10_000) }).catch(() => {}), 10 * 60_000).unref();
+  }
   // Keeps reading the price all day, so the chart has live points even when nobody has the app open
   setInterval(() => void game.runtime.price.get().catch(() => {}), PRICE.refreshMs).unref();
   // Finds payments on the blockchain, also when the buyer already closed the app
