@@ -7,9 +7,11 @@
 //
 // Mining: a user starts a session (MINING.sessionHours long, speed = the rate at the start), comes back, claims it and the UTYA lands in his
 //         mined balance. Everything is calculated on the server, the app only shows it.
+// Verification: a player pays VERIFY.priceTon once (an order with kind "verify"); when the payment is found the account is marked verified.
+//               While settings.verifyRequired is on, only verified accounts can request a withdrawal.
 // Withdrawal status: pending (balance is held) -> sent (admin sent the UTYA) | rejected (balance goes back) | cancelled (user took it back)
 import crypto from "node:crypto";
-import { BRAND, DEFAULTS, LANGS, MINING, NFT, ORDER, REFERRAL, TOKEN } from "./config.js";
+import { BRAND, DEFAULTS, LANGS, MINING, NFT, ORDER, REFERRAL, TOKEN, VERIFY } from "./config.js";
 import { T } from "./messages.js";
 import { normalizeWallet, toNano } from "./ton.js";
 
@@ -85,6 +87,8 @@ export async function getSettings() {
     withdrawOpen: s.withdrawOpen !== false, // /withdrawon /withdrawoff
     mineRate: pos(s.mineRate, MINING.ratePerHour), // UTYA per hour
     minWithdraw: pos(s.minWithdraw, MINING.minWithdraw), // UTYA
+    verifyRequired: typeof s.verifyRequired === "boolean" ? s.verifyRequired : VERIFY.required, // /verifyon /verifyoff
+    verifyPrice: pos(s.verifyPrice, VERIFY.priceTon), // TON, /setverifyprice
     refBonus: Number.isFinite(s.refBonus) && s.refBonus >= 0 ? s.refBonus : REFERRAL.bonusUtya, // UTYA per counted friend (0 = referrals pay nothing)
   };
 }
@@ -297,7 +301,7 @@ export async function createOrder(userId, rawTon) {
   const now = Date.now();
   const open = await db.listOrders({ statuses: ["pending"], userId, since: now - ORDER.pendingMs, limit: 20 });
   // Pressing "Pay" twice must not create two orders: reuse a fresh one for the same amount.
-  const same = open.find((o) => o.kind !== "nft" && o.ton === q.ton && now - o.createdAt < 60_000 && o.wallet === u.wallet);
+  const same = open.find((o) => (o.kind ?? "buy") === "buy" && o.ton === q.ton && now - o.createdAt < 60_000 && o.wallet === u.wallet);
   if (same) return same;
   if (open.length >= ORDER.maxOpenPerUser) throw new GameError("You have too many unpaid orders. Finish or wait for them first.", "too_many_orders");
   const o = {
@@ -386,6 +390,7 @@ export async function completePayment(o, paid) {
   const done = await db.transitionOrder(o.id, ["pending", "expired"], { status: "paid", txHash: paid.txHash, paidNano: String(paid.nano), paidAt: now, cancelled: false });
   if (!done) return false;
   if (done.kind === "nft") return completeNftOrder(done); // an NFT order: the NFT is given at once, nothing to send by hand
+  if (done.kind === "verify") return completeVerifyOrder(done); // a verification order: the account is verified at once, nothing to send by hand
   let order = done;
   let requoted = false;
   let unquoted = false;
@@ -541,6 +546,7 @@ export async function requestWithdraw(userId, rawAmount) {
     let wallet = "";
     await patchUser(userId, (u) => {
       if (!u.wallet) throw new GameError("Connect your TON wallet first.", "no_wallet");
+      if (s.verifyRequired && !u.verified) throw new GameError(`Verify your account first (${s.verifyPrice} TON, one time) to withdraw.`, "not_verified", { n: s.verifyPrice });
       const m = mineOf(u);
       if (m.balance + 1e-9 < amount) throw new GameError("Not enough mined UTYA.", "no_balance");
       m.balance = round4(Math.max(0, m.balance - amount));
@@ -742,6 +748,76 @@ export async function adminGiveNft(userId, nftId, n = 1) {
   return { item: it, ...res };
 }
 
+// -------------------------------- verification --------------------------------
+// A verified account has user.verified = true (and verifiedAt / verifiedBy / verifyTx). Buying it = paying an order with kind "verify".
+
+/** The player pressed "Verify": makes the order he has to pay in TON. */
+export async function createVerifyOrder(userId) {
+  const u = await mustUser(userId);
+  if (u.verified) throw new GameError("Your account is already verified.", "already_verified");
+  if (!u.wallet) throw new GameError("Connect your TON wallet first.", "no_wallet");
+  const s = await getSettings();
+  const now = Date.now();
+  const open = await db.listOrders({ statuses: ["pending"], userId, since: now - ORDER.pendingMs, limit: 20 });
+  const same = open.find((o) => o.kind === "verify" && now - o.createdAt < 60_000 && o.ton === s.verifyPrice); // pressing twice must not make two orders
+  if (same) return same;
+  if (open.length >= ORDER.maxOpenPerUser) throw new GameError("You have too many unpaid orders. Finish or wait for them first.", "too_many_orders");
+  const o = { id: newOrderId(), userId, kind: "verify", ton: s.verifyPrice, utya: 0, status: "pending", createdAt: now, expiresAt: now + ORDER.pendingMs, wallet: u.wallet };
+  await db.addOrder(o);
+  return o;
+}
+
+/** The TON of a verification order was found: verify the account at once. Called by completePayment. */
+async function completeVerifyOrder(order) {
+  const now = Date.now();
+  await db.incMeta("receivedMilliTon", Math.round(order.ton * 1000));
+  const user = await db.getUser(order.userId);
+  let first = false;
+  try {
+    await patchUser(order.userId, (u) => {
+      if (u.verified) return;
+      u.verified = true;
+      u.verifiedAt = now;
+      u.verifiedBy = 0; // 0 = by payment
+      u.verifyTx = order.txHash ?? "";
+      first = true;
+    });
+  } catch (err) {
+    console.error("[game] could not verify the account:", err.message);
+    void hooks.notifyAdmins(`⚠️ <b>Verification order ${escapeHtml(order.id)}</b> was paid (${order.ton} TON) but the account could not be verified.\n${escapeHtml(user?.name ?? order.userId)} (<code>${order.userId}</code>)\nUse /verify ${order.userId} or send the TON back: /refunded ${order.id} [tx hash]`);
+    return true; // the order stays "paid" so it can still be refunded
+  }
+  if (!first) {
+    // He was already verified (for example by an admin) and paid anyway: the order stays "paid" so the admin can send the TON back.
+    void hooks.notify(order.userId, T(langOf(user), "verify.duplicate", { id: order.id, ton: order.ton }));
+    void hooks.notifyAdmins(`⚠️ <b>Verification order ${escapeHtml(order.id)}</b> was paid (${order.ton} TON) but the account was already verified.\n${escapeHtml(user?.name ?? order.userId)} (<code>${order.userId}</code>)\nSend the TON back: /refunded ${order.id} [tx hash]`);
+    return true;
+  }
+  await db.transitionOrder(order.id, ["paid"], { status: "delivered", deliveredAt: now, deliveredBy: 0 });
+  await db.incMeta("verifiedCount", 1);
+  void hooks.notify(order.userId, T(langOf(user), "verify.done", { ton: order.ton }));
+  void hooks.notifyAdmins(`✅ Account verified (${order.ton} TON): ${escapeHtml(user?.name ?? order.userId)} (<code>${order.userId}</code>)${user?.username ? " @" + escapeHtml(user.username) : ""}`);
+  return true;
+}
+
+/** Admin: verify (on = true) or un-verify (on = false) an account by hand, without a payment. */
+export async function setVerified(userId, on, adminId = 0) {
+  const res = await patchUser(userId, (u) => {
+    if (on) {
+      u.verified = true;
+      u.verifiedAt = Date.now();
+      u.verifiedBy = adminId;
+    } else {
+      u.verified = false;
+      u.verifiedAt = 0;
+      u.verifiedBy = 0;
+    }
+    return { lang: langOf(u), user: { ...u } };
+  });
+  if (on) void hooks.notify(userId, T(res.lang, "verify.gifted"));
+  return res.user;
+}
+
 // ---------------------------------- app state ---------------------------------
 
 export async function stateFor(id) {
@@ -781,7 +857,8 @@ export async function stateFor(id) {
     },
     nft: await nftView(u, s),
     withdrawals: withdrawals.map(withdrawView),
-    user: { id: u.id, name: u.name, wallet: u.wallet, lang: langOf(u) },
+    user: { id: u.id, name: u.name, wallet: u.wallet, lang: langOf(u), verified: Boolean(u.verified) },
+    verify: { required: s.verifyRequired, priceTon: s.verifyPrice, verified: Boolean(u.verified), at: u.verifiedAt ?? 0 },
     settings: { buyOpen: s.buyOpen, minTon: s.minTon, maxTon: s.maxTon, feePct: s.feePct, deliveryHours: s.deliveryHours, support: s.support, payAddress: await getDepositAddress() },
     price: price ? { tonUsd: price.tonUsd, utyaUsd: price.utyaUsd, perTon: round2(price.tonUsd / price.utyaUsd), at: price.at } : null,
     token: { name: TOKEN.name, symbol: TOKEN.symbol, jetton: TOKEN.jettonFriendly },
@@ -810,6 +887,7 @@ export async function adminStats() {
     withdrawnUtya: (meta.withdrawnUtya4 ?? 0) / 1e4,
     bonusUtya: (meta.bonusUtya4 ?? 0) / 1e4,
     nftSold: meta.nftSold ?? 0,
+    verifiedByPayment: meta.verifiedCount ?? 0,
     receivedTon: (meta.receivedMilliTon ?? 0) / 1000,
     refundedTon: (meta.refundedMilliTon ?? 0) / 1000,
     deliveredUtya: (meta.deliveredUtyaCents ?? 0) / 100,
