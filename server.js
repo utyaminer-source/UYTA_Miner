@@ -250,6 +250,9 @@ async function handleApi(req, res, pathname, query) {
     // ---- NFT shop (pay with TON, get a random NFT; the payment is checked with /api/pay/check like every order)
     case "/api/nft/prepare":
       return json(res, 200, { payment: await pay.prepareNft(id) });
+    // ---- account verification (pay once in TON; the payment is checked with /api/pay/check like every order)
+    case "/api/verify/prepare":
+      return json(res, 200, { payment: await pay.prepareVerify(id) });
     case "/api/withdraw":
       await game.requestWithdraw(id, body.amount);
       return json(res, 200, { state: await game.stateFor(id) });
