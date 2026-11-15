@@ -58,6 +58,16 @@ export const NFT = {
   ],
 };
 
+/**
+ * Account verification: a player pays a ONE-TIME fee in TON (the same payment wallet as every other order) and his account is marked "verified".
+ * While verification is required (admin: /verifyon /verifyoff), only verified accounts can request a withdrawal.
+ * The verification is given automatically when the payment is found on the blockchain.
+ */
+export const VERIFY = {
+  priceTon: 0.5, // first value; an admin changes it later with /setverifyprice
+  required: true, // first value; an admin changes it later with /verifyon /verifyoff
+};
+
 /** Referrals: a friend counts when he opens the bot with your link AND connects his own TON wallet. */
 export const REFERRAL = {
   bonusUtya: 5, // paid to the inviter, once per friend, into his mined balance (admin: /setrefbonus)
