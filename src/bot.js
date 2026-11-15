@@ -42,7 +42,8 @@ const ADMIN_HELP = [
   "/nfton · /nftoff — open / close the NFT shop",
   "",
   "<b>Account verification (a player pays TON once; only verified players can withdraw)</b>",
-  "/setverifyprice &lt;TON&gt; — price of the verification (first value 0.5)",
+  "/setverifyprice &lt;TON&gt; — set the verification price any time, no code change needed (/setverifyprice alone shows the current price)",
+  "/unverifyall — take the verification away from ALL accounts (they must verify again); live progress",
   "/verifyon · /verifyoff — verification is required for withdrawals / not required",
   "/verify &lt;telegramId&gt; — verify a player by hand (no payment)",
   "/unverify &lt;telegramId&gt; — take the verification away",
@@ -68,7 +69,8 @@ const ADMIN_HELP = [
   "/noneedchanneljoin — turn the join popup OFF (/channeljoinon to turn it back ON)",
   "",
   "<b>Messages</b>",
-  "/broadcast &lt;text&gt; (or /announcement) — message every player",
+  "/broadcast &lt;text&gt; (or /announcement) — message every player at Telegram's top speed (about 25 per second), with a live progress message",
+  "/stopbroadcast — stop a running broadcast",
   "/setwelcome &lt;text&gt; — custom /start message (/setwelcome reset to go back)",
   "/setsupportusername &lt;@username or link&gt; (or /setsupport) — Support button in the app (off to hide)",
   "",
@@ -96,7 +98,7 @@ const ALIASES = {
 };
 const OWNER_ONLY = new Set(["/setdepositaddress", "/addadmin", "/removeadmin"]);
 
-export function createBot({ token, username, publicUrl, adminIds, webhookSecret, pay, extraChannels = [] }) {
+export function createBot({ token, username, publicUrl, adminIds, webhookSecret, pay, extraChannels = [], bulkPerSecond = Number(process.env.BULK_PER_SECOND) || 25 }) {
   const api = `https://api.telegram.org/bot${token}`;
 
   /**
@@ -104,6 +106,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
    * flood limit (429, we wait the "retry_after" Telegram asks for) does not swallow an answer. A real "no" (a blocked bot,
    * a bad request) is not retried. Returns { result, error }.
    */
+  let floodUntil = 0; // Telegram said "too many messages": the bulk queue waits until this time
   async function tgCall(method, body = {}, { tries = 4, timeoutMs = 15_000 } = {}) {
     let error = "";
     for (let attempt = 1; attempt <= tries; attempt++) {
@@ -114,8 +117,10 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
         if (data.ok) return { result: data.result, error: "" };
         error = data.description || `HTTP ${res.status}`;
         const code = data.error_code ?? res.status;
-        if (code === 429) wait = Math.min(30_000, ((data.parameters?.retry_after ?? 1) + 0.5) * 1000);
-        else if (code < 500) {
+        if (code === 429) {
+          wait = Math.min(30_000, ((data.parameters?.retry_after ?? 1) + 0.5) * 1000);
+          floodUntil = Math.max(floodUntil, Date.now() + wait);
+        } else if (code < 500) {
           console.error(`[bot] ${method} failed:`, error);
           return { result: null, error };
         }
@@ -171,12 +176,77 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
   }
   const openButton = (lang) => ({ inline_keyboard: [[{ text: T(lang, "btn.open"), web_app: { url: publicUrl } }]] });
 
+  // ---- bulk sending (announcements, "rejected" messages to thousands of users)
+  // Telegram allows about 30 messages per second to different users. Faster means "429 Too Many Requests" and lost messages. So the bulk
+  // messages wait in ONE queue and leave at `bulkPerSecond` (25 by default; env BULK_PER_SECOND). Normal answers to players never wait in it.
+  let broadcastRun = null; // the /broadcast that is running now: { total, sent, failed, startedAt, stop }
+  const bulkQueue = [];
+  let bulkRunning = false;
+  /** Queues a message. Resolves true when it was delivered, false when not (the user blocked the bot...). */
+  function bulkSend(chatId, text, extra = {}) {
+    return new Promise((resolve) => {
+      bulkQueue.push({ chatId, text, extra, resolve });
+      void bulkPump();
+    });
+  }
+  async function bulkPump() {
+    if (bulkRunning) return;
+    bulkRunning = true;
+    const gap = 1000 / bulkPerSecond;
+    let nextAt = Date.now();
+    while (bulkQueue.length) {
+      const now = Date.now();
+      const pause = Math.max(floodUntil - now, nextAt - now);
+      if (pause >= 1) {
+        await sleep(pause);
+        continue;
+      }
+      const job = bulkQueue.shift();
+      nextAt = Math.max(nextAt, now) + gap;
+      send(job.chatId, job.text, job.extra).then((r) => job.resolve(Boolean(r)), () => job.resolve(false));
+      await new Promise((r) => setImmediate(r)); // let the other work of the server run between two messages
+    }
+    bulkRunning = false;
+  }
+
+  /**
+   * One message that is EDITED to show live progress (not a new message every time). `text` is a function that makes the text, it is only called
+   * when an edit really happens (at most every 2 seconds, Telegram would block more). update(fn, true) is the final one: it always goes out.
+   */
+  async function liveMessage(chatId, firstText) {
+    const first = await send(chatId, firstText);
+    const messageId = first?.message_id;
+    let last = firstText;
+    let lastAt = Date.now();
+    let editing = false;
+    return {
+      async update(makeText, final = false) {
+        if (!final && (editing || Date.now() - lastAt < 2000)) return;
+        while (final && editing) await sleep(50);
+        editing = true;
+        try {
+          lastAt = Date.now();
+          const next = await makeText();
+          if (next === last) return;
+          last = next;
+          if (messageId) await tg("editMessageText", { chat_id: chatId, message_id: messageId, text: next, parse_mode: "HTML" }, { tries: 2 });
+          else if (final) await send(chatId, next);
+        } finally {
+          editing = false;
+        }
+      },
+    };
+  }
+  const progressBar = (pct) => "▓".repeat(Math.round(pct / 10)) + "░".repeat(10 - Math.round(pct / 10));
+  const afterText = (secs) => (secs >= 3600 ? `${Math.floor(secs / 3600)} h ${Math.floor((secs % 3600) / 60)} min` : secs >= 60 ? `${Math.floor(secs / 60)} min ${Math.round(secs % 60)} s` : `${Math.max(1, Math.round(secs))} s`);
+
   // ---- hooks used by the game
   game.hooks.notify = async (userId, text) => {
     const u = await game.getUser(userId);
     await send(userId, esc(text), { reply_markup: openButton(u?.lang ?? "en") });
   };
   const allAdminIds = async () => [...new Set([...adminIds, ...(await game.getSettings()).admins])];
+  game.hooks.notifyBulk = (userId, text, lang = "en") => bulkSend(userId, esc(text), { reply_markup: openButton(lang) });
   game.hooks.notifyAdmins = async (text, buttons) => {
     for (const id of await allAdminIds()) await send(id, text, buttons ? { reply_markup: { inline_keyboard: buttons } } : {});
   };
@@ -209,21 +279,38 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
 
   /** The live text of /rejectallwithdrow. `pendingNow` is the real count of pending withdrawals right now. */
   const rejectText = (st, pendingNow, final) => {
-    const pct = st.total ? Math.floor(((st.done + st.failed) / st.total) * 100) : 100;
-    const bar = "▓".repeat(Math.round(pct / 10)) + "░".repeat(10 - Math.round(pct / 10));
+    const handled = st.done + st.failed;
+    const pct = st.total ? Math.floor((handled / st.total) * 100) : 100;
     const secs = Math.max(1, (Date.now() - st.startedAt) / 1000);
-    const speed = (st.done + st.failed) / secs;
-    const eta = speed > 0 ? Math.ceil(st.remaining / speed) : 0;
-    const left = eta >= 3600 ? `${Math.floor(eta / 3600)} h ${Math.floor((eta % 3600) / 60)} min` : eta >= 60 ? `${Math.floor(eta / 60)} min ${eta % 60} s` : `${eta} s`;
-    return [
-      final ? "✅ <b>Reject all finished</b>" : "⏳ <b>Rejecting pending withdrawals…</b>",
-      `${bar} <b>${pct}%</b>`,
-      `Rejected: <b>${fmt(st.done)}</b>`,
-      `Remaining: <b>${fmt(st.remaining)}</b> of ${fmt(st.total)}`,
-      ...(st.failed ? [`⚠️ Could not reject: <b>${fmt(st.failed)}</b> (the user took it back, or an error)`] : []),
-      `Pending withdrawals right now: <b>${fmt(pendingNow)}</b>`,
-      ...(final ? ["Every user got the rejected message and the UTYA is back in his mined balance."] : [`Speed: ${speed.toFixed(1)}/s · about ${left} left`]),
-    ].join("\n");
+    const dbDone = handled >= st.total;
+    const queued = Math.max(0, st.done - st.notified - st.notifyFailed);
+    const lines = [final ? "✅ <b>Reject all finished</b>" : dbDone ? "✅ <b>All rejected</b> · the messages are going out…" : "⏳ <b>Rejecting pending withdrawals…</b>", `${progressBar(pct)} <b>${pct}%</b>`, `Rejected: <b>${fmt(st.done)}</b> · Remaining: <b>${fmt(st.remaining)}</b> of ${fmt(st.total)}`];
+    if (st.failed) lines.push(`⚠️ Could not reject: <b>${fmt(st.failed)}</b> (the user took it back, or an error)`);
+    lines.push(`Messages sent to users: <b>${fmt(st.notified)}</b> / ${fmt(st.done)}${st.notifyFailed ? ` · not delivered (blocked the bot): ${fmt(st.notifyFailed)}` : ""}`);
+    lines.push(`Pending withdrawals right now: <b>${fmt(pendingNow)}</b>`);
+    if (final) lines.push("The rejected UTYA is back in the mined balance of every user.");
+    else if (!dbDone) lines.push(`Speed: ${(handled / secs).toFixed(0)}/s · about ${afterText(st.remaining / Math.max(0.1, handled / secs))} left`);
+    else lines.push(`The UTYA is already back in the balances. Messages left: ${fmt(queued)} (about ${afterText(queued / bulkPerSecond)}, Telegram allows about ${bulkPerSecond} messages per second)`);
+    return lines.join("\n");
+  };
+
+  const broadcastText = (run, final) => {
+    const handled = run.sent + run.failed;
+    const pct = run.total ? Math.floor((handled / run.total) * 100) : 100;
+    const secs = Math.max(1, (Date.now() - run.startedAt) / 1000);
+    const lines = [final ? (run.stop ? "🛑 <b>Announcement stopped</b>" : "✅ <b>Announcement finished</b>") : "📣 <b>Sending your announcement…</b>", `${progressBar(pct)} <b>${pct}%</b>`, `Sent: <b>${fmt(run.sent)}</b> / ${fmt(run.total)}`, `Not delivered (blocked the bot): <b>${fmt(run.failed)}</b>`];
+    if (!final) lines.push(`Remaining: <b>${fmt(run.total - handled)}</b> · speed ${(handled / secs).toFixed(1)}/s · about ${afterText((run.total - handled) / Math.max(0.1, handled / secs))} left`, "Stop it with /stopbroadcast");
+    return lines.join("\n");
+  };
+
+  const unverifyText = (st, verifiedNow, final, price, required) => {
+    const pct = st.total ? Math.floor((st.done / st.total) * 100) : 100;
+    const lines = [final ? "✅ <b>Unverify all finished</b>" : "⏳ <b>Taking the verification away…</b>", `${progressBar(pct)} <b>${pct}%</b>`, `Unverified: <b>${fmt(st.done)}</b> / ${fmt(st.total)}`, `Verified accounts right now: <b>${fmt(verifiedNow)}</b>`];
+    if (final) {
+      lines.push(`These players must verify again (${price} TON) before their next withdrawal.`);
+      if (!required) lines.push("⚠️ Verification is switched OFF at the moment, so everybody can still withdraw. Use /verifyon.");
+    }
+    return lines.join("\n");
   };
 
   const orderCard = async (o) => {
@@ -351,26 +438,12 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
       }
     }
     if (cmd === "/rejectallwithdrow") {
-      if (game.rejectAllState()) return reply(`⏳ A reject-all is already running. Its live message is above ⬆️\n${rejectText(game.rejectAllState(), await game.countPendingWithdrawals(), false)}`);
+      if (game.rejectAllState()) return reply("⏳ A reject-all is already running. Its live message is in this chat, a bit higher up ⬆️");
       const waiting = await game.countPendingWithdrawals();
       if (!waiting) return reply("No withdrawal is waiting. 🎉");
-      const first = await send(chatId, rejectText({ total: waiting, done: 0, failed: 0, remaining: waiting, startedAt: Date.now() }, waiting, false));
-      const messageId = first?.message_id;
-      let lastEdit = 0;
-      let lastText = "";
-      // The numbers are written into ONE message, changed about every 2 seconds (Telegram would block more).
-      const show = async (st, final) => {
-        const text = rejectText(st, await game.countPendingWithdrawals(), final);
-        if (text === lastText) return;
-        lastText = text;
-        lastEdit = Date.now();
-        if (messageId) await tg("editMessageText", { chat_id: chatId, message_id: messageId, text, parse_mode: "HTML" }, { tries: 2 });
-        else if (final) await reply(text);
-      };
-      const r = await game.rejectAllWithdrawals(msg.from.id, arg, async (st) => {
-        if (Date.now() - lastEdit >= 2000) await show(st, false);
-      });
-      return show(r, true);
+      const live = await liveMessage(chatId, rejectText({ total: waiting, done: 0, failed: 0, remaining: waiting, notified: 0, notifyFailed: 0, startedAt: Date.now() }, waiting, false));
+      const r = await game.rejectAllWithdrawals(msg.from.id, arg, (st) => live.update(async () => rejectText(st, await game.countPendingWithdrawals(), false)));
+      return live.update(async () => rejectText(r, await game.countPendingWithdrawals(), true), true);
     }
     if (cmd === "/setminerate" || cmd === "/setminwithdraw") {
       const n = Number(arg.replace(",", "."));
@@ -421,10 +494,20 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
 
     // ---------- account verification
     if (cmd === "/setverifyprice") {
+      if (!arg) return reply(`Account verification costs <b>${(await game.getSettings()).verifyPrice} TON</b> now.\nChange it with /setverifyprice &lt;TON&gt; (for example /setverifyprice 0.5)`);
       const n = Number(arg.replace(",", "."));
-      if (!Number.isFinite(n) || n < 0.1 || n > 100000) return reply("Usage: /setverifyprice &lt;TON&gt; (for example /setverifyprice 0.5)");
+      if (!Number.isFinite(n) || n < 0.01 || n > 100000) return reply("Usage: /setverifyprice &lt;TON&gt; (for example /setverifyprice 0.5, at least 0.01)");
       await game.updateSettings({ verifyPrice: n });
       return reply(`Account verification now costs <b>${n} TON</b>. Orders that are already open keep their old price.`);
+    }
+    if (cmd === "/unverifyall") {
+      if (game.unverifyAllState()) return reply("⏳ An unverify-all is already running. Its live message is in this chat, a bit higher up ⬆️");
+      const total = await game.countVerifiedAccounts();
+      if (!total) return reply("No account is verified right now.");
+      const settings = await game.getSettings();
+      const live = await liveMessage(chatId, unverifyText({ total, done: 0 }, total, false));
+      const r = await game.unverifyAllAccounts((st) => live.update(async () => unverifyText(st, await game.countVerifiedAccounts(), false)));
+      return live.update(async () => unverifyText(r, await game.countVerifiedAccounts(), true, settings.verifyPrice, settings.verifyRequired), true);
     }
     if (cmd === "/verifyon" || cmd === "/verifyoff") {
       await game.updateSettings({ verifyRequired: cmd === "/verifyon" });
@@ -568,7 +651,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
           `TON received: <b>${s.receivedTon.toFixed(2)}</b> · refunded: <b>${s.refundedTon.toFixed(2)}</b>`,
           `${TOKEN.symbol} delivered: <b>${fmt(s.deliveredUtya)}</b>`,
           `🦆 NFTs sold: <b>${fmt(s.nftSold)}</b> / ${NFT.supply}`,
-          `✅ Accounts verified by payment: <b>${fmt(s.verifiedByPayment)}</b>`,
+          `✅ Verified accounts now: <b>${fmt(s.verifiedAccounts)}</b> · verified by payment so far: <b>${fmt(s.verifiedByPayment)}</b>`,
           `⛏️ Mined (claimed by users): <b>${fmt(s.minedUtya)} ${TOKEN.symbol}</b> · withdrawn: <b>${fmt(s.withdrawnUtya)}</b> · referral bonuses paid: <b>${fmt(s.bonusUtya)}</b> · withdrawals waiting: <b>${fmt(s.withdrawalsPending)}</b>`,
         ].join("\n"),
       );
@@ -628,16 +711,34 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
     }
     if (cmd === "/broadcast") {
       if (!arg) return reply("Usage: /broadcast &lt;text&gt;");
+      if (broadcastRun) return reply("⏳ A broadcast is already running. Stop it first with /stopbroadcast");
       const ids = await game.allUserIds();
-      await reply(`Sending to ${ids.length} users…`);
-      let ok = 0;
-      for (const id of ids) {
-        const u = await game.getUser(id);
-        const r = await send(id, esc(arg), { reply_markup: openButton(u?.lang ?? "en") });
-        if (r) ok += 1;
-        await sleep(50); // stay under Telegram limits (about 30 messages per second)
+      const run = { total: ids.length, sent: 0, failed: 0, startedAt: Date.now(), stop: false };
+      broadcastRun = run;
+      const live = await liveMessage(chatId, broadcastText(run, false));
+      try {
+        // many workers, so the queue never runs dry; the queue itself keeps the speed limit
+        let next = 0;
+        const worker = async () => {
+          while (!run.stop && next < ids.length) {
+            const id = ids[next++];
+            const u = await game.getUser(id);
+            const ok = await bulkSend(id, esc(arg), { reply_markup: openButton(u?.lang ?? "en") });
+            if (ok) run.sent += 1;
+            else run.failed += 1;
+            await live.update(async () => broadcastText(run, false));
+          }
+        };
+        await Promise.all(Array.from({ length: Math.min(Math.max(60, bulkPerSecond * 3), ids.length) }, worker));
+      } finally {
+        broadcastRun = null;
       }
-      return reply(`Broadcast finished: ${ok}/${ids.length} delivered.`);
+      return live.update(async () => broadcastText(run, true), true);
+    }
+    if (cmd === "/stopbroadcast") {
+      if (!broadcastRun) return reply("No broadcast is running.");
+      broadcastRun.stop = true;
+      return reply("🛑 Stopping the broadcast…");
     }
     return false;
   }
