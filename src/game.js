@@ -29,6 +29,8 @@ let db = null;
 export const hooks = {
   notify: async (_userId, _text) => {},
   notifyAdmins: async (_text, _buttons) => {},
+  /** For a message to MANY users at once (reject all...): goes through a queue that keeps Telegram's speed limit. Resolves true when the user got it. */
+  notifyBulk: async (_userId, _text, _lang) => false,
   /** true / false, or null when it cannot be checked (bot is not an admin of the channel, Telegram down...) */
   checkMember: async (_chat, _userId) => null,
   botUsername: "",
@@ -604,14 +606,23 @@ export async function markWithdrawSent(id, adminId, tx = "") {
 }
 
 /** Admin: refuse a request. The held UTYA goes back to the user's mined balance. */
-export async function rejectWithdraw(id, adminId, reason = "") {
-  const w = await db.getWithdrawal(String(id).toUpperCase());
+export async function rejectWithdraw(id, adminId, reason = "", { bulk = false, row = null } = {}) {
+  const w = row ?? (await db.getWithdrawal(String(id).toUpperCase()));
   if (!w) throw new GameError(`Withdrawal ${id} not found.`);
   const moved = await db.transitionWithdrawal(w.id, ["pending"], { status: "rejected", doneAt: Date.now(), doneBy: adminId, reason: String(reason ?? "").slice(0, 200) });
   if (!moved) throw new GameError(`Withdrawal ${w.id} is "${w.status}", it can not be rejected.`);
-  await returnBalance(moved.userId, moved.amount);
-  const user = await db.getUser(moved.userId);
-  void hooks.notify(moved.userId, T(langOf(user), "wd.rejected", { id: moved.id, amount: fmt(moved.amount), symbol: TOKEN.symbol, reason: moved.reason ? `\n${moved.reason}` : "" }));
+  // the held UTYA goes back to his mined balance (one read + one write of the user)
+  const lang = await patchUser(moved.userId, (u) => {
+    const m = mineOf(u);
+    m.balance = round4(m.balance + moved.amount);
+    return langOf(u);
+  });
+  const text = T(lang, "wd.rejected", { id: moved.id, amount: fmt(moved.amount), symbol: TOKEN.symbol, reason: moved.reason ? `\n${moved.reason}` : "" });
+  if (bulk) {
+    moved.delivery = hooks.notifyBulk(moved.userId, text, lang); // a Promise<boolean>, the caller can wait for it
+    return moved;
+  }
+  void hooks.notify(moved.userId, text);
   return moved;
 }
 
@@ -625,27 +636,45 @@ let rejectRun = null;
 export const rejectAllState = () => (rejectRun ? { ...rejectRun } : null);
 
 /**
- * Admin: reject EVERY pending withdrawal, one after the other. Each user gets the "withdrawal rejected" message and his held UTYA goes back
- * to his mined balance. `onProgress(state)` is awaited after every withdrawal, so the admin can see the numbers move live.
- * state = { total, done, failed, remaining, startedAt }
+ * Admin: reject EVERY pending withdrawal. The database work (status + the UTYA back to the balance) is done by many workers at once, so even
+ * 10 000+ withdrawals take seconds, not minutes. The "rejected" messages to the users go out through a queue at Telegram's speed limit
+ * (about 25 per second), so they can finish a bit later than the rejections themselves.
+ * `onProgress(state)` is awaited after every withdrawal and about every second while the messages are still going out.
+ * state = { total, done, failed, remaining, notified, notifyFailed, startedAt, rejectedAt }
  */
-export async function rejectAllWithdrawals(adminId, reason = "", onProgress = null) {
+export async function rejectAllWithdrawals(adminId, reason = "", onProgress = null, { workers = 50 } = {}) {
   if (rejectRun) throw new GameError("A reject-all is already running.");
   const rows = await db.listWithdrawals({ statuses: ["pending"], oldestFirst: true, limit: 1_000_000 });
-  const run = { total: rows.length, done: 0, failed: 0, remaining: rows.length, startedAt: Date.now() };
+  const run = { total: rows.length, done: 0, failed: 0, remaining: rows.length, notified: 0, notifyFailed: 0, startedAt: Date.now(), rejectedAt: 0 };
   rejectRun = run;
   try {
-    for (const w of rows) {
-      try {
-        await rejectWithdraw(w.id, adminId, reason || "Rejected by an admin");
-        run.done += 1;
-      } catch (err) {
-        run.failed += 1; // for example the user took the request back a moment ago
-        console.error("[game] reject all:", w.id, err.message);
+    const deliveries = [];
+    let next = 0;
+    const worker = async () => {
+      while (next < rows.length) {
+        const w = rows[next++];
+        try {
+          const moved = await rejectWithdraw(w.id, adminId, reason || "Rejected by an admin", { bulk: true, row: w });
+          run.done += 1;
+          deliveries.push(moved.delivery.then((ok) => (ok ? (run.notified += 1) : (run.notifyFailed += 1))));
+        } catch (err) {
+          run.failed += 1; // for example the user took the request back a moment ago
+          console.error("[game] reject all:", w.id, err.message);
+        }
+        run.remaining = run.total - run.done - run.failed;
+        if (onProgress) await onProgress({ ...run });
       }
-      run.remaining = run.total - run.done - run.failed;
+    };
+    await Promise.all(Array.from({ length: Math.min(workers, rows.length) }, worker));
+    run.rejectedAt = Date.now();
+    // the messages may still be on their way: wait for them, and keep the numbers moving
+    let allSent = false;
+    const waitAll = Promise.allSettled(deliveries).then(() => {
+      allSent = true;
+    });
+    while (!allSent) {
+      await Promise.race([waitAll, new Promise((r) => setTimeout(r, 1000))]);
       if (onProgress) await onProgress({ ...run });
-      await new Promise((r) => setTimeout(r, 60)); // slowly, Telegram does not like a flood of messages
     }
   } finally {
     rejectRun = null;
@@ -856,6 +885,35 @@ export async function setVerified(userId, on, adminId = 0) {
   return res.user;
 }
 
+/** How many accounts are verified right now. */
+export const countVerifiedAccounts = () => db.countVerified();
+
+let unverifyRun = null;
+export const unverifyAllState = () => (unverifyRun ? { ...unverifyRun } : null);
+
+/**
+ * Admin: take the verification away from EVERY verified account (they have to verify again). Done in big database batches, so even
+ * 50 000 accounts take seconds. `onProgress(state)` is awaited after every batch. state = { total, done, remaining, startedAt }
+ */
+export async function unverifyAllAccounts(onProgress = null) {
+  if (unverifyRun) throw new GameError("An unverify-all is already running.");
+  const run = { total: await db.countVerified(), done: 0, remaining: 0, startedAt: Date.now() };
+  run.remaining = run.total;
+  unverifyRun = run;
+  try {
+    for (;;) {
+      const n = await db.unverifySome(2000);
+      if (!n) break;
+      run.done += n;
+      run.remaining = Math.max(0, run.total - run.done);
+      if (onProgress) await onProgress({ ...run });
+    }
+  } finally {
+    unverifyRun = null;
+  }
+  return { ...run, remaining: 0 };
+}
+
 // ---------------------------------- app state ---------------------------------
 
 export async function stateFor(id) {
@@ -896,7 +954,7 @@ export async function stateFor(id) {
     nft: await nftView(u, s),
     withdrawals: withdrawals.map(withdrawView),
     user: { id: u.id, name: u.name, wallet: u.wallet, lang: langOf(u), verified: Boolean(u.verified) },
-    verify: { required: s.verifyRequired, priceTon: s.verifyPrice, verified: Boolean(u.verified), at: u.verifiedAt ?? 0 },
+    verify: { required: s.verifyRequired, priceTon: s.verifyPrice, verified: Boolean(u.verified), at: u.verified ? u.verifiedAt ?? 0 : 0 },
     settings: { buyOpen: s.buyOpen, minTon: s.minTon, maxTon: s.maxTon, feePct: s.feePct, deliveryHours: s.deliveryHours, support: s.support, payAddress: await getDepositAddress() },
     price: price ? { tonUsd: price.tonUsd, utyaUsd: price.utyaUsd, perTon: round2(price.tonUsd / price.utyaUsd), at: price.at } : null,
     token: { name: TOKEN.name, symbol: TOKEN.symbol, jetton: TOKEN.jettonFriendly },
@@ -923,6 +981,7 @@ export async function adminStats() {
     unpaid: unpaid.filter((o) => !o.cancelled),
     withdrawals, // only the oldest 100, for a short list
     withdrawalsPending, // the real number waiting
+    verifiedAccounts: await db.countVerified(),
     minedUtya: (meta.minedUtya4 ?? 0) / 1e4,
     withdrawnUtya: (meta.withdrawnUtya4 ?? 0) / 1e4,
     bonusUtya: (meta.bonusUtya4 ?? 0) / 1e4,
