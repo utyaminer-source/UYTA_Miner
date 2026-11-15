@@ -65,6 +65,29 @@ class MemoryDB {
   async allUserIds() {
     return [...this.users.keys()];
   }
+  /** How many accounts are verified right now. */
+  async countVerified() {
+    let n = 0;
+    for (const u of this.users.values()) if (u.verified) n += 1;
+    return n;
+  }
+  /** Takes the verification away from up to `limit` accounts. Returns how many were changed (0 = none left). */
+  async unverifySome(limit = 2000) {
+    let n = 0;
+    const now = Date.now();
+    for (const u of this.users.values()) {
+      if (!u.verified) continue;
+      u.verified = false;
+      u.verifiedAt = 0;
+      u.verifiedBy = 0;
+      u.verifyTx = "";
+      u.unverifiedAt = now;
+      n += 1;
+      if (n >= limit) break;
+    }
+    if (n) this.dirty();
+    return n;
+  }
   /** Another account that already uses this wallet (used so one wallet can only count for one referral). */
   async findUserByWallet(wallet, exceptId) {
     for (const u of this.users.values()) if (u.wallet && u.wallet === wallet && u.id !== exceptId) return structuredClone(u);
@@ -171,6 +194,7 @@ class MongoDB {
     await self.users.createIndex({ createdAt: -1 });
     await self.users.createIndex({ referredBy: 1 });
     await self.users.createIndex({ wallet: 1 });
+    await self.users.createIndex({ verified: 1 }, { partialFilterExpression: { verified: true } }); // counting / finding the verified accounts stays fast
     await self.ordersCol.createIndex({ status: 1, createdAt: -1 });
     await self.ordersCol.createIndex({ userId: 1, createdAt: -1 });
     await self.withdrawCol.createIndex({ status: 1, createdAt: 1 });
@@ -191,6 +215,17 @@ class MongoDB {
   }
   async allUserIds() {
     return (await this.users.find({}, { projection: { _id: 1 } }).toArray()).map((d) => d._id);
+  }
+  /** How many accounts are verified right now. */
+  async countVerified() {
+    return this.users.countDocuments({ verified: true });
+  }
+  /** Takes the verification away from up to `limit` accounts, in ONE database command. Returns how many were changed (0 = none left). */
+  async unverifySome(limit = 2000) {
+    const ids = (await this.users.find({ verified: true }, { projection: { _id: 1 } }).limit(limit).toArray()).map((d) => d._id);
+    if (!ids.length) return 0;
+    const r = await this.users.updateMany({ _id: { $in: ids }, verified: true }, { $set: { verified: false, verifiedAt: 0, verifiedBy: 0, verifyTx: "", unverifiedAt: Date.now() } });
+    return r.modifiedCount;
   }
   async findUserByWallet(wallet, exceptId) {
     return strip(await this.users.findOne({ wallet, _id: { $ne: exceptId } }));
