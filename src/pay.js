@@ -61,6 +61,26 @@ export function createPay({ tonApi }) {
     };
   }
 
+  /** Same, for the account verification: one order at the verification price. */
+  async function prepareVerify(userId) {
+    const admin = await adminAddress();
+    if (!admin) throw new game.GameError("Payments are not open yet.", "pay_closed");
+    const o = await game.createVerifyOrder(userId);
+    return {
+      id: o.id,
+      ton: o.ton,
+      kind: "verify",
+      validUntil: Math.floor(Date.now() / 1000) + 600,
+      messages: [
+        {
+          address: friendlyAddress(admin.addr, { bounceable: false, testnet: game.runtime.testnet }),
+          amount: toNano(o.ton).toString(),
+          payload: commentPayloadBase64(game.paymentComment(o)),
+        },
+      ],
+    };
+  }
+
   /** The app asks "did my payment arrive?" */
   async function checkOne(userId, id) {
     const o = await game.orderOf(userId, id);
@@ -97,5 +117,5 @@ export function createPay({ tonApi }) {
     return o;
   }
 
-  return { prepare, prepareNft, checkOne, sweep, confirmManually, adminAddress };
+  return { prepare, prepareNft, prepareVerify, checkOne, sweep, confirmManually, adminAddress };
 }
