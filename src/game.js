@@ -615,22 +615,42 @@ export async function rejectWithdraw(id, adminId, reason = "") {
   return moved;
 }
 
-/** Admin: reject EVERY pending withdrawal at once. Each user gets the "withdrawal rejected" message and his held UTYA goes back to his mined balance. */
-export async function rejectAllWithdrawals(adminId, reason = "") {
+/** The real number of withdrawals waiting for the admin (a count, never cut at 100). */
+export const countPendingWithdrawals = () => db.countWithdrawals({ statuses: ["pending"] });
+/** One page of the waiting withdrawals, the oldest first. */
+export const pendingWithdrawals = (skip = 0, limit = 50) => db.listWithdrawals({ statuses: ["pending"], oldestFirst: true, skip, limit });
+
+/** The run of /rejectallwithdrow that is going on right now (null when none). Only one can run at a time. */
+let rejectRun = null;
+export const rejectAllState = () => (rejectRun ? { ...rejectRun } : null);
+
+/**
+ * Admin: reject EVERY pending withdrawal, one after the other. Each user gets the "withdrawal rejected" message and his held UTYA goes back
+ * to his mined balance. `onProgress(state)` is awaited after every withdrawal, so the admin can see the numbers move live.
+ * state = { total, done, failed, remaining, startedAt }
+ */
+export async function rejectAllWithdrawals(adminId, reason = "", onProgress = null) {
+  if (rejectRun) throw new GameError("A reject-all is already running.");
   const rows = await db.listWithdrawals({ statuses: ["pending"], oldestFirst: true, limit: 1_000_000 });
-  let done = 0;
-  let failed = 0;
-  for (const w of rows) {
-    try {
-      await rejectWithdraw(w.id, adminId, reason || "Rejected by an admin");
-      done += 1;
-    } catch (err) {
-      failed += 1; // for example the user took the request back a moment ago
-      console.error("[game] reject all:", w.id, err.message);
+  const run = { total: rows.length, done: 0, failed: 0, remaining: rows.length, startedAt: Date.now() };
+  rejectRun = run;
+  try {
+    for (const w of rows) {
+      try {
+        await rejectWithdraw(w.id, adminId, reason || "Rejected by an admin");
+        run.done += 1;
+      } catch (err) {
+        run.failed += 1; // for example the user took the request back a moment ago
+        console.error("[game] reject all:", w.id, err.message);
+      }
+      run.remaining = run.total - run.done - run.failed;
+      if (onProgress) await onProgress({ ...run });
+      await new Promise((r) => setTimeout(r, 60)); // slowly, Telegram does not like a flood of messages
     }
-    await new Promise((r) => setTimeout(r, 60)); // slowly, Telegram does not like a flood of messages
+  } finally {
+    rejectRun = null;
   }
-  return { total: rows.length, done, failed };
+  return { ...run };
 }
 
 export const getWithdrawal = (id) => db.getWithdrawal(String(id).toUpperCase());
@@ -889,18 +909,20 @@ export async function stateFor(id) {
 
 export async function adminStats() {
   const meta = await db.getMeta();
-  const [awaiting, refunds, unpaid, withdrawals] = await Promise.all([
+  const [awaiting, refunds, unpaid, withdrawals, withdrawalsPending] = await Promise.all([
     db.listOrders({ statuses: ["paid"], oldestFirst: true, limit: 100 }),
     db.listOrders({ statuses: ["refund_requested"], oldestFirst: true, limit: 100 }),
     db.listOrders({ statuses: ["pending", "expired"], limit: 100 }),
     db.listWithdrawals({ statuses: ["pending"], oldestFirst: true, limit: 100 }),
+    db.countWithdrawals({ statuses: ["pending"] }),
   ]);
   return {
     users: await db.countUsers(),
     awaiting,
     refunds,
     unpaid: unpaid.filter((o) => !o.cancelled),
-    withdrawals,
+    withdrawals, // only the oldest 100, for a short list
+    withdrawalsPending, // the real number waiting
     minedUtya: (meta.minedUtya4 ?? 0) / 1e4,
     withdrawnUtya: (meta.withdrawnUtya4 ?? 0) / 1e4,
     bonusUtya: (meta.bonusUtya4 ?? 0) / 1e4,
