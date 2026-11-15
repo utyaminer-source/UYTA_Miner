@@ -551,6 +551,8 @@ const I18N = {
   "vf.orderName": "Account verification",
   "vf.orderDone": "Verified",
   "vf.orderPaid": "Paid · being checked",
+  "vf.popupTitle": "Verify your account first",
+  "vf.popupBody": "To request a withdrawal you must verify your account once. It is a one-time payment of {n} TON. After it is confirmed you can request your withdrawal.",
   "err.not_verified": "Verify your account first ({n} TON, one time) to withdraw.",
   "err.already_verified": "Your account is already verified.",
   "nft.rarity.common": "Common",
@@ -803,6 +805,8 @@ const I18N = {
   "vf.orderName": "توثيق الحساب",
   "vf.orderDone": "تم التوثيق",
   "vf.orderPaid": "تم الدفع · قيد المراجعة",
+  "vf.popupTitle": "وثّق حسابك أولاً",
+  "vf.popupBody": "لطلب السحب يجب توثيق حسابك مرة واحدة. الدفع لمرة واحدة بقيمة {n} TON. بعد التأكيد يمكنك طلب السحب.",
   "err.not_verified": "وثّق حسابك أولاً ({n} TON لمرة واحدة) لتتمكن من السحب.",
   "err.already_verified": "حسابك موثّق بالفعل.",
   "nft.rarity.common": "شائعة",
@@ -1055,6 +1059,8 @@ const I18N = {
   "vf.orderName": "Верификация аккаунта",
   "vf.orderDone": "Верифицировано",
   "vf.orderPaid": "Оплачено · проверяется",
+  "vf.popupTitle": "Сначала верифицируйте аккаунт",
+  "vf.popupBody": "Чтобы запросить вывод, нужно один раз верифицировать аккаунт. Разовый платёж — {n} TON. После подтверждения вы сможете запросить вывод.",
   "err.not_verified": "Сначала верифицируйте аккаунт ({n} TON, один раз), чтобы выводить средства.",
   "err.already_verified": "Ваш аккаунт уже верифицирован.",
   "nft.rarity.common": "Обычная",
@@ -1483,9 +1489,8 @@ function withdrawCard() {
   let body;
   if (!m.withdrawOpen) body = '<div class="muted">' + esc(t("wd.closed")) + "</div>";
   else if (!acc) body = '<div class="muted">' + esc(t("wd.connect")) + "</div>";
-  else if (S.verify && S.verify.required && !S.verify.verified) body = '<div class="muted">' + esc(t("vf.need")) + "</div>";
   else {
-    body = '<div class="muted" style="margin-bottom:8px">' + esc(t("wd.amount")) + " · " + esc(t("wd.min", { min: nf(m.minWithdraw, 4) })) + "</div>" +
+    body = (needsVerify() ? '<div class="muted" style="margin-bottom:8px">🔒 ' + esc(t("vf.need")) + "</div>" : "") + '<div class="muted" style="margin-bottom:8px">' + esc(t("wd.amount")) + " · " + esc(t("wd.min", { min: nf(m.minWithdraw, 4) })) + "</div>" +
       '<div class="field"><input id="wdAmt" inputmode="decimal" autocomplete="off" placeholder="0" value="' + esc(wdAmount) + '" /><span>UTYA</span><button class="btn ghost small" data-a="wdAll">' + esc(t("wd.all")) + "</button></div>" +
       '<button class="btn" data-a="wdSubmit">' + esc(t("wd.btn")) + "</button>" +
       '<div class="muted" style="margin-top:10px">' + esc(t("wd.note", { hours: S.settings.deliveryHours })) + "</div>";
@@ -1772,6 +1777,14 @@ function verifyCard() {
   const head = '<h3>' + esc(t("vf.title")) + '</h3><div class="row"><span>' + esc(t("vf.status")) + "</span><b>" + esc(t(v.verified ? "vf.yes" : "vf.no")) + "</b></div>";
   if (v.verified) return '<div class="card">' + head + "</div>";
   return '<div class="card hero">' + head + '<div class="muted" style="margin:8px 0">' + esc(t("vf.body", { n: nf(v.priceTon, 2) })) + "</div>" + vfPayBtn() + '<div class="muted" style="margin-top:10px">' + esc(t("vf.note")) + "</div></div>";
+}
+
+/** true while the server asks for a verified account before a withdrawal and this player has none yet */
+const needsVerify = () => Boolean(S && S.verify && S.verify.required && !S.verify.verified);
+
+/** The popup of a player who tried to withdraw without verification: verify first, then request the withdrawal. */
+function vfPopup() {
+  openOverlay('<div style="font-size:48px">🔒</div><h2>' + esc(t("vf.popupTitle")) + '</h2><p class="muted">' + esc(t("vf.popupBody", { n: nf(S.verify.priceTon, 2) })) + "</p>" + vfPayBtn() + '<button class="btn ghost" data-a="closeov">' + esc(t("pay.close")) + "</button>");
 }
 
 function showVerified() {
@@ -2122,13 +2135,17 @@ document.addEventListener("click", async (ev) => {
   if (a === "wdSubmit") {
     const acc = connectedAccount();
     if (!acc) { const ui = await getTon(); if (ui) ui.openModal(); return; }
+    if (needsVerify()) return vfPopup(); // verify first, then the withdrawal can be requested
     if (busy) return;
     busy = true;
     try {
       await syncWallet(acc.address);
       const r = await api("/api/withdraw", { amount: Number(String(wdAmount).replace(",", ".")) });
       S = r.state; wdAmount = ""; toast(t("wd.done"), "ok"); buzz("ok"); render();
-    } catch (e) { await fail(e); await refreshState(); } finally { busy = false; }
+    } catch (e) {
+      if (e && e.code === "not_verified") { await refreshState(); busy = false; if (needsVerify()) return vfPopup(); } // the app did not know yet
+      await fail(e); await refreshState();
+    } finally { busy = false; }
     return;
   }
   if (a === "wdCancel") {
