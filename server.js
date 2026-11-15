@@ -211,7 +211,11 @@ async function handleApi(req, res, pathname, query) {
   const id = me.id;
   if (me.banned) return json(res, 403, await bannedBody());
   if (overLimit(id) && !(await isStaff(id))) return json(res, 429, { error: "Too many requests. Please slow down.", code: "slow_down" });
-  const missing = await missingChannels(id);
+  // Maintenance (admin: /maintainpopupon): only /api/state still answers (it carries maintenance: true, so the app shows the maintenance screen).
+  // Everything else is closed, so the screen can not be bypassed. The channel check is skipped, the maintenance screen comes first.
+  const maintenance = (await game.getSettings()).maintenance;
+  if (maintenance && pathname !== "/api/state") return json(res, 503, { error: "The app is under maintenance. Please come back soon.", code: "maintenance" });
+  const missing = maintenance ? [] : await missingChannels(id);
   if (missing.length) {
     return json(res, 403, { error: "Join our channel first.", code: "join_required", channels: missing.map((c) => ({ name: c, url: "https://t.me/" + c.slice(1) })) });
   }
