@@ -28,6 +28,7 @@ const ADMIN_HELP = [
   "/withdrawals (or /wd) — withdrawal requests waiting for you, each with ✅ / ❌ buttons",
   "/wsent &lt;id&gt; [tx hash] — you sent the UTYA (same as the ✅ button)",
   "/wreject &lt;id&gt; [reason] — refuse; the UTYA goes back to the user's mined balance",
+  "/rejectallwithdrow [reason] — reject ALL pending withdrawals at once; every user gets the rejected message and his UTYA goes back to his mined balance",
   "/setminerate &lt;UTYA per hour&gt; — mining speed for new sessions",
   "/setminwithdraw &lt;UTYA&gt; — smallest withdrawal",
   "/setrefbonus &lt;UTYA&gt; — bonus the inviter gets for every friend who connects a wallet (0 = none, first value 5)",
@@ -90,6 +91,8 @@ const ALIASES = {
   "/setsupportusername": "/setsupport",
   "/announcement": "/broadcast",
   "/wd": "/withdrawals",
+  "/rejectallwithdraw": "/rejectallwithdrow",
+  "/rejectallwithdrawals": "/rejectallwithdrow",
 };
 const OWNER_ONLY = new Set(["/setdepositaddress", "/addadmin", "/removeadmin"]);
 
@@ -261,6 +264,13 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
       } catch (err) {
         return fail(err);
       }
+    }
+    if (cmd === "/rejectallwithdrow") {
+      const waiting = (await game.adminStats()).withdrawals.length;
+      if (!waiting) return reply("No withdrawal is waiting. 🎉");
+      await reply(`Rejecting ${waiting} pending withdrawals and telling the users... one moment.`);
+      const r = await game.rejectAllWithdrawals(msg.from.id, arg);
+      return reply(`✅ Rejected <b>${r.done}</b> withdrawals. Every user got the rejected message and the UTYA is back in his mined balance.${r.failed ? `\n⚠️ Could not reject: <b>${r.failed}</b> (see /withdrawals).` : ""}`);
     }
     if (cmd === "/setminerate" || cmd === "/setminwithdraw") {
       const n = Number(arg.replace(",", "."));
