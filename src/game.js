@@ -89,6 +89,7 @@ export async function getSettings() {
     withdrawOpen: s.withdrawOpen !== false, // /withdrawon /withdrawoff
     mineRate: pos(s.mineRate, MINING.ratePerHour), // UTYA per hour
     minWithdraw: pos(s.minWithdraw, MINING.minWithdraw), // UTYA
+    maintenance: s.maintenance === true, // /maintainpopupon /maintainpopupoff: the mini app shows the maintenance screen and is closed for the players
     verifyRequired: typeof s.verifyRequired === "boolean" ? s.verifyRequired : VERIFY.required, // /verifyon /verifyoff
     verifyPrice: pos(s.verifyPrice, VERIFY.priceTon), // TON, /setverifyprice
     refBonus: Number.isFinite(s.refBonus) && s.refBonus >= 0 ? s.refBonus : REFERRAL.bonusUtya, // UTYA per counted friend (0 = referrals pay nothing)
@@ -955,6 +956,7 @@ export async function stateFor(id) {
     withdrawals: withdrawals.map(withdrawView),
     user: { id: u.id, name: u.name, wallet: u.wallet, lang: langOf(u), verified: Boolean(u.verified) },
     verify: { required: s.verifyRequired, priceTon: s.verifyPrice, verified: Boolean(u.verified), at: u.verified ? u.verifiedAt ?? 0 : 0 },
+    maintenance: s.maintenance,
     settings: { buyOpen: s.buyOpen, minTon: s.minTon, maxTon: s.maxTon, feePct: s.feePct, deliveryHours: s.deliveryHours, support: s.support, payAddress: await getDepositAddress() },
     price: price ? { tonUsd: price.tonUsd, utyaUsd: price.utyaUsd, perTon: round2(price.tonUsd / price.utyaUsd), at: price.at } : null,
     token: { name: TOKEN.name, symbol: TOKEN.symbol, jetton: TOKEN.jettonFriendly },
