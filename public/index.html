@@ -289,6 +289,38 @@ img{-webkit-user-drag:none;user-drag:none}
 .chrow i{flex:none;width:10px;height:10px;border-radius:50%;background:var(--rc);box-shadow:0 0 10px var(--rc)}
 .chrow span{flex:1}.chrow b{white-space:nowrap}
 .boostchip{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:99px;font-size:12.5px;font-weight:900;color:#06231a;background:linear-gradient(110deg,#2dffb0,#22d3ee)}
+
+/* maintenance screen */
+@property --mta{syntax:"<angle>";inherits:false;initial-value:0deg}
+html.mt-lock,html.mt-lock body{overflow:hidden}
+#mt{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:calc(24px + env(safe-area-inset-top,0px)) 20px calc(24px + env(safe-area-inset-bottom,0px));background:radial-gradient(120% 90% at 50% 0%,#1d1f58 0%,#0a0b1f 56%,#05060f 100%);overflow:hidden;animation:mtin .5s ease both}
+#mt.out{animation:mtout .38s ease both;pointer-events:none}
+@keyframes mtin{from{opacity:0}}
+@keyframes mtout{to{opacity:0}}
+.mt-orb{position:absolute;border-radius:50%;filter:blur(72px);opacity:.5;pointer-events:none;animation:mtfloat 9s ease-in-out infinite}
+.mt-orb.a{width:290px;height:290px;background:var(--c2);top:-70px;left:-90px}
+.mt-orb.b{width:270px;height:270px;background:var(--c1);bottom:-80px;right:-80px;animation-delay:-3s}
+.mt-orb.c{width:210px;height:210px;background:var(--c3);top:46%;left:56%;opacity:.28;animation-delay:-6s}
+@keyframes mtfloat{50%{transform:translate(28px,-24px) scale(1.12)}}
+.mt-card{position:relative;width:100%;max-width:400px;padding:30px 24px 24px;text-align:center;border-radius:30px;background:linear-gradient(165deg,rgba(40,44,100,.74),rgba(12,14,38,.88));backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:0 30px 90px -30px rgba(139,92,246,.85),inset 0 1px 0 rgba(255,255,255,.08);animation:rise .75s cubic-bezier(.2,.9,.25,1) .12s both}
+.mt-card::before{content:"";position:absolute;inset:0;border-radius:30px;padding:1.5px;background:conic-gradient(from var(--mta),var(--c1),var(--c2),var(--c3),var(--c4),var(--c1));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);mask-composite:exclude;animation:mtspin 6s linear infinite;pointer-events:none}
+@keyframes mtspin{to{--mta:360deg}}
+.mt-brand{font-size:11px;font-weight:800;letter-spacing:.32em;color:var(--muted);margin-bottom:14px}
+.mt-gears{position:relative;width:118px;height:98px;margin:0 auto 14px;filter:drop-shadow(0 0 16px rgba(139,92,246,.55))}
+.mtg{position:absolute}
+.mtg.g1{width:76px;height:76px;left:6px;top:2px;animation:mtrot 9s linear infinite}
+.mtg.g2{width:52px;height:52px;right:4px;bottom:0;animation:mtrot 6s linear infinite reverse}
+@keyframes mtrot{to{transform:rotate(360deg)}}
+.mt-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.04em;color:#ffe9a8;background:rgba(255,196,64,.1);border:1px solid rgba(255,196,64,.38)}
+.mt-badge i{width:8px;height:8px;border-radius:50%;background:#ffc440;box-shadow:0 0 0 0 rgba(255,196,64,.7);animation:mtdot 1.6s ease-out infinite}
+@keyframes mtdot{to{box-shadow:0 0 0 10px rgba(255,196,64,0)}}
+.mt-card h1{margin:16px 0 8px;font-size:30px;line-height:1.15;font-weight:900;background:var(--rgb);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shimmer 4s linear infinite}
+.mt-card p{margin:0 auto 18px;max-width:320px;font-size:14.5px;line-height:1.55;color:var(--muted)}
+.mt-bar{position:relative;height:6px;border-radius:999px;background:rgba(150,160,255,.14);overflow:hidden;margin:0 6px 18px}
+.mt-bar b{position:absolute;top:0;bottom:0;width:38%;border-radius:999px;background:var(--rgb);animation:mtbar 1.7s cubic-bezier(.45,0,.25,1) infinite}
+@keyframes mtbar{from{left:-40%}to{left:102%}}
+.mt-safe{display:inline-block;padding:9px 14px;border-radius:14px;font-size:13px;font-weight:600;color:var(--green);background:rgba(45,255,176,.08);border:1px solid rgba(45,255,176,.25)}
+.mt-hint{margin-top:14px;font-size:12px;color:var(--dim)}
 </style>
 </head>
 <body>
@@ -551,6 +583,12 @@ const I18N = {
   "vf.orderName": "Account verification",
   "vf.orderDone": "Verified",
   "vf.orderPaid": "Paid · being checked",
+  "mt.badge": "Maintenance in progress",
+  "mt.title": "We’ll be right back",
+  "mt.body": "UTYA Miner is getting a quick upgrade to serve you better. The app is paused for a short while.",
+  "mt.safe": "Your balance, mining progress and NFTs are safe.",
+  "mt.hint": "This screen closes by itself as soon as we are back.",
+  "err.maintenance": "The app is under maintenance. Please come back soon.",
   "vf.popupTitle": "Verify your account first",
   "vf.popupBody": "To request a withdrawal you must verify your account once. It is a one-time payment of {n} TON. After it is confirmed you can request your withdrawal.",
   "err.not_verified": "Verify your account first ({n} TON, one time) to withdraw.",
@@ -805,6 +843,12 @@ const I18N = {
   "vf.orderName": "توثيق الحساب",
   "vf.orderDone": "تم التوثيق",
   "vf.orderPaid": "تم الدفع · قيد المراجعة",
+  "mt.badge": "الصيانة قيد التنفيذ",
+  "mt.title": "سنعود قريباً",
+  "mt.body": "يخضع UTYA Miner لتحديث سريع ليخدمك بشكل أفضل. التطبيق متوقف لفترة قصيرة.",
+  "mt.safe": "رصيدك وتقدّم التعدين والـ NFT في أمان.",
+  "mt.hint": "ستُغلق هذه الشاشة تلقائياً بمجرد عودتنا.",
+  "err.maintenance": "التطبيق قيد الصيانة. يرجى العودة قريباً.",
   "vf.popupTitle": "وثّق حسابك أولاً",
   "vf.popupBody": "لطلب السحب يجب توثيق حسابك مرة واحدة. الدفع لمرة واحدة بقيمة {n} TON. بعد التأكيد يمكنك طلب السحب.",
   "err.not_verified": "وثّق حسابك أولاً ({n} TON لمرة واحدة) لتتمكن من السحب.",
@@ -1059,6 +1103,12 @@ const I18N = {
   "vf.orderName": "Верификация аккаунта",
   "vf.orderDone": "Верифицировано",
   "vf.orderPaid": "Оплачено · проверяется",
+  "mt.badge": "Идут технические работы",
+  "mt.title": "Скоро вернёмся",
+  "mt.body": "UTYA Miner проходит быстрое обновление, чтобы работать ещё лучше. Приложение ненадолго приостановлено.",
+  "mt.safe": "Ваш баланс, прогресс майнинга и NFT в безопасности.",
+  "mt.hint": "Этот экран закроется сам, как только мы вернёмся.",
+  "err.maintenance": "Приложение на техническом обслуживании. Пожалуйста, загляните позже.",
   "vf.popupTitle": "Сначала верифицируйте аккаунт",
   "vf.popupBody": "Чтобы запросить вывод, нужно один раз верифицировать аккаунт. Разовый платёж — {n} TON. После подтверждения вы сможете запросить вывод.",
   "err.not_verified": "Сначала верифицируйте аккаунт ({n} TON, один раз), чтобы выводить средства.",
@@ -1159,7 +1209,9 @@ async function api(path, body) {
   });
   let data = {};
   try { data = await res.json(); } catch (e) {}
-  if (!res.ok) { const err = new Error(data.error || "Error"); err.code = data.code; err.vars = data.vars; err.data = data; throw err; }
+  if (!res.ok) { if (data.code === "maintenance") setMaintenance(true); const err = new Error(data.error || "Error"); err.code = data.code; err.vars = data.vars; err.data = data; throw err; }
+  const mtFlag = data && (data.state ? data.state.maintenance : data.maintenance);
+  if (typeof mtFlag === "boolean") setMaintenance(mtFlag);
   const serverNow = data && (data.now || (data.state && data.state.now));
   if (serverNow) clockSkew = serverNow - Date.now();
   return data;
@@ -1940,6 +1992,7 @@ async function copyText(text) {
 }
 
 async function fail(e) {
+  if (e && e.code === "maintenance") return; // the maintenance screen is already shown by api()
   if (e && e.code === "banned") return showBanned(e.data);
   if (e && e.code === "join_required") return showGate(e.data.channels);
   toast(errText(e), "err");
@@ -2203,6 +2256,39 @@ document.addEventListener("click", async (ev) => {
 });
 
 // ------------------------------------------------------------------ start
+// ------------------------------------------------------------------ maintenance screen (admin: /maintainpopupon, /maintainpopupoff)
+// A full-screen layer above everything that can not be closed. The server answers only /api/state while maintenance is on, so it can not be bypassed.
+let mtOn = false;
+const mtGear = (cls) => '<svg class="mtg ' + cls + '" viewBox="0 0 48 48" fill="none" aria-hidden="true"><defs><linearGradient id="mtg-' + cls + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#8b5cf6"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs><circle cx="24" cy="24" r="11" stroke="url(#mtg-' + cls + ')" stroke-width="6"/><circle cx="24" cy="24" r="17" stroke="url(#mtg-' + cls + ')" stroke-width="6" stroke-dasharray="6.68 6.68"/><circle cx="24" cy="24" r="3.4" fill="url(#mtg-' + cls + ')"/></svg>';
+function maintenanceHtml() {
+  return '<div class="mt-orb a"></div><div class="mt-orb b"></div><div class="mt-orb c"></div>' +
+    '<div class="mt-card" role="alertdialog" aria-modal="true" aria-live="polite">' +
+    '<div class="mt-brand">UTYA MINER</div>' +
+    '<div class="mt-gears">' + mtGear("g1") + mtGear("g2") + "</div>" +
+    '<div class="mt-badge"><i></i>' + esc(t("mt.badge")) + "</div>" +
+    "<h1>" + esc(t("mt.title")) + "</h1>" +
+    "<p>" + esc(t("mt.body")) + "</p>" +
+    '<div class="mt-bar"><b></b></div>' +
+    '<div class="mt-safe">🛡️ ' + esc(t("mt.safe")) + "</div>" +
+    '<div class="mt-hint">' + esc(t("mt.hint")) + "</div></div>";
+}
+function setMaintenance(on) {
+  if (on === mtOn) return;
+  mtOn = on;
+  let el = document.getElementById("mt");
+  if (on) {
+    if (el && el.classList.contains("out")) { el.remove(); el = null; }
+    closeOverlay();
+    if (!el) { el = document.createElement("div"); el.id = "mt"; document.body.appendChild(el); }
+    el.innerHTML = maintenanceHtml();
+    document.documentElement.classList.add("mt-lock");
+  } else {
+    document.documentElement.classList.remove("mt-lock");
+    if (el) { el.classList.add("out"); setTimeout(() => el.remove(), 380); }
+    if (S) render();
+  }
+}
+
 async function boot() {
   try {
     S = await api("/api/state");
@@ -2218,6 +2304,8 @@ async function boot() {
   tonLoaded().then(() => { ton(); const acc = connectedAccount(); if (acc) syncWallet(acc.address).then(render).catch(() => {}); }).catch(() => {});
   refreshQuote();
   setInterval(() => { if (!document.hidden) { refreshState(); if (tab === "buy" && !busy) refreshQuote(); } }, 15000);
+  setInterval(() => { if (mtOn && !document.hidden) refreshState(); }, 5000); // while the maintenance screen is up: it closes as soon as the admin switches it off
+  document.addEventListener("visibilitychange", () => { if (mtOn && !document.hidden) refreshState(); });
   setInterval(() => { const c = $("#chip"); if (c && S) c.outerHTML = priceChip(); }, 1000);
   setInterval(() => { if (!document.hidden && (tab === "mine" || tab === "wallet")) pollPrice(); }, 5000); // the value of the balance follows the live price
   pollPrice();
