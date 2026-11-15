@@ -99,22 +99,76 @@ const OWNER_ONLY = new Set(["/setdepositaddress", "/addadmin", "/removeadmin"]);
 export function createBot({ token, username, publicUrl, adminIds, webhookSecret, pay, extraChannels = [] }) {
   const api = `https://api.telegram.org/bot${token}`;
 
-  async function tg(method, body = {}) {
-    try {
-      const res = await fetch(`${api}/${method}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-      const data = await res.json();
-      if (!data.ok) {
-        console.error(`[bot] ${method} failed:`, data.description);
-        return null;
+  /**
+   * One Telegram API call with a timeout and RETRIES, so a slow network, a hung connection, a Telegram hiccup (5xx) or a
+   * flood limit (429, we wait the "retry_after" Telegram asks for) does not swallow an answer. A real "no" (a blocked bot,
+   * a bad request) is not retried. Returns { result, error }.
+   */
+  async function tgCall(method, body = {}, { tries = 4, timeoutMs = 15_000 } = {}) {
+    let error = "";
+    for (let attempt = 1; attempt <= tries; attempt++) {
+      let wait = 500 * attempt * attempt; // 0.5 s, 2 s, 4.5 s
+      try {
+        const res = await fetch(`${api}/${method}`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body), signal: AbortSignal.timeout(timeoutMs) });
+        const data = await res.json();
+        if (data.ok) return { result: data.result, error: "" };
+        error = data.description || `HTTP ${res.status}`;
+        const code = data.error_code ?? res.status;
+        if (code === 429) wait = Math.min(30_000, ((data.parameters?.retry_after ?? 1) + 0.5) * 1000);
+        else if (code < 500) {
+          console.error(`[bot] ${method} failed:`, error);
+          return { result: null, error };
+        }
+      } catch (err) {
+        error = err?.name === "TimeoutError" ? "timeout" : String(err?.message ?? err);
       }
-      return data.result;
-    } catch (err) {
-      console.error(`[bot] ${method} error:`, err.message);
-      return null;
+      if (attempt < tries) {
+        console.warn(`[bot] ${method} failed (${error}), retry ${attempt}/${tries - 1} in ${Math.round(wait / 100) / 10}s`);
+        await sleep(wait);
+      }
     }
+    console.error(`[bot] ${method} gave up:`, error);
+    return { result: null, error };
   }
+  const tg = async (method, body = {}, opts) => (await tgCall(method, body, opts)).result;
 
-  const send = (chatId, text, extra = {}) => tg("sendMessage", { chat_id: chatId, text, parse_mode: "HTML", disable_web_page_preview: true, ...extra });
+  // Telegram refuses a message over 4096 characters (the admin /help is one). Cut it at line ends, a few characters under the limit.
+  const splitMessage = (text, max = 4000) => {
+    const s = String(text ?? "");
+    if (s.length <= max) return [s];
+    const parts = [];
+    let cur = "";
+    for (const line of s.split("\n")) {
+      if (cur && cur.length + line.length + 1 > max) {
+        parts.push(cur);
+        cur = "";
+      }
+      let l = line;
+      while (l.length > max) {
+        parts.push(l.slice(0, max));
+        l = l.slice(max);
+      }
+      cur = cur ? `${cur}\n${l}` : l;
+    }
+    if (cur) parts.push(cur);
+    return parts;
+  };
+  const plainText = (t) => t.replace(/<[^>]+>/g, "").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&");
+
+  /** Sends a message: long texts in several parts (the buttons go under the last one); if Telegram cannot read the HTML, the same text goes out as plain text. */
+  async function send(chatId, text, extra = {}) {
+    const parts = splitMessage(text);
+    const { reply_markup, ...rest } = extra;
+    let last = null;
+    for (let i = 0; i < parts.length; i++) {
+      const base = { chat_id: chatId, disable_web_page_preview: true, ...rest, ...(i === parts.length - 1 && reply_markup ? { reply_markup } : {}) };
+      let r = await tgCall("sendMessage", { ...base, text: parts[i], parse_mode: "HTML" });
+      if (!r.result && /parse entities/i.test(r.error)) r = await tgCall("sendMessage", { ...base, text: plainText(parts[i]) });
+      last = r.result;
+      if (parts.length > 1) await sleep(120);
+    }
+    return last;
+  }
   const openButton = (lang) => ({ inline_keyboard: [[{ text: T(lang, "btn.open"), web_app: { url: publicUrl } }]] });
 
   // ---- hooks used by the game
@@ -127,7 +181,7 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
     for (const id of await allAdminIds()) await send(id, text, buttons ? { reply_markup: { inline_keyboard: buttons } } : {});
   };
   game.hooks.checkMember = async (chat, userId) => {
-    const m = await tg("getChatMember", { chat_id: chat, user_id: userId });
+    const m = await tg("getChatMember", { chat_id: chat, user_id: userId }, { tries: 1, timeoutMs: 4000 }); // the app only waits 3 s for this answer
     if (!m) return null;
     if (["creator", "administrator", "member"].includes(m.status)) return true;
     if (m.status === "restricted") return Boolean(m.is_member);
@@ -609,12 +663,29 @@ export function createBot({ token, username, publicUrl, adminIds, webhookSecret,
     }
   }
 
+  // Telegram sends an update AGAIN when the server answered too slowly (for example while it woke up from sleep).
+  // Without this a command like /broadcast could run twice.
+  const seen = new Set();
+  const seenOrder = [];
+  function isRepeat(update) {
+    const key = update.callback_query ? `c${update.callback_query.id}` : update.message?.message_id ? `m${update.update_id}:${update.message.message_id}` : "";
+    if (!key) return false;
+    if (seen.has(key)) return true;
+    seen.add(key);
+    seenOrder.push(key);
+    if (seenOrder.length > 1000) seen.delete(seenOrder.shift());
+    return false;
+  }
+
   async function handleUpdate(update) {
     try {
+      if (isRepeat(update)) return;
       if (update.message) await handleMessage(update.message);
       else if (update.callback_query) await handleCallback(update.callback_query);
     } catch (err) {
       console.error("[bot] update failed:", err);
+      const chat = update.message?.chat;
+      if (chat?.type === "private") await send(chat.id, "⚠️ Something went wrong. Please send it again.");
     }
   }
 
