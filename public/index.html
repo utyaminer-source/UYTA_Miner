@@ -290,35 +290,36 @@ img{-webkit-user-drag:none;user-drag:none}
 .chrow span{flex:1}.chrow b{white-space:nowrap}
 .boostchip{display:inline-block;margin-top:10px;padding:4px 12px;border-radius:99px;font-size:12.5px;font-weight:900;color:#06231a;background:linear-gradient(110deg,#2dffb0,#22d3ee)}
 
-/* maintenance screen */
-@property --mta{syntax:"<angle>";inherits:false;initial-value:0deg}
+/* maintenance screen: built to be cheap for a phone (no blur filter, no backdrop-filter, no animated mask: only transform / opacity move) */
 html.mt-lock,html.mt-lock body{overflow:hidden}
-#mt{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:calc(24px + env(safe-area-inset-top,0px)) 20px calc(24px + env(safe-area-inset-bottom,0px));background:radial-gradient(120% 90% at 50% 0%,#1d1f58 0%,#0a0b1f 56%,#05060f 100%);overflow:hidden;animation:mtin .5s ease both}
+#mt{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;padding:calc(24px + env(safe-area-inset-top,0px)) 20px calc(24px + env(safe-area-inset-bottom,0px));background:radial-gradient(120% 90% at 50% 0%,#1d1f58 0%,#0a0b1f 56%,#05060f 100%);overflow:hidden;touch-action:none;overscroll-behavior:contain;animation:mtin .5s ease both}
 #mt.out{animation:mtout .38s ease both;pointer-events:none}
 @keyframes mtin{from{opacity:0}}
 @keyframes mtout{to{opacity:0}}
-.mt-orb{position:absolute;border-radius:50%;filter:blur(72px);opacity:.5;pointer-events:none;animation:mtfloat 9s ease-in-out infinite}
-.mt-orb.a{width:290px;height:290px;background:var(--c2);top:-70px;left:-90px}
-.mt-orb.b{width:270px;height:270px;background:var(--c1);bottom:-80px;right:-80px;animation-delay:-3s}
-.mt-orb.c{width:210px;height:210px;background:var(--c3);top:46%;left:56%;opacity:.28;animation-delay:-6s}
-@keyframes mtfloat{50%{transform:translate(28px,-24px) scale(1.12)}}
-.mt-card{position:relative;width:100%;max-width:400px;padding:30px 24px 24px;text-align:center;border-radius:30px;background:linear-gradient(165deg,rgba(40,44,100,.74),rgba(12,14,38,.88));backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);box-shadow:0 30px 90px -30px rgba(139,92,246,.85),inset 0 1px 0 rgba(255,255,255,.08);animation:rise .75s cubic-bezier(.2,.9,.25,1) .12s both}
-.mt-card::before{content:"";position:absolute;inset:0;border-radius:30px;padding:1.5px;background:conic-gradient(from var(--mta),var(--c1),var(--c2),var(--c3),var(--c4),var(--c1));-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0);mask-composite:exclude;animation:mtspin 6s linear infinite;pointer-events:none}
-@keyframes mtspin{to{--mta:360deg}}
+.mt-orb{position:absolute;border-radius:50%;pointer-events:none;will-change:transform;animation:mtfloat 10s ease-in-out infinite}
+.mt-orb.a{width:380px;height:380px;top:-130px;left:-150px;background:radial-gradient(circle,rgba(139,92,246,.5) 0%,rgba(139,92,246,0) 68%)}
+.mt-orb.b{width:360px;height:360px;bottom:-140px;right:-140px;background:radial-gradient(circle,rgba(34,211,238,.42) 0%,rgba(34,211,238,0) 68%);animation-delay:-3.5s}
+.mt-orb.c{width:300px;height:300px;top:42%;left:46%;background:radial-gradient(circle,rgba(236,72,153,.26) 0%,rgba(236,72,153,0) 68%);animation-delay:-7s}
+@keyframes mtfloat{50%{transform:translate3d(26px,-22px,0) scale(1.1)}}
+.mt-card{position:relative;width:100%;max-width:400px;border-radius:30px;padding:1.5px;overflow:hidden;box-shadow:0 30px 90px -30px rgba(139,92,246,.8);animation:rise .75s cubic-bezier(.2,.9,.25,1) .12s both}
+.mt-card::before{content:"";position:absolute;inset:-100%;background:conic-gradient(var(--c1),var(--c2),var(--c3),var(--c4),var(--c1));will-change:transform;animation:mtrot 7s linear infinite}
+.mt-in{position:relative;padding:30px 24px 24px;text-align:center;border-radius:28.5px;background:linear-gradient(165deg,#242866 0%,#0e1030 100%)}
 .mt-brand{font-size:11px;font-weight:800;letter-spacing:.32em;color:var(--muted);margin-bottom:14px}
-.mt-gears{position:relative;width:118px;height:98px;margin:0 auto 14px;filter:drop-shadow(0 0 16px rgba(139,92,246,.55))}
-.mtg{position:absolute}
+.mt-gears{position:relative;width:118px;height:98px;margin:0 auto 14px}
+.mt-gears::before{content:"";position:absolute;inset:-26px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.45) 0%,rgba(139,92,246,0) 68%)}
+.mtg{position:absolute;will-change:transform}
 .mtg.g1{width:76px;height:76px;left:6px;top:2px;animation:mtrot 9s linear infinite}
 .mtg.g2{width:52px;height:52px;right:4px;bottom:0;animation:mtrot 6s linear infinite reverse}
 @keyframes mtrot{to{transform:rotate(360deg)}}
 .mt-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:800;letter-spacing:.04em;color:#ffe9a8;background:rgba(255,196,64,.1);border:1px solid rgba(255,196,64,.38)}
-.mt-badge i{width:8px;height:8px;border-radius:50%;background:#ffc440;box-shadow:0 0 0 0 rgba(255,196,64,.7);animation:mtdot 1.6s ease-out infinite}
-@keyframes mtdot{to{box-shadow:0 0 0 10px rgba(255,196,64,0)}}
-.mt-card h1{margin:16px 0 8px;font-size:30px;line-height:1.15;font-weight:900;background:var(--rgb);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;animation:shimmer 4s linear infinite}
-.mt-card p{margin:0 auto 18px;max-width:320px;font-size:14.5px;line-height:1.55;color:var(--muted)}
+.mt-badge i{position:relative;width:8px;height:8px;border-radius:50%;background:#ffc440}
+.mt-badge i::after{content:"";position:absolute;inset:0;border-radius:50%;background:#ffc440;animation:mtdot 1.6s ease-out infinite}
+@keyframes mtdot{to{transform:scale(2.8);opacity:0}}
+.mt-in h1{margin:16px 0 8px;font-size:30px;line-height:1.15;font-weight:900;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent}
+.mt-in p{margin:0 auto 18px;max-width:320px;font-size:14.5px;line-height:1.55;color:var(--muted)}
 .mt-bar{position:relative;height:6px;border-radius:999px;background:rgba(150,160,255,.14);overflow:hidden;margin:0 6px 18px}
-.mt-bar b{position:absolute;top:0;bottom:0;width:38%;border-radius:999px;background:var(--rgb);animation:mtbar 1.7s cubic-bezier(.45,0,.25,1) infinite}
-@keyframes mtbar{from{left:-40%}to{left:102%}}
+.mt-bar b{position:absolute;top:0;left:0;bottom:0;width:38%;border-radius:999px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3));will-change:transform;animation:mtbar 1.8s cubic-bezier(.45,0,.25,1) infinite}
+@keyframes mtbar{from{transform:translateX(-105%)}to{transform:translateX(270%)}}
 .mt-safe{display:inline-block;padding:9px 14px;border-radius:14px;font-size:13px;font-weight:600;color:var(--green);background:rgba(45,255,176,.08);border:1px solid rgba(45,255,176,.25)}
 .mt-hint{margin-top:14px;font-size:12px;color:var(--dim)}
 </style>
@@ -1201,7 +1202,9 @@ const LOC = () => ({ en: "en-US", ar: "ar-u-nu-latn", ru: "ru-RU" }[lang] || "en
 const nf = (n, max) => Number(n).toLocaleString(LOC(), { maximumFractionDigits: max === undefined ? 2 : max });
 const buzz = (kind) => { try { tgw && tgw.HapticFeedback && (kind === "ok" ? tgw.HapticFeedback.notificationOccurred("success") : tgw.HapticFeedback.impactOccurred("light")); } catch (e) {} };
 
+let apiSeq = 0; // every request gets a number: an answer to an older request must not overrule the answer to a newer one
 async function api(path, body) {
+  const seq = ++apiSeq;
   const res = await fetch(path, {
     method: body === undefined ? "GET" : "POST",
     headers: { "content-type": "application/json", "x-init-data": INIT },
@@ -1209,9 +1212,9 @@ async function api(path, body) {
   });
   let data = {};
   try { data = await res.json(); } catch (e) {}
-  if (!res.ok) { if (data.code === "maintenance") setMaintenance(true); const err = new Error(data.error || "Error"); err.code = data.code; err.vars = data.vars; err.data = data; throw err; }
+  if (!res.ok) { if (data.code === "maintenance") mtSignal(true, seq, false); const err = new Error(data.error || "Error"); err.code = data.code; err.vars = data.vars; err.data = data; throw err; }
   const mtFlag = data && (data.state ? data.state.maintenance : data.maintenance);
-  if (typeof mtFlag === "boolean") setMaintenance(mtFlag);
+  if (typeof mtFlag === "boolean") mtSignal(mtFlag, seq, path === "/api/state");
   const serverNow = data && (data.now || (data.state && data.state.now));
   if (serverNow) clockSkew = serverNow - Date.now();
   return data;
@@ -1483,7 +1486,7 @@ function mineBox() {
 }
 
 function tickMining() {
-  if (tab !== "mine" || !S || !S.mining.session) return;
+  if (mtOn || tab !== "mine" || !S || !S.mining.session) return;
   const ses = S.mining.session;
   const pend = $("#minePend");
   if (!pend) return; // the claim state is already showing
@@ -1514,7 +1517,7 @@ function updateUsd(instant) {
   });
 }
 async function pollPrice() {
-  if (!S) return;
+  if (!S || mtOn) return;
   try {
     const d = await api("/api/chart?range=1h");
     if (!d.last) return;
@@ -2038,7 +2041,7 @@ function onAmount(e) {
   amtTimer = setTimeout(refreshQuote, 350);
 }
 async function refreshQuote() {
-  if (!S || tab !== "buy" || quoting) return;
+  if (!S || tab !== "buy" || quoting || mtOn) return;
   const wanted = amount;
   quoting = true;
   try {
@@ -2056,6 +2059,7 @@ async function refreshState() {
     const r = await api("/api/state");
     S = r;
     lang = S.user.lang || lang;
+    if (mtOn) return; // the maintenance screen covers the app: redrawing it below the screen every few seconds made the screen flicker
     const typing = document.activeElement && document.activeElement.id === "wdAmt";
     if ((tab === "mine" || tab === "wallet" || tab === "ref") && !typing) render(); else { const c = $("#chip"); if (c) c.outerHTML = priceChip(); }
   } catch (e) { /* keep the old state */ }
@@ -2262,7 +2266,7 @@ let mtOn = false;
 const mtGear = (cls) => '<svg class="mtg ' + cls + '" viewBox="0 0 48 48" fill="none" aria-hidden="true"><defs><linearGradient id="mtg-' + cls + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#8b5cf6"/><stop offset="1" stop-color="#ec4899"/></linearGradient></defs><circle cx="24" cy="24" r="11" stroke="url(#mtg-' + cls + ')" stroke-width="6"/><circle cx="24" cy="24" r="17" stroke="url(#mtg-' + cls + ')" stroke-width="6" stroke-dasharray="6.68 6.68"/><circle cx="24" cy="24" r="3.4" fill="url(#mtg-' + cls + ')"/></svg>';
 function maintenanceHtml() {
   return '<div class="mt-orb a"></div><div class="mt-orb b"></div><div class="mt-orb c"></div>' +
-    '<div class="mt-card" role="alertdialog" aria-modal="true" aria-live="polite">' +
+    '<div class="mt-card" role="alertdialog" aria-modal="true" aria-live="polite"><div class="mt-in">' +
     '<div class="mt-brand">UTYA MINER</div>' +
     '<div class="mt-gears">' + mtGear("g1") + mtGear("g2") + "</div>" +
     '<div class="mt-badge"><i></i>' + esc(t("mt.badge")) + "</div>" +
@@ -2270,23 +2274,35 @@ function maintenanceHtml() {
     "<p>" + esc(t("mt.body")) + "</p>" +
     '<div class="mt-bar"><b></b></div>' +
     '<div class="mt-safe">🛡️ ' + esc(t("mt.safe")) + "</div>" +
-    '<div class="mt-hint">' + esc(t("mt.hint")) + "</div></div>";
+    '<div class="mt-hint">' + esc(t("mt.hint")) + "</div></div></div>";
 }
 function setMaintenance(on) {
-  if (on === mtOn) return;
-  mtOn = on;
   let el = document.getElementById("mt");
+  if (on === mtOn && (!on || (el && !el.classList.contains("out")))) return; // nothing to do (and if the screen was removed by something, it is drawn again)
+  mtOn = on;
   if (on) {
     if (el && el.classList.contains("out")) { el.remove(); el = null; }
     closeOverlay();
-    if (!el) { el = document.createElement("div"); el.id = "mt"; document.body.appendChild(el); }
-    el.innerHTML = maintenanceHtml();
+    if (!el) { el = document.createElement("div"); el.id = "mt"; document.body.appendChild(el); el.innerHTML = maintenanceHtml(); }
     document.documentElement.classList.add("mt-lock");
   } else {
     document.documentElement.classList.remove("mt-lock");
-    if (el) { el.classList.add("out"); setTimeout(() => el.remove(), 380); }
+    if (el) { el.classList.add("out"); setTimeout(() => { if (!mtOn) el.remove(); }, 380); }
     if (S) render();
   }
+}
+// What the server says about maintenance. ON is believed at once (from any answer). OFF is believed only when TWO /api/state answers in a row say so:
+// one stale or odd answer (an old request that finished late, a server that was restarted) must never make the screen blink away and come back.
+let mtSeq = 0;
+let mtOffStreak = 0;
+function mtSignal(flag, seq, isState) {
+  if (seq < mtSeq) return; // the answer to an older request: a newer answer was already seen
+  mtSeq = seq;
+  if (flag) { mtOffStreak = 0; setMaintenance(true); return; }
+  if (!mtOn || !isState) return; // only a state answer can switch the screen off
+  mtOffStreak += 1;
+  if (mtOffStreak >= 2) { mtOffStreak = 0; setMaintenance(false); }
+  else setTimeout(refreshState, 1500); // ask once more soon, it closes about 1.5 s later
 }
 
 async function boot() {
@@ -2303,14 +2319,14 @@ async function boot() {
   // the wallet connector is created as soon as its script is there (a restored wallet shows up), without holding the app back
   tonLoaded().then(() => { ton(); const acc = connectedAccount(); if (acc) syncWallet(acc.address).then(render).catch(() => {}); }).catch(() => {});
   refreshQuote();
-  setInterval(() => { if (!document.hidden) { refreshState(); if (tab === "buy" && !busy) refreshQuote(); } }, 15000);
+  setInterval(() => { if (!document.hidden && !mtOn) { refreshState(); if (tab === "buy" && !busy) refreshQuote(); } }, 15000);
   setInterval(() => { if (mtOn && !document.hidden) refreshState(); }, 5000); // while the maintenance screen is up: it closes as soon as the admin switches it off
   document.addEventListener("visibilitychange", () => { if (mtOn && !document.hidden) refreshState(); });
-  setInterval(() => { const c = $("#chip"); if (c && S) c.outerHTML = priceChip(); }, 1000);
-  setInterval(() => { if (!document.hidden && (tab === "mine" || tab === "wallet")) pollPrice(); }, 5000); // the value of the balance follows the live price
+  setInterval(() => { const c = $("#chip"); if (c && S && !mtOn) c.outerHTML = priceChip(); }, 1000);
+  setInterval(() => { if (!document.hidden && !mtOn && (tab === "mine" || tab === "wallet")) pollPrice(); }, 5000); // the value of the balance follows the live price
   pollPrice();
   setInterval(tickMining, 1000); // the mining counter runs live
-  setInterval(() => { if (!document.hidden && tab === "chart") loadChart(); }, 5000); // the chart follows the live price
+  setInterval(() => { if (!document.hidden && !mtOn && tab === "chart") loadChart(); }, 5000); // the chart follows the live price
 }
 boot();
 </script>
